@@ -47,6 +47,7 @@ A_malo_er = Maloney, Eric (Colorado State University - emaloney 'at' atmos.colos
 A_maso_er = Mason, Erik (NOAA, USA - erik.mason 'at' noaa.gov)
 A_mass_fr = Massonnet, Francois (Spain)
 A_mart_gi = Martin, Gill (MetOffice, UK - gill.martin 'at' metoffice.gov.uk)
+A_mavi_ir = Mavilia, Irene (ISAC-CNR, Italy - i.mavilia 'at' isac.cnr.it)
 A_mell_fe = Mello, Felipe (INPE, Brazil)
 A_mohi_da = Dalvi, Mohit (MetOffice, UK - mohit.dalvi 'at' metoffice.gov.uk)
 A_muel_bn = Muller, Ben (LMU, Germany)
