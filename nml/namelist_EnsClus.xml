@@ -1,0 +1,57 @@
+<namelist>
+<include href="./config_private.xml"/>
+<namelist_summary>
+###############################################################################
+namelist_EnsClus.xml
+
+Description
+Cluster analysis tool based on the k-means algorithm for ensembles of climate model simulations
+
+Author
+Irene Mavilia (ISAC-CNR, Italy-  i.mavilia@isac.cnr.it)
+
+Project
+Copernicus C3S 34a lot 2 (MAGIC)
+
+Reference
+
+This namelist is part of the ESMValTool
+###############################################################################
+</namelist_summary>
+
+<GLOBAL>
+    <write_plots type="boolean">           False        </write_plots>
+    <write_netcdf type="boolean">          True         </write_netcdf>
+    <force_processing type="boolean">     False         </force_processing>
+    <wrk_dir type="path">                  @{WORKPATH}  </wrk_dir>
+    <plot_dir type="path">                 @{PLOTPATH}/ </plot_dir>
+    <climo_dir type="path">                @{CLIMOPATH} </climo_dir>
+    <write_plot_vars type="boolean">       False        </write_plot_vars>
+    <max_data_filesize type="integer">      100         </max_data_filesize>
+    <max_data_blocksize type="integer">     500         </max_data_blocksize>
+    <verbosity  type="integer">               1         </verbosity>
+    <exit_on_warning  type="boolean">      False        </exit_on_warning>
+    <output_file_type>                       eps        </output_file_type>
+</GLOBAL>
+
+<MODELS>
+	<model> CMIP5 EC-EARTH31 Amon historical r1i1p1 1979 2008  /home/guest/Irene_tmp/workonESMVALTOOL/raw_data/ </model>
+        <model> CMIP5 EC-EARTH31 Amon historical r2i1p1 1979 2008  /home/guest/Irene_tmp/workonESMVALTOOL/raw_data/ </model>
+ 
+</MODELS>
+
+<!-- Please do not change anything below this line, 
+     unless you want to modify the standard diagnostic settings. -->
+<DIAGNOSTICS>
+    <diag>
+        <description>         Ensemble clusterig  </description>
+        <variable_def_dir>    ./variable_defs/    </variable_def_dir>
+        <variable>            pr                  </variable>
+        <field_type>          T2Ms                 </field_type>
+        <diag_script_cfg_dir> ./nml/cfg_EnsClus/    </diag_script_cfg_dir>
+
+        <diag_script cfg="cfg_EnsClus.py"> EnsClus.py  </diag_script>
+    </diag>
+</DIAGNOSTICS>
+
+</namelist>
