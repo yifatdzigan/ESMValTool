@@ -7,22 +7,22 @@ import numpy as np
 import sys
 import os
 
-def ens_anom(filenames,dir_OUTPUT,dir_CLUStool,name_outputs,varunits,string,extreme):
+def ens_anom(filenames,dir_OUTPUT,name_outputs,varname,varunits,numens,season,area,extreme):
     '''
     \nGOAL: Computation of the ensemble anomalies based on the desired percentile value from the input variable
     (it can be the percentile, the mean or the maximum)
     OUTPUT: NetCDF files of ensemble mean of climatology, seleced percentile and anomaly maps.
     '''
-    print(name_outputs)
-    varname=name_outputs.split("_")[0]
-    print('variable name: {0} ({1})'.format(varname,varunits))
-    numens=int(name_outputs.split("_")[2][:-3].upper())
-    print('number of ensemble members: {0}'.format(numens))
-    season=name_outputs.split("_")[3]          #seasonal average
-    area=name_outputs.split("_")[4]            #regional average (examples:'EAT':Euro-Atlantic,'PNA': Pacific North American)
+ #   print(name_outputs)
+ #   varname=name_outputs.split("_")[0]
+ #   print('variable name: {0} ({1})'.format(varname,varunits))
+ #   numens=int(name_outputs.split("_")[2][:-3].upper())
+ #   print('number of ensemble members: {0}'.format(numens))
+ #   season=name_outputs.split("_")[3]          #seasonal average
+ #   area=name_outputs.split("_")[4]            #regional average (examples:'EAT':Euro-Atlantic,'PNA': Pacific North American)
     
     # User-defined packages
-    sys.path.insert(0,dir_CLUStool)
+   # sys.path.insert(0,dir_CLUStool)
     from read_netcdf import read3Dncfield, save_N_2Dfields
     from sel_season_area import sel_season, sel_area
     
@@ -123,13 +123,15 @@ if __name__ == '__main__':
     print('**************************************************************')
     filenames     = sys.argv[1].split()  # INPUT DIRECTORY
     dir_OUTPUT    = sys.argv[2]          # OUTPUT DIRECTORY
-    dir_CLUStool  = sys.argv[3]          # CLUS_tool DIRECTORY
-    name_outputs  = sys.argv[4]          # name of the outputs
+    name_outputs  = sys.argv[3]          # name of the outputs
+    varname       = sys.argv[4]          # variable units
     varunits      = sys.argv[5]          # variable units
-    string        = sys.argv[6]          # part of the input file name
-    extreme       = sys.argv[7]          # chosen extreme to investigate
+    numens        = sys.argv[6]          # variable units
+    season        = sys.argv[7]          # variable units
+    area          = sys.argv[8]          # variable units
+    extreme       = sys.argv[9]          # chosen extreme to investigate
     
-    ens_anom(filenames,dir_OUTPUT,dir_CLUStool,name_outputs,varunits,string,extreme)
+    ens_anom(filenames,dir_OUTPUT,name_outputs,varname,varunits,numens,season,area,extreme)
 
 else:
     print('I am being imported from another module')

@@ -17,7 +17,7 @@
 diag_script_info = True
 
 varunits="kg m-2 s-1"       #variable units (K, 'kg m-2 s-1')
-numens=60                   #total number of ensemble members
+numens=2                   #total number of ensemble members
 season='JJA'                #seasonal average
 area='Eu'                   #regional average (examples:'EAT':Euro-Atlantic
                             #                           'PNA': Pacific North American

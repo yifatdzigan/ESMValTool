@@ -68,51 +68,25 @@ def main(project_info):
     cfg = imp.load_source('cfg', '', f)
     f.close()
 
-    datakeys = E.get_currVars()
-    print('There is/are {0} variables'.format(len(datakeys)))
-    for v in datakeys:
+    variables = E.get_currVars()
+    print('There is/are {0} variables'.format(len(variables)))
+    for v in variables:
         print('variable is {0}'.format(v))
         
-    #model_filelist=E.get_clim_model_filenames(variable=v)
-    #print('filename is {0}'.format(model_filelist))
-    #datakey=datakeys[0]
-    #print(datakey)
+    model_filelist=get_climo_filenames(E,variable=variables[0])
+    print model_filelist
 
-    filename_array=[]
-    model_filelist=E.get_clim_model_filenames(variable=datakeys[0])
-    print('model_filename variabile is:\n{0}'.format(model_filelist))
-    filename_array.append(model_filelist) 
-    print(filename_array)
     print('\nPROJECT INFO:')
     print(project_info)    #.keys() .values()
 
-
-
-    filename_array=[]
-    for inc in range(len(project_info['MODELS'])):
-        print(inc)
-        model=project_info['MODELS'][inc]
-        print(model)
-#        # only for non-reference models
-#        if not model.model_line.split()[1] == project_info['RUNTIME']['currDiag'].variables[v].ref_model:
-#            model_filename=model_filelist[model.model_line.split()[1]]
-#            reference_filename=model_filelist[project_info['RUNTIME']['currDiag'].variables[v].ref_model]
-#        #model_filelist=E.get_model_data(modelconfig, experiment, area, datakey, datafile, extend='')
-#        model_filelist=E.get_clim_model_filenames(variable==v)
-#        #model_filename=model_filelist[model.model_line.split()[1]]
-#        #model_filename=model_filelist[model.model_line.split()[1]]
-#        #print(models_filelist)
-#        print(model_filename)
-#        #filename_array.append(model_filelist)i
-#    #print('INPUT array of absolute filenames is {0}'.format(filename_array))
-    
+     
     #print(diag_script_info.area)
-    name_outputs=datakey+'_'+str(cfg.numens)+'ens_'+cfg.season+'_'+cfg.area+'_'+cfg.kind
+    name_outputs=variables[0]+'_'+str(cfg.numens)+'ens_'+cfg.season+'_'+cfg.area+'_'+cfg.kind
     print(name_outputs)
     #dir_OUTPUT=''
     
     #ens_anom()
-   # ens_anom(filename_array,work_dir,name_outputs,cfg.varunits,cfg.extreme)
+    ens_anom(model_filelist,work_dir,name_outputs,variables[0],cfg.varunits,cfg.numens,cfg.season,cfg.area,cfg.extreme)
 
     #ens_eof_kmeans(???dir_OUTPUT,xxxxdir_PYtool,name_outputs,xxxxvarunits,cfg.numpcs,cfg.perc,cfg.numclus)
 
@@ -121,3 +95,31 @@ def main(project_info):
 
 if __name__ == "__main__":
     main()
+
+
+
+def get_climo_filenames(E, variable):
+
+    import projects
+    import os
+
+    res = []
+
+    for currDiag in E.project_info['DIAGNOSTICS']:
+        variables = currDiag.get_variables()
+        field_types = currDiag.get_field_types()
+        mip = currDiag.get_var_attr_mip()
+        exp = currDiag.get_var_attr_exp()
+        for idx in range(len(variables)):
+            for model in E.project_info['MODELS']:
+                currProject = getattr(vars()['projects'],
+                                      model.split_entries()[0])()
+                fullpath = currProject.get_cf_fullpath(E.project_info,
+                                                       model,
+                                                       field_types[idx],
+                                                       variables[idx],
+                                                       mip[idx],
+                                                       exp[idx])
+                if variable == variables[idx] and os.path.isfile(fullpath):
+                    res.append(fullpath)
+    return res
