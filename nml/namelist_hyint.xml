@@ -1,0 +1,90 @@
+<namelist>
+<include href="./config_private.xml"/>
+<namelist_summary>
+###############################################################################
+namelist_hyint.xml
+
+Description
+Namelist for the HyInt (HY-INT diagnostic by Giorgi et al. 2011) package by E. Arnone and J. von Hardenberg (ISAC-CNR)
+
+
+Authors
+E. Arnone (ISAC-CNR, Italy - e.arnone@isac.cnr.it)
+J. von Hardenberg (ISAC-CNR, Italy - j.vonhardenberg@isac.cnr.it)
+
+References:
+Giorgi, F., E.-S. Im, E. Coppola, N. S. Diffenbaugh, X. J. Gao, L. Mariotti, and Y. Shi (2011), Higher hydroclimatic intensity with global warming, J. Climate, 24, 5309-5324, doi:10.1175/2011JCLI3979.1.
+
+This namelist is part of the ESMValTool
+###############################################################################
+</namelist_summary>
+
+<GLOBAL>
+    <write_plots type="boolean">           False         </write_plots>
+    <write_netcdf type="boolean">          True         </write_netcdf>
+    <force_processing type="boolean">      False        </force_processing>
+    <force_calc type="boolean">            False         </force_calc>
+    <wrk_dir type="path">                  @{WORKPATH}  </wrk_dir>
+    <plot_dir type="path">                 @{PLOTPATH}  </plot_dir>
+    <climo_dir type="path">                @{CLIMOPATH} </climo_dir>
+    <regridding_dir type="path">           @{REGRPATH}  </regridding_dir>
+    <write_plot_vars type="boolean">       True         </write_plot_vars>
+    <max_data_filesize type="integer">     100          </max_data_filesize>
+    <max_data_blocksize type="integer">    500          </max_data_blocksize>
+    <verbosity  type="integer">              1          </verbosity>
+    <exit_on_warning  type="boolean">      False         </exit_on_warning>
+    <output_file_type>                     png          </output_file_type>
+</GLOBAL>
+
+<MODELS>
+ 
+<!--
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2006 2025        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2006 2025        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2006 2025	 /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2026 2050	 /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2051 2075	 /work/users/jost/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2076 2100	 /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1950 2100        /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1950 2005  /work/users/arnone/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1975 2012  /work/users/arnone/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1950 1974  /work/users/arnone/cmip5-data </model>  
+  <model id="ref"> CMIP5_ETHZ EC-Earth day  historical lab0 1979 1981  /work/users/arnone/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day rcp85 r8i1p1 1950 2100  /work/users/arnone/cmip5-data </model>
+-->  
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1997 1999  /work/users/arnone/cmip5-data </model>
+
+<!--  
+  <model>  OBS  TRMM-3B42 DEC2011   ISAC    1998 2000   /work/users/arnone/data/OBS/TRMM/TRMM-3B42 </model>
+  <model id="ref">  OBS    ERA-Interim    reanaly    1    1997 1999   /work/users/arnone/data/ERAINT </model>
+  <model>  obs4mips  TRMM-3B42 DEC2011   ISAC    1998 2000   /work/users/arnone/data/OBS/TRMM </model>
+  <model id="ref">  OBS    ERA-Interim    reanaly    1    1979 1981   /work/users/arnone/data/ERAINT </model>
+  <model id="ref">  OBS    ERA-Interim    reanaly    1    1979 2012   /work/users/arnone/data/ERAINT </model>
+  <model>  obs4mips  GPCP-1DD  L3    v1.2    1997 2010   /work/users/arnone/data/OBS/GPCP </model>
+  <model>  OBS    ERA-Interim    reanaly    1    1979 2014   /work/users/jost/esmtest_data </model>
+ -->
+
+</MODELS>
+
+<!-- Please do not change anything below this line, 
+     unless you want to modify the standard diagnostic settings. -->
+
+<DIAGNOSTICS>
+    <diag>
+        <description>                   HyInt Diagnostic   </description>
+        <variable_def_dir>            ./variable_defs/     </variable_def_dir>
+        <variable ref_model= "ERA-Interim">   pr           </variable>
+        <field_type>                         T2Ds          </field_type>
+        <diag_script_cfg_dir>            ./nml/cfg_hyint/  </diag_script_cfg_dir>
+        <diag_script cfg="HyInt">             hyint.py     </diag_script>
+        <diag_script cfg="cfg_hyint.r">       hyint.r      </diag_script>
+    </diag>
+</DIAGNOSTICS>
+
+</namelist>
