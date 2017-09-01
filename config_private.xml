@@ -3,42 +3,38 @@
 <settings>
 	<pathCollection>
 		<usrpath category="userDirectory" type="output" id="WORKPATH">
-			<path>/path/to/work/</path>
+			<path>/work/users/arnone/esmtest/work/</path>
 			<description>working directory</description>
 		</usrpath>
 
 		<usrpath category="userDirectory" type="output" id="PLOTPATH">
-			<path>/path/to/plots/</path>
+			<path>/work/users/arnone/esmtest/plots/</path>
 			<description>directory for output plots</description>
 		</usrpath>
 
 		<usrpath category="userDirectory" type="output" id="CLIMOPATH">
-			<path>/path/to/climo/</path>
+			<path>/work/users/arnone/esmtest/climo/</path>
 			<description>directory for output files</description>
 		</usrpath>
 
 		<usrpath category="userDirectory" type="output" id="REGRPATH">
-			<path>/path/to/regridding/</path>
+			<path>/work/users/arnone/esmtest/regridding/</path>
 			<description>directory for regridding files</description>
 		</usrpath>
 
 		<usrpath category="simulation" type="input" id="MODELPATH">
-			<path>/path/to/modeldata/</path>
+			<path>/work/users/arnone/esmtest/modeldata/</path>
 			<description>root directory of model data</description>
 		</usrpath>
 
 		<usrpath category="observation" type="input" id="OBSPATH">
-			<path>/path/to/data/obsdata/</path>
+			<path>/work/users/arnone/esmtest/obsdata/</path>
 			<description>root directory of observational data</description>
 		</usrpath>
 
-                <usrpath category="observation" type="input" id="OBSPATH2">
-                        <path>/path/to/data/obsdata2/</path>
-                        <description>alternative root directory of observational data</description>
-                </usrpath>
 
 		<usrpath category="observation" type="input" id="RAWOBSPATH">
-			<path>/path/to/data/rawobsdata/</path>
+			<path>/work/users/arnone/esmtest/rawobsdata/</path>
 			<description>root directory of raw observational data (for reformat_obs scripts)</description>
 		</usrpath>
 

@@ -28,7 +28,7 @@ rlonlatdata <- c(0,360,-90,90) # region where the pre-processing and diagnostic 
 # Diagnostic options
 removedesert=T      # T to remove (flag as NA) grid points with mean annual pr < 0.5 mm/day (desertic areas, Giorgi et al. 2014)
 norm_year_cutoff=2000  # use years < norm_year_cutoff to normalize dsl and int
-external_norm=F       # a) F=use internal data to normalize b) list of names of normalization files (one per input data file) 
+external_norm=F       # a) F=use internal data to normalize b) list of names of normalization files (one per input data file or one for all) 
 #c("/home/arnone/work/esmtest/work/HyInt/EC-Earth/1950_2005/ALL/Hyint_EC-Earth_historical_r8i1p1_r320x160_1950_2005_ALL.nc")
 
 # Plotting options

@@ -5,7 +5,7 @@
 namelist_hyint.xml
 
 Description
-Namelist for the HyInt (HY-INT diagnostic by Giorgi et al. 2011) package by E. Arnone and J. von Hardenberg (ISAC-CNR)
+Namelist for the HyInt (HY-INT diagnostic by Giorgi et al. 2011) tool by E. Arnone and J. von Hardenberg (ISAC-CNR)
 
 
 Authors
