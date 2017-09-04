@@ -17,7 +17,7 @@
 diag_script_info = True
 
 varunits="kg m-2 s-1"       #variable units (K, 'kg m-2 s-1')
-numens=2                   #total number of ensemble members
+numens=34                   #total number of ensemble members
 season='JJA'                #seasonal average
 area='Eu'                   #regional average (examples:'EAT':Euro-Atlantic
                             #                           'PNA': Pacific North American
@@ -27,7 +27,7 @@ kind='hist'                 #hist: historical, scen:scenario
 extreme='75th_percentile'   #75th_percentile, mean, maximum
 
 #---------------------about cluster analysis------------------------------------------
-numclus=6              #number of clusters
+numclus=3              #number of clusters
 #Either set perc or numpcs:
 perc=80                #cluster analysis is applied on a number of PCs such as they explain
                        #'perc' of total variance

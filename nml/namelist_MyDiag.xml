@@ -35,7 +35,7 @@ This namelist is part of the ESMValTool
 </GLOBAL>
 
 <MODELS>
-    <model>  CMIP5_ETHZ  MPI-ESM-LR    Amon  historical   r1i1p1  2000 2004  @{MODELPATH}/ETHZ_CMIP5/ </model> 
+    <model>  CMIP5_ETHZ  EC-EARTH31    Amon  historical   r1i1p1  1979 2008  @{MODELPATH}ETHZ_CMIP5/ </model> 
 </MODELS>
 
 <!-- Please do not change anything below this line, 
@@ -44,7 +44,7 @@ This namelist is part of the ESMValTool
     <diag>
         <description>         Tutorial diagnostic  </description>
         <variable_def_dir>    ./variable_defs/     </variable_def_dir>
-        <variable>            MyVar                </variable>
+        <variable>            ta                   </variable>
         <field_type>          T3M                  </field_type>
         <diag_script_cfg_dir> ./nml/cfg_MyDiag/    </diag_script_cfg_dir>
 

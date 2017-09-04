@@ -13,16 +13,16 @@ def ens_anom(filenames,dir_OUTPUT,name_outputs,varname,varunits,numens,season,ar
     (it can be the percentile, the mean or the maximum)
     OUTPUT: NetCDF files of ensemble mean of climatology, seleced percentile and anomaly maps.
     '''
- #   print(name_outputs)
- #   varname=name_outputs.split("_")[0]
- #   print('variable name: {0} ({1})'.format(varname,varunits))
- #   numens=int(name_outputs.split("_")[2][:-3].upper())
- #   print('number of ensemble members: {0}'.format(numens))
- #   season=name_outputs.split("_")[3]          #seasonal average
- #   area=name_outputs.split("_")[4]            #regional average (examples:'EAT':Euro-Atlantic,'PNA': Pacific North American)
+    print(name_outputs)
+#    varname=name_outputs.split("_")[0]
+    print('variable name: {0} ({1})'.format(varname,varunits))
+#    numens=int(name_outputs.split("_")[2][:-3].upper())
+    print('number of ensemble members: {0}'.format(numens))
+#    season=name_outputs.split("_")[3]          #seasonal average
+#    area=name_outputs.split("_")[4]            #regional average (examples:'EAT':Euro-Atlantic,'PNA': Pacific North American)
     
     # User-defined packages
-   # sys.path.insert(0,dir_CLUStool)
+    # sys.path.insert(0,dir_CLUStool)
     from read_netcdf import read3Dncfield, save_N_2Dfields
     from sel_season_area import sel_season, sel_area
     

@@ -10,7 +10,7 @@ from sklearn.cluster import KMeans
 import datetime
 from numpy import linalg as LA
 
-def ens_eof_kmeans(dir_OUTPUT,dir_CLUStool,name_outputs,varunits,numpcs,perc,numclus):
+def ens_eof_kmeans(dir_OUTPUT,name_outputs,varunits,numens,numpcs,perc,numclus):
     '''
     \nGOAL:
     Find the most representative ensemble member for each cluster.
@@ -20,12 +20,6 @@ def ens_eof_kmeans(dir_OUTPUT,dir_CLUStool,name_outputs,varunits,numpcs,perc,num
     OUTPUT: 
     '''
     print(name_outputs)
-    varname=name_outputs.split("_")[0]
-    print('variable name: {0} ({1})'.format(varname,varunits))
-    model=name_outputs.split("_")[1]
-    print('model: {0}'.format(model))
-    
-    numens=int(name_outputs.split("_")[2][:-3].upper())
     print('number of ensemble members: {0}'.format(numens))
 
     if numpcs!='no':
@@ -42,7 +36,7 @@ def ens_eof_kmeans(dir_OUTPUT,dir_CLUStool,name_outputs,varunits,numpcs,perc,num
     print('number of clusters: {0}'.format(numclus))
     
     # User-defined libraries
-    sys.path.insert(0,dir_CLUStool)
+    # sys.path.insert(0,dir_CLUStool)
     from read_netcdf import read_N_2Dfields
     from eof_tool import eof_computation
     
@@ -115,11 +109,12 @@ def ens_eof_kmeans(dir_OUTPUT,dir_CLUStool,name_outputs,varunits,numpcs,perc,num
     print('\nCluster patterns shape: {0}'.format(cluspattern.shape))
     
     print('Cluster labels')
-    print(L[0][0],L[1][0],L[2][0],L[3][0])
+    print([L[ncl][0] for ncl in range(numclus)])
     print('Cluster frequencies')
-    print(L[0][1],L[1][1],L[2][1],L[3][1]) 
+    print([L[ncl][1] for ncl in range(numclus)])
     print('Cluster members')
-    print(L[0][2],L[1][2],L[2][2],L[3][2])
+    print([L[ncl][2] for ncl in range(numclus)])
+
     
     #____________Find the most representative ensemble memeber for each cluster
     print('____________________________________________________________________________________________________________________')
@@ -187,14 +182,13 @@ if __name__ == '__main__':
     print('Running {0}'.format(sys.argv[0]))
     print('**************************************************************')
     dir_OUTPUT    = sys.argv[1]  # OUTPUT DIRECTORY
-    dir_CLUStool  = sys.argv[2]  # CLUS_tool DIRECTORY
-    name_outputs  = sys.argv[3]  # name of the outputs
-    varunits      = sys.argv[4]  # variable units
-    numpcs        = sys.argv[5]  # number of retained PCs
-    perc          = sys.argv[6]  # percentage of explained variance by PCs
-    numclus       = int(sys.argv[7])  # number of clusters
+    name_outputs  = sys.argv[2]  # name of the outputs
+    varunits      = sys.argv[3]  # variable units
+    numpcs        = sys.argv[4]  # number of retained PCs
+    perc          = sys.argv[5]  # percentage of explained variance by PCs
+    numclus       = sys.argv[6]  # number of clusters
     
-    ens_eof_kmeans(dir_OUTPUT,dir_CLUStool,name_outputs,varunits,numpcs,perc,numclus)
+    ens_eof_kmeans(dir_OUTPUT,name_outputs,varunits,numpcs,perc,numclus)
     
 else:
     print('I am being imported from another module')

@@ -34,12 +34,11 @@ import imp
 
 # Add subfolder of the diagnostics to the path
 sys.path.append('./diag_scripts/aux/EnsClus/')
-
 from esmval_lib import ESMValProject
 
 # Import full diagnostic routines
 from ens_anom import ens_anom
-#from ens_eof_kmeans import ens_eof_kmeans 
+from ens_eof_kmeans import ens_eof_kmeans 
 
 def main(project_info):
     print(">>>>>>>> EnsClus.py is running! <<<<<<<<<<<<")
@@ -76,19 +75,17 @@ def main(project_info):
     model_filelist=get_climo_filenames(E,variable=variables[0])
     print model_filelist
 
-    print('\nPROJECT INFO:')
-    print(project_info)    #.keys() .values()
-
+    #print('\nPROJECT INFO:')
+    #print(project_info)    #.keys() .values()
      
     #print(diag_script_info.area)
     name_outputs=variables[0]+'_'+str(cfg.numens)+'ens_'+cfg.season+'_'+cfg.area+'_'+cfg.kind
     print(name_outputs)
     #dir_OUTPUT=''
     
-    #ens_anom()
     ens_anom(model_filelist,work_dir,name_outputs,variables[0],cfg.varunits,cfg.numens,cfg.season,cfg.area,cfg.extreme)
 
-    #ens_eof_kmeans(???dir_OUTPUT,xxxxdir_PYtool,name_outputs,xxxxvarunits,cfg.numpcs,cfg.perc,cfg.numclus)
+    ens_eof_kmeans(work_dir,name_outputs,cfg.varunits,cfg.numens,cfg.numpcs,cfg.perc,cfg.numclus)
 
     print(">>>>>>>> ENDED SUCESSFULLY!! <<<<<<<<<<<<")
     print('')
