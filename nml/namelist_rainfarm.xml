@@ -1,0 +1,67 @@
+<namelist>
+<include href="./config_private.xml"/>
+<namelist_summary>
+###############################################################################
+namelist_rainfarm.xml
+
+Description
+Namelist for the RainFARM package by J. von Hardenberg (ISAC-CNR)
+
+Authors
+E. Arnone (ISAC-CNR, Italy - e.arnone@isac.cnr.it)
+J. von Hardenberg (ISAC-CNR, Italy - j.vonhardenberg@isac.cnr.it)
+
+References:
+https://github.com/jhardenberg/RainFARM.jl
+D'Onofrio et al. 2014, J of Hydrometeorology 15, 830-843
+Rebora et. al 2006, JHM 7, 724
+
+
+This namelist is part of the ESMValTool
+###############################################################################
+</namelist_summary>
+
+<GLOBAL>
+    <write_netcdf type="boolean">          True         </write_netcdf>
+    <force_processing type="boolean">      False        </force_processing>
+    <force_calc type="boolean">            False         </force_calc>
+    <plot_dir type="path">                 @{PLOTPATH}  </plot_dir>
+    <wrk_dir type="path">                  @{WORKPATH}  </wrk_dir>
+    <climo_dir type="path">                @{CLIMOPATH} </climo_dir>
+    <regridding_dir type="path">           @{REGRPATH}  </regridding_dir>
+    <write_plot_vars type="boolean">       True         </write_plot_vars>
+    <max_data_filesize type="integer">     100          </max_data_filesize>
+    <max_data_blocksize type="integer">    500          </max_data_blocksize>
+    <verbosity  type="integer">              1          </verbosity>
+    <exit_on_warning  type="boolean">      False         </exit_on_warning>
+</GLOBAL>
+
+<MODELS>
+ 
+<!--
+  <model> CMIP5_ETHZ EC-Earth day rcp85 r8i1p1 1950 2100  /work/users/arnone/cmip5-data </model>
+-->  
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1997 1999  /work/users/arnone/cmip5-data </model>  
+<!--  
+  <model id="ref">  OBS    ERA-Interim    reanaly    1    1997 1999   /work/users/arnone/data/ERAINT </model>
+  <model>  obs4mips  GPCP-1DD  L3    v1.2    1997 2010   /work/users/arnone/data/OBS/GPCP </model>
+ -->
+
+</MODELS>
+
+<!-- Please do not change anything below this line, 
+     unless you want to modify the standard diagnostic settings. -->
+
+<DIAGNOSTICS>
+    <diag>
+        <description>                   RainFARM Diagnostic   </description>
+        <variable_def_dir>            ./variable_defs/     </variable_def_dir>
+        <variable ref_model= "ERA-Interim">   pr           </variable>
+        <field_type>                         T2Ds          </field_type>
+        <diag_script_cfg_dir>            ./nml/cfg_rainfarm/  </diag_script_cfg_dir>
+        <diag_script cfg="rainfarm">             rainfarm.py     </diag_script> 
+        <diag_script cfg="cfg_rainfarm.r">       rainfarm.r      </diag_script>
+    </diag>
+</DIAGNOSTICS>
+
+</namelist>

@@ -1,10 +1,7 @@
 # This is a temporary file updated by Python on the fly
 #------------------------------------------------------
 
-
-
-
-
+var_attr_ref <- <<VAR_ATTR_REF>>
 
 figfiles_suffix <- c(<<FIGFILES_SUFFIX>>)
 output_file_type <- c(<<OUTPUT_FILE_TYPE>>)
@@ -20,6 +17,8 @@ verbosity <- as.integer(<<VERBOSITY>>)
 start_year <- <<START_YEAR>>
 end_year <- <<END_YEAR>>
 
+
+
 variables        <- c(<<VARIABLES>>)
 variable_def_dir <- c(<<VARIABLE_DEF_DIR>>)
 
@@ -27,6 +26,12 @@ field_types <- c(<<FIELD_TYPES>>)
 
 plot_dir <- c(<<PLOT_DIR>>)
 climo_dir <- c(<<CLIMO_DIR>>)
+work_dir <- c(<<WRK_DIR>>)
+regridding_dir <- c(<<REGRIDDING_DIR>>)
+
+write_plots <- as.logical(<<WRITE_PLOTS>>)
+write_netcdf <- as.logical(<<WRITE_NETCDF>>)
+force_processing <- as.logical(<<FORCE_PROCESSING>>)
 
 diag_script_cfg <- c(<<DIAG_SCRIPT_CFG>>)
 
