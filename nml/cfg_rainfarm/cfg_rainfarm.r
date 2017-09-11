@@ -7,8 +7,9 @@
 #####################################################################
 
 # Pre-processing options
-rgrid   <-  "r320x160"       # set FALSE or desired regridding resolution (e.g., comparing different datasets)  
-rlonlatdata <- c(9,13,44,48) # region where calculation is to be performed. The region selected needs 
+rgrid   <-  F #"r320x160"       # set FALSE or desired regridding resolution (e.g., comparing different datasets)  
+rlonlatdata <- c(9,13,48.5,52.5) 
+# c(34,39,34,38) # region where calculation is to be performed. The region selected needs 
                              # to have equal number of longitude and latitude grid points. 
                              # Warning: downcaling can reach very high resolution so select limited area.  
                              # NOTE: lon(0/360) 

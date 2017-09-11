@@ -89,6 +89,7 @@ for (model_idx in c(1:(length(models_name)))) {
   if (rainfarm_args$conserv_smooth == T) {rainfarm_args$conserv_smooth <- ""}
  
   # generate weights file if needed
+  # (for more information use 'rfweights -h')
   if (rainfarm_args$weights_climo != F) {
     fileweights <- paste0(work_dir,"/",exp,"/",inregname,"_w.nc")
     snf <- ""
@@ -102,6 +103,8 @@ for (model_idx in c(1:(length(models_name)))) {
   }  
   ret <- which(as.logical(rainfarm_args)!=F|is.na(as.logical(rainfarm_args)))
   rargs <- paste(rainfarm_options[ret],rainfarm_args[ret],collapse=" ")
+  # call rfarm
+  # (for more information use 'rfarm -h')
   command<-paste0("rfarm -o '", filename,"' ",rargs," ",inregfile) 
   #print(command)
   system(command)
