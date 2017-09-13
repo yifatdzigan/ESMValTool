@@ -22,19 +22,8 @@ def main(project_info):
     diag_script = E.get_diag_script_name()
 
     if "hyint" in config_file:
-       diag_refs=["D_giorgi11jc"]
+       diag_refs=["D_giorgi14jgr", "D_giorgi11jc"]
        diag_script="hyint.r"
-    elif "miles_block" in config_file:
-       diag_refs=["D_davini12jc", "D_tibal90ta"]
-       #diag_script="hyint.r"
-       #diag_refs=["F_giorgi11jc"]
-       diag_script="miles_block.r"
-    elif "miles_eof" in config_file:
-       diag_refs=[""]
-       diag_script="miles_eof.r"
-    else:
-       diag_refs=[""]
-       diag_script="miles_regimes.r"
 
     res = E.write_references(diag_script,                # diag script name
                              ["A_arno_en", "A_hard_jo"], # authors

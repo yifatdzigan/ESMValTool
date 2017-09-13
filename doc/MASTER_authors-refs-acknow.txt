@@ -130,6 +130,7 @@ D_davini12jc = Davini et al., J. Climate 25, 6496-6509, doi:10.1175/JCLI-D-12-00
 D_eyring06jgr = Eyring et al., J. Geophys. Res., 111, D22308, doi:10.1029/2006JD007327, 2006.
 D_eyring13jgr = Eyring et al., J. Geophys. Res., 118, 5029-5060, doi:10.1002/jgrd.50316, 2013.
 D_giorgi11jc = Giorgi et al., J. Climate 24, 5309-5324, doi:10.1175/2011JCLI3979.1, 2011.
+D_giorgi14jgr = Giorgi et al., J. Geophys. Res. Atmos., 119, 11,695–11,708, doi:10.1002/ 2014JD022238, 2014.
 D_gleckler08jgr = Gleckler et al., J. Geophys. Res., 113, D06104, doi:10.1029/2007JD008972, 2008.
 D_hagemann13jadvmodelearthsyst = Hagemann et al., J. Adv. Model. Earth Syst., 5, doi:10.1029/2012MS000173, 2013.
 D_lauer05acp = Lauer et al., Atmos. Chem. Phys., 5, 3251-3276, doi:10.5194/acp-5-3251-2005, 2005.
