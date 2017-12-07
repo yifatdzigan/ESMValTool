@@ -1,10 +1,27 @@
 # HyInt metadata
 
 ##########################################################
-#----------------Metadata functions----------------------#
+#----------------Metadata functions------------------------#
 ##########################################################
 
-getmetadata.indices<-function(var){
+getmetadata.indices<-function(var,sfile){
+
+  ncfile=nc_open(sfile)    
+  long_name <- (ncatt_get(ncfile,var,"long_name"))$value
+  units <- (ncatt_get(ncfile,var,"units"))$value
+  missval <- (ncatt_get(ncfile,var,"missing_value"))$value
+  if (units == 0) {units <- ""}
+  nc_close(ncfile)
+  metadata <- list(long_name=long_name, units=units, missval=missval)
+
+return(metadata)
+
+}
+
+setmetadata.indices<-function(var){
+
+        longvar=""
+        unit=""
 
         #name of the var
         if (var=="pry")         {longvar="Annual mean precipitation"; unit="days"}
@@ -34,7 +51,7 @@ getmetadata.indices<-function(var){
                                           averaged over available XX century data"; unit="days"}
         if (var=="wsl_norm")    {longvar="Normalized annual mean wet spell length"; unit=""}
 
-        if (var=="int")         {longvar="Annual mean precipitation intensity / simple precipitation intensity index (SDII)"; unit="mm day-1"}
+        if (var=="int")         {longvar="Annual mean precipitation intensity"; unit="mm day-1"}
         if (var=="int_mean")    {longvar="Normalization function: Annual mean precipitation intensity averaged over 
                                  available XX century data"; unit="mm day-1"}
         if (var=="int_mean_sd")      {longvar="Normalization function: Standard deviation of the annual mean precipitation intensity averaged over 

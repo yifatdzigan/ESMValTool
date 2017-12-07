@@ -1,3 +1,20 @@
+# #############################################################################
+# hyint_functions.R
+#
+# Author: Enrico Arnone, Paolo Davini (ISAC-CNR, Italy)
+#
+#
+# #############################################################################
+# Description
+#     Functions used in HyInt routines   
+#      
+#
+# Modification history
+#    20170901-A_arno_en: adapted to HyInt and extended
+#    20170522-A_davi_pa: Creation for MiLES
+#
+# #############################################################################
+
 #basis functions
 
 
@@ -12,6 +29,87 @@ library("PCICt")
 
 #check if fast linear fit is operative (after R 3.1): 3x faster than lm.fit, 36x faster than lm
 if (exists(".lm.fit")) {lin.fit=.lm.fit} else {lin.fit=lm.fit}
+
+
+##########################################################
+#----------------Naming functions------------------------#
+##########################################################
+
+getfilename.regridded<-function(spath,rgrid,var0,model_idx){
+  exp    <- models_name[model_idx]
+  year1  <- models_start_year[model_idx]
+  year2  <- models_end_year[model_idx]
+  model_exp <- models_experiment[model_idx]
+  model_ens <- models_ensemble[model_idx]
+  filename=paste0(spath,"/",exp,"/",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"-",toString(year2),"_",var0,"_",rgrid,".nc")
+return(filename)
+}
+
+getfilename.indices<-function(spath,label,rgrid,model_idx,season,hist=F,hist_years=hist_years){
+  exp    <- models_name[model_idx]
+  year1  <- models_start_year[model_idx]
+  year2  <- models_end_year[model_idx]
+  model_exp <- models_experiment[model_idx]
+  if (hist) { 
+    model_exp <- "historical"
+    year1 <- hist_years[1]
+    year2 <- hist_years[2]
+  }
+  model_ens <- models_ensemble[model_idx]
+  sgrid <- "noregrid";  if (rgrid != F) {sgrid <- rgrid}
+  filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,"_",sgrid,"_",toString(year1),"_",toString(year2),"_",season,".nc")
+return(filename)
+}
+
+getfilename.etccdi<-function(spath,var,model_idx,yrmon="yr"){
+# Function to get names of files of ETCCDI indices
+# If input 'var' is an array of names, 'filename' an array will be as well 
+
+  filename=""
+  for (svar in var) {
+    exp    <- models_name[model_idx]
+    model_exp <- models_experiment[model_idx]
+    model_ens <- models_ensemble[model_idx]
+    year1  <- toString(models_start_year[model_idx])
+    year2  <- toString(models_end_year[model_idx])
+    if (yrmon == "mon") {
+      year1 <- paste0(year1,"01")
+      year2 <- paste0(year2,"12")
+    }
+    filenametmp=paste0(spath,"/",svar,"_",yrmon,"_",model_exp,"_",exp,"_",model_ens,"_",year1,"-",year2,".nc")
+  filename=c(filename,filenametmp)
+  } 
+  filename=filename[2:length(filename)]
+return(filename)
+}
+
+getfilename.trends<-function(spath,label,rgrid,model_idx,season) {
+  exp    <- models_name[model_idx]
+  year1  <- models_start_year[model_idx]
+  year2  <- models_end_year[model_idx]
+  model_exp <- models_experiment[model_idx]
+  model_ens <- models_ensemble[model_idx]
+  sgrid <- "noregrid";  if (rgrid != F) {sgrid <- rgrid}
+  filename=paste0(spath,"/",diag_base,"_",exp,"_",model_exp,"_",model_ens,"_",sgrid,"_",toString(year1),"_",toString(year2),"_",season,"_tseries_",label,".nc")
+return(filename)
+}
+
+getfilename.figure<-function(spath,var,rgrid,year1,year2,model_idx,season,syears,sregion,label,map,output_file_type,multimodel=F) {
+  exp    <- models_name[model_idx]
+  year1  <- models_start_year[model_idx]
+  year2  <- models_end_year[model_idx]
+  model_exp <- models_experiment[model_idx]
+  model_ens <- models_ensemble[model_idx]
+  model_tag <- paste(exp,model_exp,model_ens,sep="_")
+  if (multimodel) { model_tag <- "multimodel" }
+  sgrid <- "noregrid";  if (rgrid != F) {sgrid <- rgrid}  
+  figname=paste0(spath,"/",paste(var,model_tag,sgrid,paste(year1,year2,sep="-"),season,syears,sregion,map,sep="_"),".",output_file_type)
+  if (!(label == "")&!(label == F)) {
+    figname=paste0(spath,"/",paste(var,model_tag,sgrid,paste(year1,year2,sep="-"),season,syears,sregion,label,map,sep="_"),".",output_file_type)
+  }
+return(figname)
+}
+
 
 ##########################################################
 #-----------------Basic functions------------------------#
@@ -60,7 +158,7 @@ return(field)
 
 
 #produce a 2d matrix of area weight
-area.weight<-function(ics,ipsilon,root=T)
+area.weight<-function(ics,ipsilon,root=T,norm=F)
 {
 field=array(NA,dim=c(length(ics),length(ipsilon)))
 if (root==T)
@@ -74,14 +172,35 @@ if (root==F)
         for (j in 1:length(ipsilon))
         {field[,j]=cos(pi/180*ipsilon[j])}
 }
+if ( norm ) { field <- field / mean(field) }
 return(field)
 
 }
 
+#normalize a 2D or 3D field by a 2d matrix of area weight
+area.weight.norm<-function(ics,ipsilon,field,root=T,norm=F)
+{
+ timedim <- dim(field)[length(dim(field))] 
+ weights<-replicate(timedim,area.weight(ics,ipsilon,root=root,norm=norm))
+ field <- field * weights
+return(field)
+}
 
 ##########################################################
 #--------------Time Based functions----------------------#
 ##########################################################
+
+#check number of days for each month
+
+number.days.month <- function(datas) {
+
+        #evaluate the number of days in a defined month of a year
+        datas=as.Date(datas)
+        m=format(datas,format="%m")
+        while (format(datas,format="%m") == m) {datas=datas+1}
+        return(as.integer(format(datas-1,format="%d")))
+}
+
 
 # to convert season charname to months number
 season2timeseason<-function(season)
@@ -184,24 +303,128 @@ power.date.30day<-function(season,ANNO1,ANNO2)
 	return(dataline.30day)
 }
 
-calc.region.timeseries<-function(x,y,indata,region,calc_sd=FALSE,...) {
+calc.region.timeseries<-function(x,y,indata,region,calc_sd=F,weighted_mean=T,root=F,norm=T,..) {
   # This function subsets a lon/lat/time array based on an input region(lon1,loni2,lat1,lat2)
-  # and returns its timeseries 
+  # and returns its timeseries. Area weights are applied if requested. 
+  # The function returns also the standard deviation of the averaging elements (currently excluding weights)
 
+  idimtimedata<-length(dim(indata))
   retx<-which(region[1]<=x & x<=region[2]) 
   rety<-which(region[3]<=y & y<=region[4])   
-#  print(str(retx))
-#  print(str(rety))
-#  print(str(indata)) 
-  if (is.na(retx[1]) | is.na(rety[1])) { stop("calc.region.timeseries: no data in selected region") }
-   
-  retdata<-indata[retx,rety,]   
-  idimtimedata<-length(dim(retdata)) 
-  outdata<-apply(retdata,idimtimedata,mean,na.rm=T) 
-  if (calc_sd) { outdata<-apply(retdata,idimtimedata,sd,na.rm=T) }   
- 
+#  print(paste("Calc.region.timeseries: ",length(retx),length(rety)))
+#  print(paste("Calc.region.timeseries: ",retx[1],rety[1]))
+  if (is.na(retx[1]) | is.na(rety[1])) { 
+    print("calc.region.timeseries: no data in selected region. Returning NA.") 
+    outdata<-array(dim=idimtimedata)
+    print(str(outdata))
+    print(str(indata))
+    print(region)
+  } else {   
+    retdata<-indata[retx,rety,,drop=F]  
+    if (weighted_mean & !calc_sd) { retdata <- area.weight.norm(x[retx],y[rety],retdata,root=root,norm=norm) } 
+    outdata<-apply(retdata,idimtimedata,mean,na.rm=T)
+    if (calc_sd) { outdata<-apply(retdata,idimtimedata,sd,na.rm=T) }   
+  } 
 return(outdata)
 }
+
+##################
+#--------Data preprocessing
+#################
+
+##
+## Method to create an asci grid file for
+## to use to regrid on
+## @param idx_dir path of directory containing
+## files from which to create the grid
+## Adapted from 20170920-A_maritsandstad
+##
+createGrid <- function(ref_file = ref_file, path = idx_dir, loc = "./gridDef") {
+
+        ## Picking the grid found in reference file to regrid over
+        if(!file.exists(ref_file)){
+           ## Picking the grid found in the first file to regrid over
+                ref_file <- list.files(path, pattern = '*.nc', full.names = TRUE)[1]
+        }
+        cmd <- paste('cdo griddes ', ref_file, ' > ', loc, sep = '')
+        print(cmd)
+        system(cmd)
+
+}
+
+##
+## Method to create a landSeaMask on a suitable grid
+## @param regrid name w/path of gridfile to use
+## to put the landdseamask on
+## Adapted from 20170920-A_maritsandstad
+##
+createLandSeaMask <- function(regrid = './gridDef', ref_file = ref_file, loc = "./", landmask ="./landSeaMask.nc", topo_only = F){
+        # Test if gridfile exists
+        # otherwise call function to generate one
+        if(!file.exists(regrid)){
+                #createGrid(path = loc, loc = regrid)
+                createGrid(ref_file = ref_file, loc = regrid)
+
+        }
+
+        ## Making topographic map
+        cmd <- paste('cdo -f nc topo ', loc, '/topo.nc', sep = '')
+        print(cmd)
+        system(cmd)
+
+        ## Regridding the topographic map to chosen grid
+        cmd <- paste('cdo remapcon,', regrid, ' ',  loc,  '/topo.nc ', loc, '/regridded_topo.nc', sep = "")
+        print(cmd)
+        system(cmd)
+
+        if (!topo_only) {
+
+        	## Set above sea-level gridpoints to missing
+        	cmd <- paste('cdo setrtomiss,0,9000 ', loc, '/regridded_topo.nc ', loc,  '/regridded_topo_miss1.nc', sep = "")
+        	print(cmd)
+        	system(cmd)
+
+	        ## Set above sea-level gridpoints to 1
+		cmd <- paste('cdo setmisstoc,1 ', loc, '/regridded_topo_miss1.nc ', loc,  '/regridded_topo_1pos.nc', sep = "")
+		print(cmd)
+		system(cmd)
+
+        	## Set below sea-level gridpoints to missing
+        	cmd <- paste('cdo setrtomiss,-9000,0 ', loc, '/regridded_topo_1pos.nc ', landmask, sep = "")
+        	print(cmd)
+        	system(cmd)
+	}
+}
+
+##
+## Read seaLandElevationMask and mask data 
+##
+apply.elevation.mask<-function(rfield,relevation,el_threshold,reverse=F)
+{
+  if (!reverse) {
+    if (el_threshold >= 0) { # mountains
+      relevation[relevation<el_threshold]=NA 
+      relevation=relevation*0+1
+    } else { # oceans
+      relevation[relevation>el_threshold]=NA
+      relevation=relevation*0+1
+    }
+  } else {
+    if (el_threshold >= 0) { # mountains
+      relevation[relevation>el_threshold]=NA 
+      relevation=relevation*0+1
+    } else { # oceans
+      relevation[relevation<el_threshold]=NA
+      relevation=relevation*0+1
+    }
+  }
+
+  itimedim<-dim(rfield)[length(dim(rfield))]
+  rfield=rfield*replicate(itimedim,relevation)
+
+return(rfield)
+}
+
 
 
 ##########################################################
@@ -250,7 +473,27 @@ mean.spell.length<-function(m)
  return(mean_spell_length_year)
 }
 
+get.elevation<-function(filename=NULL,elev_range=c(-1000,10000),mask=F,elev_plot=F){
+# get elevation data from a high resolution topography file.
+# In the example the GMTED2010 elevation data regridded at 0.125 degree resolution is adopted
+# Elevation file: GMTED2010_15n030_0125deg.nc - KNMI
+# gmted2010_citation = "Danielson, J.J., and Gesch, D.B., 2011, Global multi-resolution terrain elevation data 2010 (GMTED2010): U.S. Geological Survey Open-File Report 2011-1073, 26 p."
 
+if (is.null(filename)) { filename="/home/arnone/work/data/Elevation/GMTED2010_15n030_0125deg.nc" }
+elevation=ncdf.opener(filename,namevar="elevation",namelon="longitude",namelat="latitude",rotate="no")
+lon_el=ncdf.opener(filename,namevar="longitude",rotate="no")
+lat_el=ncdf.opener(filename,namevar="latitude",rotate="no")
+elevation[which(elevation<elev_range[1]|elevation>elev_range[2])]=NA
+if (mask) {
+  elevation[which(elevation>=elev_range[1]&elevation<=elev_range[2])]=1
+}
+if (elev_plot) {
+  filled.contour3(lon_el,lat_el,elevation,color.palette=rainbow)
+  map("world",regions=".",interior=F,exact=F,boundary=T,add=T,col="gray",lwd=1.5)
+}
+el_list=list(elevation=elevation,lon_el=lon_el,lat_el=lat_el)
+return(el_list)
+}
 
 
 ##########################################################
@@ -258,7 +501,7 @@ mean.spell.length<-function(m)
 ##########################################################
 
 #function to open ncdf files (much more refined, with CDO-based interpolation)
-ncdf.opener<-function(namefile,namevar=NULL,namelon="lon",namelat="lat",rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2")
+ncdf.opener<-function(namefile,namevar=NULL,namelon="lon",namelat="lat",rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2",exportlonlat=T)
 {
 #function to open netcdf files. It uses ncdf4 library. support only 1D (t), 2D (x,y) or 3D (x,y,t) data in any netcdf format.
 #automatically rotate matrix to place greenwich at the center (flag "rotate") and flip the latitudes in order to have increasing
@@ -322,10 +565,11 @@ if (dimensions>1)
                 else
                 {ipsilon=sort(ipsilon); daily=flipper.zonal(daily) }
 
-        #exporting variables to the main program
-        assign("ics",ics, envir = .GlobalEnv)
-        assign("ipsilon",ipsilon, envir = .GlobalEnv)
-
+        if (exportlonlat){
+          #exporting variables to the main program
+          assign("ics",ics, envir = .GlobalEnv)
+          assign("ipsilon",ipsilon, envir = .GlobalEnv)
+        }
 } 
 
 if (dimensions>3)
@@ -342,7 +586,6 @@ if (interp2grid) {system2("rm",tempfile)}
 
 return(daily)
 }
-
 
 #function to open ncdf files (much more refined, with CDO-based interpolation)
 ncdf.opener.time<-function(namefile,namevar=NULL,namelon=NULL,namelat=NULL,tmonths=NULL,tyears=NULL,ics=ics,ipsilon=ipsilon,rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2")
@@ -416,18 +659,22 @@ print("selecting years and months")
 #select time needed
 
 #based on preprocessing of CDO time format: get calendar type and use PCICt package for irregular data
-cal=ncatt_get(a,"time","calendar")$value
-timeline=as.PCICt(as.character(time),format="%Y%m%d",cal=cal)
+caldata=ncatt_get(a,"time","calendar")$value
+print(caldata)
+timeline=as.PCICt(as.character(time),format="%Y%m%d",cal=caldata)
+str(timeline)
 
 # break if the calendar has not been recognized
 if (any(is.na(timeline))) {
 	stop("Calendar from NetCDF is unsupported or not present. Stopping!!!")
 }
+
 #break if the data requested is not there
-lastday=as.PCICt(paste0(max(tyears),"-",max(tmonths),"-28"),cal="standard",format="%Y-%m-%d")
-firstday=as.PCICt(paste0(min(tyears),"-",min(tmonths),"-01"),cal="standard",format="%Y-%m-%d")
-if (max(timeline)<lastday | min(timeline)>min(timeline)) {
-	stop("You requested a time interval that is not present in the NetCDF")
+lastday_base=paste0(max(tyears),"-",max(tmonths),"-28") #uses number.days.month, which loops to get the month change
+lastday=as.PCICt(paste0(max(tyears),"-",max(tmonths),"-",number.days.month(lastday_base)),cal=caldata,format="%Y-%m-%d")
+firstday=as.PCICt(paste0(min(tyears),"-",min(tmonths),"-01"),cal=caldata,format="%Y-%m-%d")
+if (max(timeline)<lastday | min(timeline)>firstday) {
+        stop("You requested a time interval that is not present in the NetCDF")
 }
 
 #time selection and variable loading
@@ -442,7 +689,7 @@ select=which(as.numeric(format(timeline,"%Y")) %in% tyears & as.numeric(format(t
 field=field[,,select]
 time=timeline[select]
 
-print(paste("This is a",cal,"calendar"))
+print(paste("This is a",caldata,"calendar"))
 print(paste(length(time),"days selected from",time[1],"to",time[length(time)]))
 
 #check for dimensions (presence or not of time dimension)
@@ -505,6 +752,29 @@ return(mget(c("field",naxis)))
 #--------------Plotting functions------------------------#
 ##########################################################
 
+
+# Figure functions
+graphics.startup<-function(figname,output_file_type,diag_script_cfg) {
+source(diag_script_cfg)
+  # choose output format for figure - by JvH
+  if (tolower(output_file_type) == "png") {
+      png(filename = figname, width=png_width, height=png_height)
+  } else if (tolower(output_file_type) == "pdf") {
+      pdf(file=figname,width=pdf_width,height=pdf_height,onefile=T)
+  } else if (tolower(output_file_type) == "eps") {
+      setEPS(width=pdf_width,height=pdf_height,onefile=T,paper="special")
+      postscript(figname)
+  } else if (tolower(output_file_type) == "x11") {
+      x11(width=x11_width,height=x11_height)
+  }
+return()
+}
+
+graphics.close<-function(figname) {
+  print(figname)
+  dev.off()
+return()
+}
 
 #extensive filled.contour function 
 filled.contour3 <-

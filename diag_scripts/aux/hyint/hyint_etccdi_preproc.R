@@ -1,0 +1,38 @@
+######################################################
+#-------------ETCCDI preprocessing for HyInt---------#
+#-------------E. Arnone (Oct 2017)-------------------#
+######################################################
+# ABOUT: This function pre-process ETCCDI files obtained with the CRESCENDO_extremeEvents namelist
+#        remapping the data from gaussian to lonlat, changing longitude range from 0/360 to -180/180
+#        and merging all indices into the HyInt indices file. 
+
+hyint.etccdi.preproc<-function(work_dir,etccdi_dir,cdo_grid,model_idx,season,yrmon="yr") {
+source(diag_script_cfg)
+
+  for (model_idx in c(1:(length(models_name)))) {
+    year1  <- toString(models_start_year[model_idx])
+    year2  <- toString(models_end_year[model_idx])
+    print(str(c(year1,year2)))
+    work_dir_tmp<-paste(c(work_dir,models_name[model_idx],paste0(year1,"_",year2),season),collapse="/")
+    hyint_file<-getfilename.indices(work_dir_tmp,diag_base,rgrid,model_idx,season)
+    etccdi_files<-getfilename.etccdi(etccdi_dir,etccdi_yr_list,model_idx,yrmon="yr")
+    for (sfile in etccdi_files) {
+      cdo_command<-paste0("cdo setgrid,",cdo_grid," -delvar,time_bnds ",sfile," ",sfile,"_tmp")        
+      system(cdo_command)
+    }
+    mv_command<-paste("mv -n ",hyint_file,paste0(hyint_file,"_tmp"))
+    etccdi_files_tmp<-paste(etccdi_files,"_tmp",sep="",collapse=" ")
+    print(paste0("HyInt: merging ",length(etccdi_files)," ETCCDI files"))
+    cdo_command<-paste0("cdo -O merge ",paste0(hyint_file,"_tmp "),etccdi_files_tmp," ",hyint_file)
+    rm_command<-paste("rm ",etccdi_files_tmp)
+    print(mv_command)
+    print(cdo_command)
+    print(rm_command)
+    system(mv_command)
+    system(cdo_command)
+    system(rm_command)
+  }
+return(0)
+}
+
+

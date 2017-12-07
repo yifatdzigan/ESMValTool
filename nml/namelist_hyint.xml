@@ -5,7 +5,7 @@
 namelist_hyint.xml
 
 Description
-Namelist for the HyInt (HY-INT diagnostic by Giorgi et al. 2011) tool by E. Arnone and J. von Hardenberg (ISAC-CNR)
+Namelist for the HyInt (HY-INT diagnostic by Giorgi et al. 2011) package by E. Arnone and J. von Hardenberg (ISAC-CNR)
 
 
 Authors
@@ -37,9 +37,62 @@ This namelist is part of the ESMValTool
 </GLOBAL>
 
 <MODELS>
- 
+
+  <model> CMIP5 ACCESS1-0 day rcp85 r1i1p1 1976 2100 /work/users/arnone/data/CERA_temp </model>
+  <model> CMIP5 ACCESS1-0 day rcp85 r1i1p1 1976 2100 /work/users/arnone/data/CERA_temp </model>
+  <model> CMIP5 BNU-ESM day rcp85 r1i1p1 1976 2100 /work/models/cmip5/pr/hist/day </model>
+  <model> CMIP5 CanESM2 day rcp85 r1i1p1 1976 2100 /work/models/cmip5/pr/hist/day </model>
+  <model> CMIP5 CMCC-CESM day rcp85 r1i1p1 1976 2100 /work/models/cmip5/pr/hist/day </model>
+  <model> CMIP5 CESM1-BGC day rcp85 r1i1p1 1976 2100 /work/models/cmip5/pr/hist/day </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1976 2100  /work/users/arnone/cmip5-data </model>
+  <model> CMIP5 IPSL-CM5B-LR day rcp85 r1i1p1 1976 2100 /work/models/cmip5/pr/hist/day </model>
+  <model> CMIP5 MIROC-ESM day rcp85 r1i1p1 1976 2100 /work/users/arnone/data/CERA_temp </model>
+
+
 <!--
+
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1976 2005        /work/users/jost/cmip5-data </model>
+  <model> CMIP5 ACCESS1-3 day rcp85 r1i1p1 1976 2100 /work/users/arnone/data/CERA_temp </model>
+  <model> CMIP5 CMCC-CM day rcp85 r1i1p1 1976 2100 /work/models/cmip5/pr/hist/day </model>
+  <model> CMIP5 MIROC-ESM-CHEM day rcp85 r1i1p1 1976 2100 /work/users/arnone/data/CERA_temp </model>
+
+  <model> CMIP5 bcc-csm1-1-m day rcp85 r1i1p1 2076 2099 /work/users/arnone/data/cmip5/bcc-cesm-1-m </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1976 2100        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1976 2100	 /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 1976 2100        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 1976 2100        /work/users/jost/cmip5-data </model>
+  <model  id="ref"> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1976 2005  /work/users/arnone/cmip5-data </model>  
+
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2006 2025	 /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2026 2050	 /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2051 2075	 /work/users/jost/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2076 2100	 /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2006 2025        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
   <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2006 2025        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
+
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1950 1976  /work/users/arnone/cmip5-data </model>  
+
+  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 1976 2100        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 1976 2100        /work/users/jost/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1976 2100        /work/users/jost/cmip5-data </model>
+  
+ 
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1950 2005  /work/users/arnone/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1950 2100        /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1975 2012  /work/users/arnone/cmip5-data </model>
+  <model id="ref"> CMIP5_ETHZ EC-Earth day  historical lab0 1979 1981  /work/users/arnone/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day rcp85 r8i1p1 1950 2100  /work/users/arnone/cmip5-data </model>
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1997 1999  /work/users/arnone/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1976 2005  /work/users/arnone/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1996 1999  /work/users/arnone/cmip5-data </model>  
+-->
+<!--  <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2006 2025        /work/users/jost/cmip5-data </model>
   <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model>
   <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>
   <model> CMIP5_ETHZ EC-Earth day  rcp26 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
@@ -47,22 +100,14 @@ This namelist is part of the ESMValTool
   <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model>
   <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>
   <model> CMIP5_ETHZ EC-Earth day  rcp45 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
-  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2006 2025	 /work/users/jost/cmip5-data </model> 
-  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2026 2050	 /work/users/jost/cmip5-data </model> 
-  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2051 2075	 /work/users/jost/cmip5-data </model>  
-  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2076 2100	 /work/users/jost/cmip5-data </model>
-  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 1950 2100        /work/users/jost/cmip5-data </model> 
-  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1950 2005  /work/users/arnone/cmip5-data </model>  
-  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1975 2012  /work/users/arnone/cmip5-data </model>
-  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1950 1974  /work/users/arnone/cmip5-data </model>  
-  <model id="ref"> CMIP5_ETHZ EC-Earth day  historical lab0 1979 1981  /work/users/arnone/cmip5-data </model>
-  <model> CMIP5_ETHZ EC-Earth day rcp85 r8i1p1 1950 2100  /work/users/arnone/cmip5-data </model>
--->  
-  <model> CMIP5_ETHZ EC-Earth day  historical r8i1p1 1997 1999  /work/users/arnone/cmip5-data </model>
-
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2006 2025        /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2026 2050        /work/users/jost/cmip5-data </model> 
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2051 2075        /work/users/jost/cmip5-data </model>  
+  <model> CMIP5_ETHZ EC-Earth day  rcp85 r8i1p1 2076 2100        /work/users/jost/cmip5-data </model>
+-->
 <!--  
+  <model id="ref">  OBS    ERA-Interim    reanaly    1    1996 1999   /work/users/arnone/data/ERAINT </model>
   <model>  OBS  TRMM-3B42 DEC2011   ISAC    1998 2000   /work/users/arnone/data/OBS/TRMM/TRMM-3B42 </model>
-  <model id="ref">  OBS    ERA-Interim    reanaly    1    1997 1999   /work/users/arnone/data/ERAINT </model>
   <model>  obs4mips  TRMM-3B42 DEC2011   ISAC    1998 2000   /work/users/arnone/data/OBS/TRMM </model>
   <model id="ref">  OBS    ERA-Interim    reanaly    1    1979 1981   /work/users/arnone/data/ERAINT </model>
   <model id="ref">  OBS    ERA-Interim    reanaly    1    1979 2012   /work/users/arnone/data/ERAINT </model>
@@ -79,11 +124,14 @@ This namelist is part of the ESMValTool
     <diag>
         <description>                   HyInt Diagnostic   </description>
         <variable_def_dir>            ./variable_defs/     </variable_def_dir>
+        <!-- 
         <variable ref_model= "ERA-Interim">   pr           </variable>
+        -->
+        <variable>   pr           </variable>
         <field_type>                         T2Ds          </field_type>
         <diag_script_cfg_dir>            ./nml/cfg_hyint/  </diag_script_cfg_dir>
         <diag_script cfg="HyInt">             hyint.py     </diag_script>
-        <diag_script cfg="cfg_hyint.r">       hyint.r      </diag_script>
+        <diag_script cfg="cfg_hyint_mountain.r">       hyint.r      </diag_script>
     </diag>
 </DIAGNOSTICS>
 
