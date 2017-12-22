@@ -79,6 +79,17 @@ for (model_idx in c(1:(length(models_name)))) {
     print(paste0(diag_base,": data file exists: ", inregfile))  
   }
 
+  # Check whether input file has number of grid points along longitude equal to that along latitude
+  cdo_command<-paste("cdo griddes ",inregfile," > RainFARM_origin_gridfile")
+  print(cdo_command)
+  system(cdo_command)
+  temp_grid = read.table("RainFARM_origin_gridfile",nrows=13,sep="=")
+  xsize_pos = which(gsub(" ","",as.character(temp_grid$V1))=="xsize")
+  ysize_pos = which(gsub(" ","",as.character(temp_grid$V1))=="ysize")
+  xsize=as.character(temp_grid$V2[xsize_pos])
+  ysize=as.character(temp_grid$V2[ysize_pos])
+  if (xsize!=ysize) { stop("STOPPING RainFARM: please enter dataset with equal number of grid points along longitude and latitude") }
+
   # Call diagnostic
   dir.create(paste0(work_dir,"/",exp), showWarnings = FALSE)
   print(paste0(diag_base,": calling rainfarm"))
