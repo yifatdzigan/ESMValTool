@@ -38,15 +38,19 @@ year2_ref=models_end_year[ref_idx]
 plot_dir_ref=file.path(plot_dir,model_exp_ref,paste0(year1_ref,"_",year2_ref),season)
 dir.create(plot_dir_ref,recursive=T)
 
+# Handle label tag when overplotting data from tseries files with different labels in plot_type 14,15,16
+label_figname=label[1]
+if (length(label)>1 & plot_type>13 ) { label_figname=paste0(label[1],"-plus") }
+
 # Startup graphics for multi-model timeseries
 if ((plot_type == 13)|(plot_type == 15)) {
   field_label=paste(field_names,collapse="-")
   tseries_trend_tag="timeseries"
   if (plot_type == 15) { tseries_trend_tag="trend_summary" }
-  figname=getfilename.figure(plot_dir_ref,field_label,rgrid,year1_ref,year2_ref,ref_idx,season
-          ,"",region_codes[selregions[1]],label,tseries_trend_tag,output_file_type,multimodel=T)
+  figname=getfilename.figure(plot_dir_ref,field_label,year1_ref,year2_ref,ref_idx,season
+          ,"",region_codes[selregions[1]],label_figname,tseries_trend_tag,output_file_type,multimodel=T)
   graphics.startup(figname,output_file_type,diag_script_cfg)
-  par(mfrow=c(3,2),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(5,5,5,5),oma=c(1,1,1,1))
+  par(mfrow=c(npanrow,npancol),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(5,5,5,5),oma=c(1,1,1,1))
 }
 
 # Loop over models
@@ -81,12 +85,31 @@ for (model_idx in 1:nmodels) {
     years <- years[match(ryearplot,years)] ; years <- years[!is.na(years)] 
   }
   nyears <- length(years)
-  if (plot_type == 14) { add_trend<-F } # do not plot trend line for plot 13
+  if (plot_type >= 14) { add_trend<-F } # do not plot trend line for plot 14 or 15
 
+  # Startup graphics for multi-region timeseries
+  if (plot_type == 12) {
+    field_label=paste(field_names,collapse="-")
+    figname=getfilename.figure(plot_dir_exp,field_label,year1,year2,model_idx,season,"","regions",label_figname,"timeseries",output_file_type) 
+    graphics.startup(figname,output_file_type,diag_script_cfg)
+    par(mfrow=c(npanrow,npancol),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(5,5,5,5),oma=c(1,1,1,1))
+  }
+  # Startup graphics for bar plot of trend coefficients 
+  if (plot_type == 14) {
+    field_label=paste(field_names,collapse="-")
+    figname=getfilename.figure(plot_dir_exp,field_label,year1,year2,model_idx,season,"","regions",label_figname,"trend_summary",output_file_type)
+    graphics.startup(figname,output_file_type,diag_script_cfg)
+    par(mfrow=c(npanrow,npancol),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(8,8,2,2),oma=c(1,1,1,1))
+  }
+
+  store_label=label
+  #------------ Loop over label when plotting more timeseries files in the same panel ----------
+  for (ilabel in 1:length(store_label)) {
+    label = store_label[ilabel]
   #-----------------Loading data-----------------------#
 
   # open timeseries and trends for exp and ref
-  infile<-getfilename.trends(work_dir_exp,label,rgrid,model_idx,season)
+  infile<-getfilename.trends(work_dir_exp,label,model_idx,season)
   print(paste("HyInt_trends: reading file ",infile))
   field_long_names<-array(NaN,length(field_names))
   field_units<-array(NaN,length(field_names))
@@ -119,21 +142,6 @@ for (model_idx in 1:nmodels) {
 
   print(paste0(diag_base,": starting figures"))
   
-  # Startup graphics for multi-region timeseries
-  if (plot_type == 12) {
-    field_label=paste(field_names,collapse="-")
-    figname=getfilename.figure(plot_dir_exp,field_label,rgrid,year1,year2,model_idx,season,"","regions",label,"timeseries",output_file_type) 
-    graphics.startup(figname,output_file_type,diag_script_cfg)
-    par(mfrow=c(3,2),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(5,5,5,5),oma=c(1,1,1,1))
-  }
-  # Startup graphics for bar plot of trend coefficients 
-  if (plot_type == 14) {
-    field_label=paste(field_names,collapse="-")
-    figname=getfilename.figure(plot_dir_exp,field_label,rgrid,year1,year2,model_idx,season,"","regions",label,"trend_summary",output_file_type)
-    graphics.startup(figname,output_file_type,diag_script_cfg)
-    par(mfrow=c(3,2),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(8,8,2,2),oma=c(1,1,1,1))
-  }
-
   # LOOP over fields
   for (field in field_names) {
     ifield<-which(field == field_names)
@@ -157,7 +165,7 @@ for (model_idx in 1:nmodels) {
     }
     if (is.na(levels_m[ifield,1])|is.na(levels_m[ifield,2])) {
       print("No value for range: assigning min and max")
-      tmp.levels<-seq(min(tfield_exp),max(tfield_exp),len=nlev)
+      tmp.levels<-seq(min(tfield_exp,na.rm=T),max(tfield_exp,na.rm=T),len=nlev)
     } else { tmp.levels<-seq(levels_m[ifield,1],levels_m[ifield,2],len=nlev) }
     # setup time array 
     rettimes = which(!is.na(time))
@@ -172,7 +180,7 @@ for (model_idx in 1:nmodels) {
    
     # Startup graphics for one timeseries in one figure 
     if (plot_type == 11) {
-      figname=getfilename.figure(plot_dir_exp,field,rgrid,year1,year2,model_idx,season,
+      figname=getfilename.figure(plot_dir_exp,field,year1,year2,model_idx,season,
               "",region_codes[iregion],label,"timeseries_single",output_file_type)
       graphics.startup(figname,output_file_type,diag_script_cfg)
       par(cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(4,4,2,2),oma=c(1,1,1,1))
@@ -182,9 +190,9 @@ for (model_idx in 1:nmodels) {
     if ((plot_type == 11)|(plot_type == 12)|(plot_type == 13)) {
 
       # set active panel
-      par_col=(ifield-1)%/%2+1
-      par_row=2-ifield%%2
-      par(mfg=c(par_col,par_row,3,2)) 
+      par_row=(ifield-1)%/%npancol+1
+      par_col=(ifield-1)%%npancol+1
+      par(mfg=c(par_row,par_col,npanrow,npancol)) 
 
       # Base plot
       if (!(plot_type == 13 & model_idx >1)) {
@@ -257,7 +265,7 @@ for (model_idx in 1:nmodels) {
         trend_exp=trend_exp*100   # trend coefficients 
         trend_exp_stat[,2]=trend_exp_stat[,2]*100 # standard error
         ylab=paste0(ylab," (1/100 years)")
-        # ylim=ylim*100
+        ylim=ylim*100
       }
       nx=nregions
       xlab="Regions"
@@ -271,12 +279,12 @@ for (model_idx in 1:nmodels) {
 
       # Actual plotting
       # set active panel
-      par_col=(ifield-1)%/%2+1
-      par_row=2-ifield%%2
-      par(mfg=c(par_col,par_row,3,2))
+      par_row=(ifield-1)%/%npancol+1
+      par_col=(ifield-1)%%npancol+1
+      par(mfg=c(par_row,par_col,npanrow,npancol))
 
       # Base plot
-      if (!(plot_type == 15 & model_idx >1)) {
+      if (!(plot_type == 15 & model_idx >1)&ilabel==1) {
         #plot(xregions,trend_exp[,2],type="n",pch=22,axes=F,xlab=xlab,ylab=ylab,
         plot(xregions,xregions,type="n",pch=22,axes=F,xlab=xlab,ylab=ylab,
             ylim=ylim, main=(paste0(title_unit_m[ifield,1]," trend (",xlim[1],"-",xlim[2],")")))          
@@ -293,18 +301,26 @@ for (model_idx in 1:nmodels) {
         ixregion = iregion
         if (plot_type==15) { ixregion = model_idx }
         # add errorbar (standard error) 
-        arrows(xregions[ixregion], trend_exp[iregion,2]-trend_exp_stat[iregion,2], xregions[ixregion], trend_exp[iregion,2]+trend_exp_stat[iregion,2], 
-               length=0.05, angle=90, code=3)
-        points(xregions[ixregion], trend_exp[iregion,2], pch=22, col="grey40", bg="white",cex=2)
-        # add filled points for significant (95% level)
-        if (trend_exp_stat[iregion,4]<=0.1) { points(xregions[ixregion], trend_exp[iregion,2], pch=22, col="grey70", bg="grey70",cex=2)}
-        if (trend_exp_stat[iregion,4]<=0.05) { points(xregions[ixregion], trend_exp[iregion,2], pch=22, col="dodgerblue3", bg="dodgerblue3",cex=2)}
+        if (!anyNA(trend_exp_stat[iregion,])) {
+          arrows(xregions[ixregion], trend_exp[iregion,2]-trend_exp_stat[iregion,2], xregions[ixregion], trend_exp[iregion,2]+trend_exp_stat[iregion,2], 
+                 length=0.05, angle=90, code=3)
+          points(xregions[ixregion], trend_exp[iregion,2], pch=22, col="grey40", bg="white",cex=2)
+          # add filled points for significant (95% level)
+          col90=c("dodgerblue3","darkseagreen3","goldenrod3","coral3")
+          col95=c("dodgerblue4","darkseagreen4","goldenrod4","coral4")
+          if (trend_exp_stat[iregion,4]<=0.1) { points(xregions[ixregion], trend_exp[iregion,2], pch=22, col=col90[ilabel], bg=col90[ilabel],cex=2)}
+          if (trend_exp_stat[iregion,4]<=0.05) { points(xregions[ixregion], trend_exp[iregion,2], pch=22, col=col95[ilabel], bg=col95[ilabel],cex=2)}
+        } else {
+          print(paste("MISSING VALUES in index ",field,", region ",region_codes[iregion]))
+          print(trend_exp_stat[iregion,])
+        }
         # retsig90=which(trend_exp_stat[,4]<0.1)
         # if (!is.na(retsig90[1])) { points(xregions[retsig90], trend_exp[retsig90,2], pch=22, col="grey70", bg="grey70",cex=2) }
         # retsig95=which(trend_exp_stat[,4]<0.05)
         # if (!is.na(retsig95[1])) { points(xregions[retsig95], trend_exp[retsig95,2], pch=22, col="dodgerblue3", bg="dodgerblue3",cex=2) }
 
       }
+      box()         
       if (!((plot_type == 15)&(model_idx>1))){
         if (add_zeroline&(ylim[1]!=0)) { lines(c(-1,nx+1),c(0,0),lty=2,lwd=1.5,col="grey40") }  
         las = 1
@@ -318,6 +334,8 @@ for (model_idx in 1:nmodels) {
       }
     } 
   } # close loop over field 
+
+  } # close loop over label
   if ((plot_type == 12)|(plot_type == 14)) { graphics.close(figname) }
 } # close loop over model
 
@@ -329,9 +347,9 @@ if (abs(add_legend)&(plot_type==13)) {
 #  for (ifield in 1:length(field_names)) {  
     ifield=1
     # set active panel
-    par_col=(ifield-1)%/%2+1
-    par_row=2-ifield%%2
-    par(mfg=c(par_col,par_row,3,2), usr=plot_limits[,ifield])
+    par_row=(ifield-1)%/%npancol+1
+    par_col=(ifield-1)%%npancol+1
+    par(mfg=c(par_row,par_col,npanrow,npancol), usr=plot_limits[,ifield])
     pos_legend=c(plot_limits[1,ifield]+(plot_limits[2,ifield]-plot_limits[1,ifield])*xy_legend[1],
                  plot_limits[3,ifield]+(plot_limits[4,ifield]-plot_limits[3,ifield])*xy_legend[2])
               #    text((xlim[1]+(xlim[2]-xlim[1])*model_idx/nmodels),tmp.levels[1],

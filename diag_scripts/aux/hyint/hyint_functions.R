@@ -45,7 +45,7 @@ getfilename.regridded<-function(spath,rgrid,var0,model_idx){
 return(filename)
 }
 
-getfilename.indices<-function(spath,label,rgrid,model_idx,season,hist=F,hist_years=hist_years){
+getfilename.indices<-function(spath,label,model_idx,season,hist=F,hist_years=hist_years){
   exp    <- models_name[model_idx]
   year1  <- models_start_year[model_idx]
   year2  <- models_end_year[model_idx]
@@ -56,8 +56,7 @@ getfilename.indices<-function(spath,label,rgrid,model_idx,season,hist=F,hist_yea
     year2 <- hist_years[2]
   }
   model_ens <- models_ensemble[model_idx]
-  sgrid <- "noregrid";  if (rgrid != F) {sgrid <- rgrid}
-  filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,"_",sgrid,"_",toString(year1),"_",toString(year2),"_",season,".nc")
+  filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"_",toString(year2),"_",season,".nc")
 return(filename)
 }
 
@@ -83,18 +82,17 @@ getfilename.etccdi<-function(spath,var,model_idx,yrmon="yr"){
 return(filename)
 }
 
-getfilename.trends<-function(spath,label,rgrid,model_idx,season) {
+getfilename.trends<-function(spath,label,model_idx,season) {
   exp    <- models_name[model_idx]
   year1  <- models_start_year[model_idx]
   year2  <- models_end_year[model_idx]
   model_exp <- models_experiment[model_idx]
   model_ens <- models_ensemble[model_idx]
-  sgrid <- "noregrid";  if (rgrid != F) {sgrid <- rgrid}
-  filename=paste0(spath,"/",diag_base,"_",exp,"_",model_exp,"_",model_ens,"_",sgrid,"_",toString(year1),"_",toString(year2),"_",season,"_tseries_",label,".nc")
+  filename=paste0(spath,"/",diag_base,"_",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"_",toString(year2),"_",season,"_tseries_",label,".nc")
 return(filename)
 }
 
-getfilename.figure<-function(spath,var,rgrid,year1,year2,model_idx,season,syears,sregion,label,map,output_file_type,multimodel=F) {
+getfilename.figure<-function(spath,var,year1,year2,model_idx,season,syears,sregion,label,map,output_file_type,multimodel=F) {
   exp    <- models_name[model_idx]
   year1  <- models_start_year[model_idx]
   year2  <- models_end_year[model_idx]
@@ -102,10 +100,9 @@ getfilename.figure<-function(spath,var,rgrid,year1,year2,model_idx,season,syears
   model_ens <- models_ensemble[model_idx]
   model_tag <- paste(exp,model_exp,model_ens,sep="_")
   if (multimodel) { model_tag <- "multimodel" }
-  sgrid <- "noregrid";  if (rgrid != F) {sgrid <- rgrid}  
-  figname=paste0(spath,"/",paste(var,model_tag,sgrid,paste(year1,year2,sep="-"),season,syears,sregion,map,sep="_"),".",output_file_type)
+  figname=paste0(spath,"/",paste(var,model_tag,paste(year1,year2,sep="-"),season,syears,sregion,map,sep="_"),".",output_file_type)
   if (!(label == "")&!(label == F)) {
-    figname=paste0(spath,"/",paste(var,model_tag,sgrid,paste(year1,year2,sep="-"),season,syears,sregion,label,map,sep="_"),".",output_file_type)
+    figname=paste0(spath,"/",paste(var,model_tag,paste(year1,year2,sep="-"),season,syears,sregion,label,map,sep="_"),".",output_file_type)
   }
 return(figname)
 }
@@ -114,6 +111,22 @@ return(figname)
 ##########################################################
 #-----------------Basic functions------------------------#
 ##########################################################
+
+# read cdo_resolution from cdo_griddes file
+get.cdo.res<-function(grid_file) {
+  
+  temp_grid = read.table(grid_file,nrows=13,sep="=")
+
+  print("----------============_------------")
+  print(temp_grid)
+  xsize_pos = which(gsub(" ","",as.character(temp_grid$V1))=="xsize")
+  ysize_pos = which(gsub(" ","",as.character(temp_grid$V1))=="ysize")
+  print(xsize_pos)
+  print(ysize_pos) 
+  rgrid = gsub(" ","",paste0("r",as.character(temp_grid$V2[xsize_pos]),"x",as.character(temp_grid$V2[ysize_pos])))
+
+return(rgrid)
+}
 
 #normalize a time series
 standardize<-function(timeseries)
@@ -232,9 +245,9 @@ for (i in 1:(length(whichdays)-1))
        }
 
 etime=list(day=as.numeric(format(datas,"%d")),month=as.numeric(format(datas,"%m")),year=as.numeric(format(datas,"%Y")),data=datas,season=seas)
-print("Time Array Built")
-print(paste("Length:",length(seas)))
-print(paste("From",datas[1],"to",datas[length(seas)]))
+# print("Time Array Built")
+# print(paste("Length:",length(seas)))
+# print(paste("From",datas[1],"to",datas[length(seas)]))
 return(etime)
 }
 
@@ -339,9 +352,9 @@ return(outdata)
 ## files from which to create the grid
 ## Adapted from 20170920-A_maritsandstad
 ##
-createGrid <- function(ref_file = ref_file, path = idx_dir, loc = "./gridDef") {
-
-        ## Picking the grid found in reference file to regrid over
+createGrid <- function(ref_file = "./reffile", path = idx_dir, loc = "./gridDef") {
+        
+## Picking the grid found in reference file to regrid over
         if(!file.exists(ref_file)){
            ## Picking the grid found in the first file to regrid over
                 ref_file <- list.files(path, pattern = '*.nc', full.names = TRUE)[1]
@@ -358,7 +371,8 @@ createGrid <- function(ref_file = ref_file, path = idx_dir, loc = "./gridDef") {
 ## to put the landdseamask on
 ## Adapted from 20170920-A_maritsandstad
 ##
-createLandSeaMask <- function(regrid = './gridDef', ref_file = ref_file, loc = "./", landmask ="./landSeaMask.nc", topo_only = F){
+createLandSeaMask <- function(regrid = './gridDef', ref_file = ref_file, loc = "./", regridded_topo='/regridded_topo.nc',landmask ="./landSeaMask.nc", topo_only = F){
+
         # Test if gridfile exists
         # otherwise call function to generate one
         if(!file.exists(regrid)){
@@ -368,19 +382,19 @@ createLandSeaMask <- function(regrid = './gridDef', ref_file = ref_file, loc = "
         }
 
         ## Making topographic map
-        cmd <- paste('cdo -f nc topo ', loc, '/topo.nc', sep = '')
+        cmd <- paste('cdo -f nc topo ', loc, 'topo.nc', sep = '')
         print(cmd)
         system(cmd)
 
         ## Regridding the topographic map to chosen grid
-        cmd <- paste('cdo remapcon,', regrid, ' ',  loc,  '/topo.nc ', loc, '/regridded_topo.nc', sep = "")
+        cmd <- paste('cdo remapcon,', regrid, ' ',  loc,  '/topo.nc ', loc, regridded_topo, sep = "")
         print(cmd)
         system(cmd)
 
         if (!topo_only) {
 
         	## Set above sea-level gridpoints to missing
-        	cmd <- paste('cdo setrtomiss,0,9000 ', loc, '/regridded_topo.nc ', loc,  '/regridded_topo_miss1.nc', sep = "")
+        	cmd <- paste('cdo setrtomiss,0,9000 ', loc, regridded_topo, loc,  '/regridded_topo_miss1.nc', sep = "")
         	print(cmd)
         	system(cmd)
 
@@ -418,9 +432,10 @@ apply.elevation.mask<-function(rfield,relevation,el_threshold,reverse=F)
       relevation=relevation*0+1
     }
   }
-
   itimedim<-dim(rfield)[length(dim(rfield))]
-  rfield=rfield*replicate(itimedim,relevation)
+  myear_relevation=replicate(itimedim,relevation)
+  if (dim(myear_relevation)!=dim(rfield)) {stop("STOP - dimension of topography does not match dimension of field: remove old topography files if needed")}
+  rfield=rfield*myear_relevation
 
 return(rfield)
 }
@@ -460,10 +475,10 @@ mean.spell.length<-function(m)
    diff_spell_point<-spell_point[2:ntime]-spell_point[1:ntime-1]
    # select when variation is positive (starting spell)
    spell_start<-which(diff_spell_point==1)+1
-   if (spell_point[1]==1) {spell_start<-c(1,spell_start)} # if first day is active add it to list
+   if (!is.na(spell_point[1])) { if (spell_point[1]==1) {spell_start<-c(1,spell_start)}} # if first day is active add it to list
    # select when variation is negative (ending spell)
    spell_stop<-which(diff_spell_point==-1)
-   if (spell_point[ntime]==1) {spell_stop<-c(spell_stop,ntime)} # if last day is active add it to list
+   if (!is.na(spell_point[ntime])) { if (spell_point[ntime]==1) {spell_stop<-c(spell_stop,ntime)}} # if last day is active add it to list
    # difference between stop and start gives spell length
    spell_length<-spell_stop-spell_start+1
    # assign annual mean spell length to output array
@@ -642,9 +657,12 @@ a=nc_open(namefile)
 naxis=names(a$dim)[1:min(c(4,length(a$dim)))]
 
 #if (length(naxis) > 3) {naxis=naxis[1:3]}
-for (axis in naxis) {print(axis); assign(axis,ncvar_get(a,axis))}
+for (axis in naxis) { 
+#  print(axis)
+  assign(axis,ncvar_get(a,axis))
+}
 
-print("selecting years and months")
+#print("selecting years and months")
 #extracting time (BETA)
 #origin=strsplit(ncatt_get(a,"time","units")$value," ")[[1]][3]
 
@@ -660,7 +678,7 @@ print("selecting years and months")
 
 #based on preprocessing of CDO time format: get calendar type and use PCICt package for irregular data
 caldata=ncatt_get(a,"time","calendar")$value
-print(caldata)
+#print(caldata)
 timeline=as.PCICt(as.character(time),format="%Y%m%d",cal=caldata)
 str(timeline)
 
@@ -678,19 +696,19 @@ if (max(timeline)<lastday | min(timeline)>firstday) {
 }
 
 #time selection and variable loading
-print("loading full field...")
+#print("loading full field...")
 #if no name provided load the only variable available
 if (is.null(namevar)) {namevar=names(a$var)}
 field=ncvar_get(a,namevar)
-print(str(field))
+#print(str(field))
 
 # select data we need
 select=which(as.numeric(format(timeline,"%Y")) %in% tyears & as.numeric(format(timeline,"%m")) %in% tmonths)
 field=field[,,select]
 time=timeline[select]
 
-print(paste("This is a",caldata,"calendar"))
-print(paste(length(time),"days selected from",time[1],"to",time[length(time)]))
+#print(paste("This is a",caldata,"calendar"))
+#print(paste(length(time),"days selected from",time[1],"to",time[length(time)]))
 
 #check for dimensions (presence or not of time dimension)
 dimensions=length(dim(field))

@@ -83,32 +83,57 @@ etccdi_dir=file.path(work_dir,"extremeEvents_main")
 work_dir=file.path(work_dir, diag_base)
 plot_dir=file.path(plot_dir, diag_base)
 
-dir.create(plot_dir, showWarnings = FALSE)
-dir.create(work_dir, showWarnings = FALSE)
-dir.create(regridding_dir, showWarnings = FALSE)
+dir.create(plot_dir, showWarnings = F)
+dir.create(work_dir, showWarnings = F)
+dir.create(regridding_dir, showWarnings = F)
 
+# select reference model
+ref_idx=which(models_name == var_attr_ref) # select reference dataset; if not available, use last of list
+if(length(ref_idx)==0) { ref_idx=length(models_name)}
+
+# setup reference grid file if needed
+if (rgrid == "REF") {
+  climofile_ref <- interface_get_fullpath(var0, field_type0, ref_idx)
+  grid_file_ref = paste0(grid_file,ref_idx)
+  # generate grid file
+  grid_command<-paste("cdo griddes ",climofile_ref," > ",grid_file_ref)
+  system(grid_command)
+  print(paste(diag_base,": reference grid file ",grid_file_ref))
+  # update rgrid tag with actual grid size from grid file
+  rgrid = get.cdo.res(grid_file_ref) 
+} 
+ 
 ## Run regridding and diagnostic
-if (write_ncdf) { 
+if (write_ncdf) {
+  
+  # loop through models 
   for (model_idx in c(1:(length(models_name)))) {
+
     # Create regridding subdir
-    dir.create(paste(regridding_dir,models_name[model_idx],sep="/"), showWarnings = FALSE)   
+    dir.create(paste(regridding_dir,models_name[model_idx],sep="/"), showWarnings = F)   
+
     # Setup filenames 
     climofile <- interface_get_fullpath(var0, field_type0, model_idx)
     sgrid <- "noregrid"; if (rgrid != F) {sgrid <- rgrid}
-    inregfile <- getfilename.regridded(regridding_dir,sgrid,var0,model_idx)
+    regfile <- getfilename.regridded(regridding_dir,sgrid,var0,model_idx)
+
     # If needed, pre-process file regridding, selecting lon/lat region of interest and adding absolute time axis 
     if (run_regridding) {
-      if(!file.exists(inregfile) | force_processing) { 
-        dummy=hyint.preproc(work_dir,model_idx,climofile,inregfile)
-      } else {
-        print(paste0(diag_base,": data file exists: ", inregfile))  
+      if(!file.exists(regfile) | force_regridding) { 
+        dummy=hyint.preproc(work_dir,model_idx,ref_idx,climofile,regfile,rgrid)
+      } else {   
+        grid_file_idx=paste0(grid_file,model_idx)
+        grid_command<-paste("cdo griddes ",regfile," > ",grid_file_idx)
+        system(grid_command)
+        print(paste0(diag_base,": data file exists: ", regfile))  
+        print(paste0(diag_base,": corresponding grid: ", grid_file_idx))  
       }
     }
 
     if (run_diagnostic) {    
       # Loop through seasons and call diagnostic
       for (seas in seasons) {
-         hyint.diagnostic(work_dir,inregfile,model_idx,seas)
+         hyint.diagnostic(work_dir,regfile,model_idx,seas)
       }
     }
   }
@@ -117,7 +142,8 @@ if (write_ncdf) {
 ## Preprocess ETCCDI input files and merge them with HyInt indices
 if (write_ncdf & etccdi_preproc) {
   for (model_idx in c(1:(length(models_name)))) {
-    dummy<-hyint.etccdi.preproc(work_dir,etccdi_dir,grid_file,model_idx,"ALL",yrmon="yr")
+    grid_file_idx=paste0(grid_file,model_idx)
+    dummy<-hyint.etccdi.preproc(work_dir,etccdi_dir,grid_file_idx,model_idx,"ALL",yrmon="yr")
   }
 }
 

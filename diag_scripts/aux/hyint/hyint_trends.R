@@ -25,7 +25,7 @@ source(diag_script_cfg)
 
 # set main paths
 work_dir_exp=file.path(work_dir,exp,paste0(year1,"_",year2),season)
-outfile<-getfilename.trends(work_dir_exp,label,rgrid,model_idx,season)
+outfile<-getfilename.trends(work_dir_exp,label,model_idx,season)
 
 # Define regions to be used
 nregions=length(selregions)
@@ -42,7 +42,7 @@ print(paste0(diag_base,": starting timeseries calculation"))
 #-----------------Loading data-----------------------#
 # open experiment field
 
-infile<-getfilename.indices(work_dir_exp,diag_base,rgrid,model_idx,season)
+infile<-getfilename.indices(work_dir_exp,diag_base,model_idx,season)
 # test if file contains all requested variables and keep file open for reading attributes
 nc <- nc_open(infile)
 nc_att_glob <- ncatt_get(nc,0) 
@@ -56,8 +56,9 @@ nc_close(nc)
 
 # Get seaLandElevation mask
 if (maskSeaLand) {
-  if (!file.exists(topography_file)) { createLandSeaMask(regrid=grid_file,landmask=topography_file,topo_only=T) } 
-  relevation=ncdf.opener(topography_file,"topo","Lon","Lat",rotate="no")
+  topo_file_idx=paste0(topography_file,model_idx,'.nc')
+  if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=paste0(grid_file,model_idx),ref_file=infile,regridded_topo=topo_file_idx,topo_only=T) } 
+  relevation=ncdf.opener(topo_file_idx,"topo","longitude","latitude",rotate="no")
 }
 
 # remove desert areas if required (mean annual precipitation <0.5 mm, Giorgi et al. 2014)

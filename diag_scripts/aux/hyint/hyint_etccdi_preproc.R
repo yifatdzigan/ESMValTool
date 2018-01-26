@@ -14,10 +14,14 @@ source(diag_script_cfg)
     year2  <- toString(models_end_year[model_idx])
     print(str(c(year1,year2)))
     work_dir_tmp<-paste(c(work_dir,models_name[model_idx],paste0(year1,"_",year2),season),collapse="/")
-    hyint_file<-getfilename.indices(work_dir_tmp,diag_base,rgrid,model_idx,season)
+    hyint_file<-getfilename.indices(work_dir_tmp,diag_base,model_idx,season)
     etccdi_files<-getfilename.etccdi(etccdi_dir,etccdi_yr_list,model_idx,yrmon="yr")
-    for (sfile in etccdi_files) {
-      cdo_command<-paste0("cdo setgrid,",cdo_grid," -delvar,time_bnds ",sfile," ",sfile,"_tmp")        
+    for (sfile in etccdi_files) {      
+      cdo_command<-paste0("cdo -sellonlatbox,-180,180,-90,90  -delvar,time_bnds ",sfile," ",sfile,"_tmp") 
+      if (rgrid != F) { 
+        cdo_command<-paste0("cdo setgrid,",cdo_grid," -delvar,time_bnds ",sfile," ",sfile,"_tmp")  
+      } 
+
       system(cdo_command)
     }
     mv_command<-paste("mv -n ",hyint_file,paste0(hyint_file,"_tmp"))
@@ -30,6 +34,7 @@ source(diag_script_cfg)
     print(rm_command)
     system(mv_command)
     system(cdo_command)
+#\:w
     system(rm_command)
   }
 return(0)

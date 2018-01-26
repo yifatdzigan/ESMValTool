@@ -45,15 +45,16 @@ nregions=length(selregions)
 # ------- loading reference data ----------
 # load topography if needed
 if (maskSeaLand) {
-  if (!file.exists(topography_file)) { createLandSeaMask(regrid=grid_file,landmask=topography_file,topo_only=T) }
-  relevation=ncdf.opener(topography_file,"topo","Lon","Lat",rotate="no")
+  topo_file_idx=paste0(topography_file,model_idx,'.nc')
+  if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=paste0(grid_file,model_idx),regridded_topo=topo_file_idx,topo_only=T) }
+  relevation=ncdf.opener(topo_file_idx,"topo","lon","lat",rotate="no")
 }
 
 if (highreselevation) { highresel=get.elevation(elev_range=c(highreselevation,9000)) }
 
 # produce desert areas map if required from reference file (mean annual precipitation <0.5 mm, Giorgi et al. 2014)
 if (removedesert) {
-  ref_filename<-getfilename.indices(ref_dir,diag_base,rgrid,ref_idx,season)
+  ref_filename<-getfilename.indices(ref_dir,diag_base,ref_idx,season)
   pry<-ncdf.opener(ref_filename,"pry","Lon","Lat",rotate="no")
   retdes=which(pry<0.5)
   pry[retdes]=NA
@@ -63,7 +64,7 @@ if (removedesert) {
 
 # open reference field
 for (field in field_names) {
-  ref_filename<-getfilename.indices(ref_dir,diag_base,rgrid,ref_idx,season)
+  ref_filename<-getfilename.indices(ref_dir,diag_base,ref_idx,season)
   print(paste("Reading reference ",ref_filename))
   field_ref=ncdf.opener(ref_filename,field,"Lon","Lat",rotate="no")
   if (removedesert) { field_ref<-field_ref*retdes3D }
@@ -104,7 +105,7 @@ for (model_idx in c(1:(length(models_name)))) {
 
   # open experiment field
   for (field in field_names) {
-    filename<-getfilename.indices(work_dir_exp,diag_base,rgrid,model_idx,season)
+    filename<-getfilename.indices(work_dir_exp,diag_base,model_idx,season)
     print(paste("Reading experiment ",filename))
     field_exp=ncdf.opener(filename,field,"Lon","Lat",rotate="no")
     if (removedesert) { field_exp<-field_exp*retdes3D }
@@ -134,7 +135,7 @@ for (model_idx in c(1:(length(models_name)))) {
     # Startup graphics for multiple years in one figure
     if (plot_type == 4) {
       field_label=paste(field_names,collapse="-") 
-      figname=getfilename.figure(plot_dir_exp,field_label,rgrid,year1,year2,model_idx,season,
+      figname=getfilename.figure(plot_dir_exp,field_label,year1,year2,model_idx,season,
               "multiyear",region_codes[iregion],label,"map",output_file_type) 
       graphics.startup(figname,output_file_type,diag_script_cfg)
       par(mfrow=c(nyears,nfields),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(2,2,2,2),oma=c(1,1,1,1))
@@ -153,7 +154,7 @@ for (model_idx in c(1:(length(models_name)))) {
       # Startup graphics for multiple fields/quantities in one figure 
       if (plot_type == 3) {
         field_label=paste(field_names,collapse="-")
-        figname=getfilename.figure(plot_dir_exp,field_label,rgrid,year1,year2,model_idx,
+        figname=getfilename.figure(plot_dir_exp,field_label,year1,year2,model_idx,
                 season,time_label_fig,region_codes[iregion],label,"map",output_file_type)
         graphics.startup(figname,output_file_type,diag_script_cfg)
         par(mfrow=c(nfields,3),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(2,2,2,2),oma=c(1,1,1,1))
@@ -179,7 +180,7 @@ for (model_idx in c(1:(length(models_name)))) {
         tmp.palette<-palette_giorgi2011
         if (is.na(levels_m[ifield,1])|is.na(levels_m[ifield,2])) { 
           print("No value for range: assigning min and max")
-          tmp.levels<-seq(min(field_ref),max(field_ref),len=nlev)
+          tmp.levels<-seq(min(field_ref,na.rm=T),max(field_ref,na.rm=T),len=nlev)
         } else { tmp.levels<-seq(levels_m[ifield,1],levels_m[ifield,2],len=nlev) }
         if (highreselevation_only) {title_unit_m[ifield,1]<-"Elevation" }
         tmp.titles<-paste0(title_unit_m[ifield,1],": ",region_names[iregion]," ",c(info_exp,info_ref,"Difference"))
@@ -187,7 +188,7 @@ for (model_idx in c(1:(length(models_name)))) {
 
         # Startup graphics for individual fields and multi quantities in each figure
         if (plot_type == 2) {
-          figname=getfilename.figure(plot_dir_exp,field,rgrid,year1,year2,model_idx,
+          figname=getfilename.figure(plot_dir_exp,field,year1,year2,model_idx,
                   season,time_label_fig,region_codes[iregion],label,"comp_map",output_file_type)
           graphics.startup(figname,output_file_type,diag_script_cfg)
           par(mfrow=c(3,1),cex.main=2,cex.axis=1.5,cex.lab=1.5,mar=c(5,5,4,8),oma=c(1,1,1,1))
@@ -199,14 +200,14 @@ for (model_idx in c(1:(length(models_name)))) {
           if (iquantity == 2) { tmp.field<-field_ref }
           if (iquantity == 3) { 
             tmp.palette<-palette2
-            tmp.field<-field_exp-field_ref             
+            tmp.field<- field_exp-field_ref             
             if (is.na(levels_m[ifield,3])|is.na(levels_m[ifield,4])) { 
-              tmp.levels<-seq(min(field_ref),max(field_ref),len=nlev) 
+              tmp.levels<-seq(min(field_ref,na.rm=T),max(field_ref,na.rm=T),len=nlev) 
             } else { tmp.levels<-seq(levels_m[ifield,3],levels_m[ifield,4],len=nlev) }
           }
           # Startup graphics for individual field in each figure
           if (plot_type == 1) {
-            figname=getfilename.figure(plot_dir_exp,field,rgrid,year1,year2,model_idx,
+            figname=getfilename.figure(plot_dir_exp,field,year1,year2,model_idx,
                     season,time_label_fig,region_codes[iregion],label,"map",output_file_type)
             graphics.startup(figname,output_file_type,diag_script_cfg)
             par(cex.main=2,cex.axis=1.5,cex.lab=1.5,mar=c(5,5,4,8),oma=c(1,1,1,1))
@@ -264,7 +265,7 @@ for (model_idx in c(1:(length(models_name)))) {
             if (field == "int_norm") { axis(2,col="grey40") }
           }
           #colorbar
-          if ((tmp.colorbar[iquantity]) & (plot_type <= 2) & add_colorbar) { 
+          if ((tmp.colorbar[iquantity]) & add_colorbar) { 
             image.scale3(volcano,levels=tmp.levels,color.palette=tmp.palette,colorbar.label=paste(title_unit_m[ifield,1],title_unit_m[ifield,4]),
                           cex.colorbar=1.0,cex.label=1.0,colorbar.width=1,line.label=legend_distance,line.colorbar=1.0)
           }
