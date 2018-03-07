@@ -1,0 +1,48 @@
+###############################################################################
+# namelist_hyint.yml
+#
+# Description
+# Namelist for the HyInt (HY-INT diagnostic by Giorgi et al. 2011) package by E. Arnone and J. von Hardenberg (ISAC-CNR)
+#
+# Authors
+# E. Arnone (ISAC-CNR, Italy - e.arnone@isac.cnr.it)
+# J. von Hardenberg (ISAC-CNR, Italy - j.vonhardenberg@isac.cnr.it)
+#
+# Project
+# MAGIC
+#
+# Reference
+# Giorgi, F., E.-S. Im, E. Coppola, N. S. Diffenbaugh, X. J. Gao, L. Mariotti, and Y. Shi (2011), Higher hydroclimatic intensity with global warming, J. Climate, 24, 5309-5324, doi:10.1175/2011JCLI3979.1.
+#
+# This namelist is part of the ESMValTool
+###############################################################################
+---
+
+models:
+  - {model: EC-Earth,       project: CMIP5, exp: rcp85, ensemble: r8i1p1, start_year: 1976, end_year: 2100}
+    #  - {model: EC-Earth,       project: CMIP5, exp: historical, ensemble: r8i1p1, start_year: 1976, end_year: 2005}
+#  - {model: ACCESS1-0,      project: CMIP5, exp: rcp85, ensemble: r1i1p1, start_year: 2006, end_year: 2100}
+#  - {model: ACCESS1-3,      project: CMIP5, exp: rcp85, ensemble: r1i1p1, start_year: 2006, end_year: 2100}
+
+preprocessors:
+  preproc:
+    extract_levels: false
+
+diagnostics:
+  hyint:
+    description: HyInt hydroclimatic indices calculation and plotting
+    variables:
+      pr:
+        preprocessor: preproc
+        reference_model: "EC-Earth"
+        mip: day
+        field: T2Ds
+#    additional_models:
+#      - {model: ERA-Interim,  project: OBS,  type: reanaly,  version: 1,  start_year: 2000,  end_year: 2002,  tier: 3}
+#      - {model: NCEP,         project: OBS,  type: reanaly,  version: 1,  start_year: 2000,  end_year: 2002,  tier: 2}
+    scripts:
+      main:
+        script: hyint.r
+        plot_type: 14       
+        selregions: [1,2,3,4,5,6,7,8,9,10]  
+        #        selfields: [8,4,9,1,2,3] 
