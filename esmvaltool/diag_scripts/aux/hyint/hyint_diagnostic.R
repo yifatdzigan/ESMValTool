@@ -15,10 +15,11 @@ year1  <- models_start_year[model_idx]
 year2  <- models_end_year[model_idx]
 model_exp <- models_experiment[model_idx]
 model_ens <- models_ensemble[model_idx]
-diag_base <- "HyInt"
+# diag_base <- "hyint"
 
-save_dir=file.path(work_dir,exp,paste0(year1,"_",year2),season)
-outfile<-getfilename.indices(save_dir,diag_base,model_idx,season)
+# save_dir=file.path(work_dir,exp,paste0(year1,"_",year2),season)
+
+outfile<-getfilename.indices(work_dir,diag_base,model_idx,season)
 
 # If diagnostic output file already exists skip calculation
 if(file.exists(outfile) & !force_diagnostic) { 
@@ -32,7 +33,7 @@ print(infile)
 if (!file.exists(infile)) { stop("HyInt: missing regridded input file. Run HyInt pre-processing.") }
 
 # create output directory
-dir.create(save_dir,recursive=T)
+# dir.create(save_dir,recursive=T)
 
 # setting up time domain
 years=year1:year2
@@ -77,8 +78,8 @@ if (external_r95[1]==F) {
   r95_threshold<-apply(pr,c(1,2),quantile,probs=0.95,na.rm=T) 
 } else { 
   if (external_r95[1]=="HIST") { # if required, use HyInt file from historical period 
-    hist_dir=file.path(work_dir,exp,paste0(norm_years[1],"_",norm_years[2]),season)
-    external_r95<-getfilename.indices(hist_dir,diag_base,model_idx,season,hist=T,hist_years=norm_years)
+    # hist_dir=file.path(work_dir,exp,paste0(norm_years[1],"_",norm_years[2]),season)
+    external_r95<-getfilename.indices(work_dir,diag_base,model_idx,season,hist=T,hist_years=norm_years)
   }
   r95_idx<-model_idx # assume each model has its r95_threshold file
   if (length(external_r95) == 1) { r95_idx<-1 } # if list of files with r95_threshold has only 1 entry, use that for all models
@@ -171,8 +172,8 @@ if (external_norm[1]==F) { # calculate normalization function
 } else { # load normalization data from file
   mean_idx<-model_idx # assume each model has its normalization file
   if (external_norm[1]=="HIST") { # if required, use HyInt file from historical period 
-    hist_dir=file.path(work_dir,exp,paste0(norm_years[1],"_",norm_years[2]),season)
-    external_norm<-getfilename.indices(hist_dir,diag_base,model_idx,season,hist=T,hist_years=norm_years)
+    # hist_dir=file.path(work_dir,exp,paste0(norm_years[1],"_",norm_years[2]),season)
+    external_norm<-getfilename.indices(work_dir,diag_base,model_idx,season,hist=T,hist_years=norm_years)
   }
   if (length(external_norm) == 1) { mean_idx<-1 } # if list of files with normalization functions has only 1 entry, use that for all models
   print(paste(diag_base,": loading external normalization data from ",external_norm[mean_idx]))

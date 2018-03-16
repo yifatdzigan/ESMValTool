@@ -17,7 +17,7 @@ run_regridding=T
 force_regridding=F
 run_diagnostic=T
 force_diagnostic=F
-etccdi_preproc=T
+etccdi_preproc=F
 run_timeseries=T
 write_plots=T
 output_file_type="png"
@@ -42,7 +42,7 @@ topography_highres <- "/home/arnone/work/data/Elevation/GMTED2010_15n030_0125deg
 
 # Diagnostic options
 norm_years=c(1976,2005)  # reference normalization period
-#norm_years=c(2006,2025)  # reference normalization period
+norm_years=c(1990,2000)  # reference normalization period
 external_norm=F#"HIST"       # a) F=use internal data to normalize over the norm_years period
                       # b) list of names of normalization files (one per input data file or one for all)
                       # c) "HIST" to automatically generate the name of the historical experiment associated with the model name 
@@ -75,7 +75,7 @@ legend_distance=3
 
 # timeseries options
 weight_tseries=T  # T to calculate area weighted time averages
-trend_years= c(2006,2100,1976,2005) # a) F=all; 
+trend_years= F# c(2006,2100,1976,2005) # a) F=all; 
                          # b) c(year1,year2) to apply trend calculation and plotting only to a limited time interval (year1<=years<=year2) 
                          # c) c(year1,year2,year3,year4) to apply trend to two separate time intervals (year1<=years<=year2) and (year3<=years<=year4)
 removedesert=F      # T to remove (flag as NA) grid points with mean annual pr < 0.5 mm/day (desertic areas, Giorgi et al. 2014)

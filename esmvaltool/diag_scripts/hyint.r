@@ -30,8 +30,8 @@
 # or value ranges and labels for figures).     
 # 
 # Required
-# It reads daily precipitation data through ESMValTool. Input precipitation data are pre-processed 
-# interpolating on a common grid set by the user in the cfg_hyint file.  
+# It reads daily precipitation data through ESMValTool. If requested, input precipitation data are pre-processed 
+# interpolating on a common grid set by the user in the hyint_parameters file.  
 # R libraries:"tools","PCICt","ncdf4","maps"
 #
 # Optional 
@@ -51,6 +51,7 @@
 
 library(tools)
 library(yaml)
+library(climdex.pcic.ncdf)
 
 source('esmvaltool/diag_scripts/aux/hyint/hyint_functions.R')
 source('esmvaltool/diag_scripts/aux/hyint/hyint_metadata.R')
@@ -78,6 +79,7 @@ metadata <- yaml::read_yaml(settings$input_files)
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
 # get first variable and list associated to pr variable
+variables <- names(metadata)
 var0 <- names(metadata)[1]
 list0 <- get(var0,metadata) 
 
@@ -138,7 +140,7 @@ if (write_netcdf) {
   for (model_idx in c(1:(length(models_name)))) {
 
     # Create regridding subdir
-    dir.create(paste(regridding_dir,models_name[model_idx],sep="/"), showWarnings = F)   
+    #dir.create(paste(regridding_dir,models_name[model_idx],sep="/"), showWarnings = F)   
 
     # Setup filenames 
     climofile <- climofiles[model_idx] 

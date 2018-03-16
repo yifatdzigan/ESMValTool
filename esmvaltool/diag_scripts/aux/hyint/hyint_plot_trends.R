@@ -16,8 +16,8 @@ selregions <- settings$selregions
 
 #source('interface_data/r.interface')
 var_type = c("tseries","tseries-sd","trend","trend-stat")
-diag_base <- "HyInt"
-
+# diag_base <- "HyInt"
+ 
 # Number of models
 nmodels=length(models_name)
 
@@ -42,7 +42,7 @@ model_exp_ref=models_experiment[ref_idx]
 model_ens_ref=models_ensemble[ref_idx]
 year1_ref=models_start_year[ref_idx]
 year2_ref=models_end_year[ref_idx]
-plot_dir_ref=file.path(plot_dir,model_exp_ref,paste0(year1_ref,"_",year2_ref),season)
+plot_dir_ref=plot_dir #file.path(plot_dir,model_exp_ref,paste0(year1_ref,"_",year2_ref),season)
 dir.create(plot_dir_ref,recursive=T)
 
 # Handle label tag when overplotting data from tseries files with different labels in plot_type 14,15,16
@@ -70,8 +70,8 @@ for (model_idx in 1:nmodels) {
   year2  <- models_end_year[model_idx]
 
   # set main paths
-  work_dir_exp=file.path(work_dir,exp,paste0(year1,"_",year2),season)
-  plot_dir_exp=file.path(plot_dir,exp,paste0(year1,"_",year2),season)
+  work_dir_exp=work_dir # file.path(work_dir,exp,paste0(year1,"_",year2),season)
+  plot_dir_exp=plot_dir # file.path(plot_dir,exp,paste0(year1,"_",year2),season)
   dir.create(plot_dir_exp,recursive=T)
 
   # check path to reference dataset

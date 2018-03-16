@@ -14,7 +14,7 @@ for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp)
 library("ncdf4")
 
 # setup useful strings
-diag_base = "HyInt"
+# diag_base = "HyInt"
 var_type = c("tseries","tseries-sd","trend","trend-stat")
 var_type_long = c("Timeseries","St.dev of timeseries","Trend coeff. for two intervals ","Trend statistics for trend 1 (Estimate, Std. Error, t value, Pr(>|t|))")
 
@@ -26,8 +26,8 @@ model_exp <- models_experiment[model_idx]
 model_ens <- models_ensemble[model_idx]
 
 # set main paths
-work_dir_exp=file.path(work_dir,exp,paste0(year1,"_",year2),season)
-outfile<-getfilename.trends(work_dir_exp,label,model_idx,season)
+# work_dir_exp=file.path(work_dir,exp,paste0(year1,"_",year2),season)
+outfile<-getfilename.trends(work_dir,label,model_idx,season)
 
 # Define regions to be used
 nregions=length(selregions)
@@ -44,7 +44,7 @@ print(paste0(diag_base,": starting timeseries calculation"))
 #-----------------Loading data-----------------------#
 # open experiment field
 
-infile<-getfilename.indices(work_dir_exp,diag_base,model_idx,season)
+infile<-getfilename.indices(work_dir,diag_base,model_idx,season)
 # test if file contains all requested variables and keep file open for reading attributes
 nc <- nc_open(infile)
 nc_att_glob <- ncatt_get(nc,0) 

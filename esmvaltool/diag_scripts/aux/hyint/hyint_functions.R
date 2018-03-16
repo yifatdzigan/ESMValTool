@@ -41,7 +41,8 @@ getfilename.regridded<-function(spath,rgrid,var0,model_idx){
   year2  <- models_end_year[model_idx]
   model_exp <- models_experiment[model_idx]
   model_ens <- models_ensemble[model_idx]
-  filename=paste0(spath,"/",exp,"/",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"-",toString(year2),"_",var0,"_",rgrid,".nc")
+  #filename=paste0(spath,"/",exp,"/",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"-",toString(year2),"_",var0,"_",rgrid,".nc")
+  filename=paste0(spath,"/",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"-",toString(year2),"_",var0,"_",rgrid,".nc")
 return(filename)
 }
 

@@ -19,7 +19,7 @@
 ---
 
 models:
-  - {model: EC-Earth,       project: CMIP5, exp: rcp85, ensemble: r8i1p1, start_year: 1976, end_year: 2100}
+  - {model: EC-Earth,       project: CMIP5, exp: historical, ensemble: r8i1p1, start_year: 1990, end_year: 2000}
     #  - {model: EC-Earth,       project: CMIP5, exp: historical, ensemble: r8i1p1, start_year: 1976, end_year: 2005}
 #  - {model: ACCESS1-0,      project: CMIP5, exp: rcp85, ensemble: r1i1p1, start_year: 2006, end_year: 2100}
 #  - {model: ACCESS1-3,      project: CMIP5, exp: rcp85, ensemble: r1i1p1, start_year: 2006, end_year: 2100}
@@ -32,7 +32,7 @@ diagnostics:
   hyint:
     description: HyInt hydroclimatic indices calculation and plotting
     variables:
-      pr:
+       pr:
         preprocessor: preproc
         reference_model: "EC-Earth"
         mip: day
@@ -45,4 +45,4 @@ diagnostics:
         script: hyint.r
         plot_type: 14       
         selregions: [1,2,3,4,5,6,7,8,9,10]  
-        #        selfields: [8,4,9,1,2,3] 
+        selfields: [8,4,9,1,2,3] 

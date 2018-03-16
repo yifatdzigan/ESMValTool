@@ -12,8 +12,8 @@ source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
 #source('interface_data/r.interface')
-diag_base <- "HyInt"
-
+# diag_base <- "HyInt"
+ 
 # setting up path and parameters
 dataset_ref=models_name[ref_idx]
 model_exp_ref=models_experiment[ref_idx]
