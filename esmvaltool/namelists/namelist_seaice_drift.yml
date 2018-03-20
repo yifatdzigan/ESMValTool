@@ -2,26 +2,23 @@
 
 models:
   - {model: a0xi,  project: PRIMAVERA, exp: historical,  ensemble: r1i1p1f1,  start_year: 1950,  end_year: 1952}
-  - {model: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-  - {model: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-  - {model: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
+#  - {model: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
+#  - {model: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
+#  - {model: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
 
 preprocessors:
-  preprocessor_1:
-    extract_levels:
-      levels: 85000
-      scheme: nearest
-    regrid:
-      target_grid: ERA-Interim
-      scheme: linear
+  none:
+    extract_levels: False
 
 diagnostics:
-  ta_diagnostic:
-    description: Air temperature Python tutorial diagnostics.
+  seaice_drift:
+    description: Sea-ice drift
     variables:
-      ta:
+      siconc:
         mip: SIday
+        field: T2MO
+        preprocessor: none
     scripts:
-      test_ta:
+      sea_ice_drift:
         script: example_diagnostic.py
         title: "Python example diagnostic"
