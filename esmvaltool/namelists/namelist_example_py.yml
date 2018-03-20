@@ -1,28 +1,21 @@
 ---
 
 models:
-  - {model: bcc-csm1-1,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-  - {model: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-  - {model: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-  - {model: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
-
-preprocessors:
-  preprocessor_1:
-    extract_levels:
-      levels: 85000
-      scheme: nearest
-    regrid:
-      target_grid: ERA-Interim
-      scheme: linear
+  - {model: a0pe,  project: PRIMAVERA,  mip: SIday,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
 
 diagnostics:
-  ta_diagnostic:
-    description: Air temperature Python tutorial diagnostics.
+  seaice_drift:
+    description: SeaIce drift strength
     variables:
-      ta:
-        preprocessor: preprocessor_1
-        field: T3M
+      sic:
+        field: T2MO
+      siu:
+        field: T2MO
+      siv:
+        field: T2MO
+      sit:
+        field: T2MO
     scripts:
-      test_ta:
-        script: example_diagnostic.py
-        title: "Python example diagnostic"
+      drift_strength:
+        script: seaice_drift.py.py
+        title: "SeaIce drift strength"
