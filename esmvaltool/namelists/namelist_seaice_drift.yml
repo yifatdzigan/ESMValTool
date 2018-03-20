@@ -1,7 +1,7 @@
 ---
 
 models:
-  - {model: bcc-csm1-1,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
+  - {model: a0xi,  project: PRIMAVERA, exp: historical,  ensemble: r1i1p1f1,  start_year: 1950,  end_year: 1952}
   - {model: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
   - {model: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
   - {model: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
@@ -20,8 +20,7 @@ diagnostics:
     description: Air temperature Python tutorial diagnostics.
     variables:
       ta:
-        preprocessor: preprocessor_1
-        field: T3M
+        mip: SIday
     scripts:
       test_ta:
         script: example_diagnostic.py

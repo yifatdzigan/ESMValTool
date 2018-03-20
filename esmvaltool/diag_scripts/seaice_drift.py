@@ -45,6 +45,7 @@ def get_input_files(cfg, index=0):
         metadata = yaml.safe_load(file)
     return metadata
 
+
 def main():
     cfg = get_cfg()
     logger.setLevel(cfg['log_level'].upper())
@@ -958,9 +959,9 @@ class Model(object):
                             'sivol_clim_{1}_{0.start_year}-{0.end_year}.nc'.format(self, domain))
 
 
-if __name__ == '__main__':
-    # nemo = Model('NEMO', '/group_workspaces/jasmin2/primavera1/WP2/OCE/NEMO-LIM3-6/HIST_ORCA1/', 'ORCA1_mesh_mask.nc')
-    nemo = Model('NEMO', '/group_workspaces/jasmin2/primavera1/WP2/OCE/NEMO-LIM3-6/HIST_ORCA1/', 'ORCA1_mesh_mask.nc')
-    start_time = datetime.datetime.now()
-    SeaIceDrift(1979, 2013, (nemo,)).compute()
-    print ('Ellapsed time: {0}'.format(datetime.datetime.now() - start_time))
+# if __name__ == '__main__':
+#     # nemo = Model('NEMO', '/group_workspaces/jasmin2/primavera1/WP2/OCE/NEMO-LIM3-6/HIST_ORCA1/', 'ORCA1_mesh_mask.nc')
+#     nemo = Model('NEMO', '/group_workspaces/jasmin2/primavera1/WP2/OCE/NEMO-LIM3-6/HIST_ORCA1/', 'ORCA1_mesh_mask.nc')
+#     start_time = datetime.datetime.now()
+#     SeaIceDrift(1979, 2013, (nemo,)).compute()
+#     print ('Ellapsed time: {0}'.format(datetime.datetime.now() - start_time))
