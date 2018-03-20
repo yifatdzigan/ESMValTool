@@ -1,4 +1,7 @@
 """Simple interface to reformat and CMORize functions."""
+import os
+import shutil
+
 from ..interface_scripts.cmor_check import CMORCheck
 from ..interface_scripts.fixes.fix import Fix
 from ..interface_scripts.variable_info import CMOR_TABLES
@@ -27,11 +30,11 @@ def _get_cmor_checker(table,
     return _checker
 
 
-def fix_file(filename, short_name, project, model, preproc_dir):
+def fix_file(filename, short_name, project, model, output_dir):
     """Fix errors that prevent loading or can not be fixed in the cube."""
     for fix in Fix.get_fixes(
             project=project, model=model, variable=short_name):
-        filename = fix.fix_file(filename, preproc_dir)
+        filename = fix.fix_file(filename, output_dir)
     return filename
 
 
@@ -51,7 +54,8 @@ def fix_metadata(cube, short_name, project, model, cmor_table=None, mip=None):
     return cube
 
 
-def fix_data(cube, short_name, project, model, cmor_table=None, mip=None):
+def fix_data(cube, short_name, project, model, preproc_dir,
+             cmor_table=None, mip=None):
     """Apply fixes to the data of the cube."""
     for fix in Fix.get_fixes(
             project=project, model=model, variable=short_name):
@@ -64,6 +68,9 @@ def fix_data(cube, short_name, project, model, cmor_table=None, mip=None):
             fail_on_error=False,
             automatic_fixes=True)
         checker(cube).check_data()
+    final_dir = os.path.join(preproc_dir, project, model, short_name)
+    if os.path.exists(final_dir):
+        shutil.rmtree(final_dir)
     return cube
 
 
@@ -86,3 +93,9 @@ def cmor_check(cube, cmor_table, mip, short_name):
     cmor_check_metadata(cube, cmor_table, mip, short_name)
     cmor_check_data(cube, cmor_table, mip, short_name)
     return cube
+
+
+def cleanup(output_dir):
+    """Remove fixed files and temp folder"""
+    if os.path.isdir(output_dir):
+        shutil.rmtree(output_dir)
