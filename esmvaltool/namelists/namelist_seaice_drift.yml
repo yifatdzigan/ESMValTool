@@ -1,7 +1,9 @@
 ---
 
 models:
-  - {model: a0xi,  project: PRIMAVERA, exp: historical,  ensemble: r1i1p1f1,  start_year: 1950,  end_year: 1952}
+  - {model: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
+     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
+     start_year: 1950,  end_year: 1952}
 #  - {model: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
 #  - {model: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
 #  - {model: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
@@ -18,7 +20,19 @@ diagnostics:
         mip: SIday
         field: T2MO
         preprocessor: none
+      sithick:
+        mip: SIday
+        field: T2MO
+        preprocessor: none
+      siu:
+        mip: SIday
+        field: T2MO
+        preprocessor: none
+      siv:
+        mip: SIday
+        field: T2MO
+        preprocessor: none
     scripts:
       sea_ice_drift:
-        script: example_diagnostic.py
+        script: sea_ice_drift.py
         title: "Python example diagnostic"
