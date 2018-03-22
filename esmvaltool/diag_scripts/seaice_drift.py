@@ -53,7 +53,17 @@ class SeaIceDrift():
         return metadata
 
     def compute(self):
-        self.logger.debug('Load sea ice drift')
+        self.logger.info('Loading sea ice concentration')
+        siu_files = self.get_input_files(short_name='siconc')
+        for filename, attributes in six.iteritems(siu_files):
+            siconc = iris.load_cube(filename, 'sea_ice_area_fraction')
+
+        self.logger.info('Loading sea ice thickness')
+        siu_files = self.get_input_files(short_name='sithick')
+        for filename, attributes in six.iteritems(siu_files):
+            sithick = iris.load_cube(filename, 'sea_ice_thickness')
+
+        self.logger.info('Load sea ice velocities')
 
         siu_files = self.get_input_files(short_name='siu')
         for filename, attributes in six.iteritems(siu_files):
@@ -63,11 +73,11 @@ class SeaIceDrift():
         for filename, attributes in six.iteritems(siv_files):
             siv = iris.load_cube(filename, 'sea_ice_y_velocity')
 
-        drift = ((siu ** 2 + siv ** 2) ** 0.5)
-        drift = drift.aggregated_by(('year', 'month_number'), iris.analysis.MEAN)
-        drift.short_name = 'sivel'
-        drift.long_name = 'Ice velocity'
-        drift.convert_units('km day-1')
+        # drift = ((siu ** 2 + siv ** 2) ** 0.5)
+        # drift = drift.aggregated_by(('year', 'month_number'), iris.analysis.MEAN)
+        # drift.short_name = 'sivel'
+        # drift.long_name = 'Ice velocity'
+        # drift.convert_units('km day-1')
 
 
 
