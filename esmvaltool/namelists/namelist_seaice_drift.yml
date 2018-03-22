@@ -34,5 +34,5 @@ diagnostics:
         preprocessor: none
     scripts:
       sea_ice_drift:
-        script: sea_ice_drift.py
+        script: seaice_drift.py
         title: "Python example diagnostic"
