@@ -32,3 +32,4 @@ diagnostics:
       sea_ice_drift:
         script: seaice_drift.py
         title: "Python example diagnostic"
+        latitude_treshold: 50

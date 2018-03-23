@@ -66,15 +66,22 @@ class SeaIceDrift():
                 siv = iris.load_cube(filename, 'sea_ice_y_velocity')
 
             sispeed = ((siu ** 2 + siv ** 2) ** 0.5)
-            sispeed = sispeed.aggregated_by(('year', 'month_number'), iris.analysis.MEAN)
+            sispeed = sispeed.aggregated_by(('year', 'month_number'),
+                                            iris.analysis.MEAN)
             sispeed.short_name = 'sispeed'
             sispeed.standard_name = 'sea_ice_speed'
             sispeed.long_name = 'Sea-ice speed'
             sispeed.convert_units('km day-1')
 
+            lat_mask = sicon.coord('latitude').points > 50
 
 
+            sispeed_mean = self._compute_domain_mean(sispeed, mask)
+            siconc_mean = self._compute_domain_mean(siconc, mask)
+            sivol_mean = self._compute_domain_mean(sivol, mask)
 
+    def _compute_domain_mean(self, data, mask):
+        return data.collapsed(['latitude', 'longitude'], iris.analysis.MEAN, weights=mask)
 
 # def main():
 #     cfg = get_cfg()
@@ -91,7 +98,7 @@ class SeaIceDrift():
 #             )
 #             cube = iris.load_cube(filename)
 #             cube = cube.collapsed('time', iris.analysis.MEAN)
-
+#
 #
 # MONTHS_PER_YEAR = 12
 # SCICEX = 'scicex'
@@ -511,8 +518,10 @@ class SeaIceDrift():
 #                                                units='m')
 #         self.sivol_PIOMAS[LAT].attributes['lat_threshold'] = self.lat_threshold
 #         self.sivol_PIOMAS[LAT].add_dim_coord(
-#             iris.coords.DimCoord(range(1, 13), var_name='month_number', long_name='month_number', units='1'), 0)
-#         iris.save((self.sivol_PIOMAS[SCICEX], self.sivol_PIOMAS[LAT]), self.sivol_PIOMAS_file, zlib=True)
+#             iris.coords.DimCoord(range(1, 13), var_name='month_number',
+#                                  long_name='month_number', units='1'), 0)
+#         iris.save((self.sivol_PIOMAS[SCICEX], self.sivol_PIOMAS[LAT]),
+#                   self.sivol_PIOMAS_file, zlib=True)
 #
 #     def lat_domain(self, lat):
 #         return lat >= self.lat_threshold
@@ -521,7 +530,8 @@ class SeaIceDrift():
 #         self._prepare_scicex_box()
 #
 #         x, y = self.map(lon, lat)
-#         # Check which model grid points fall into domain and create mask (1: inside domain; 0: outside domain)
+#         # Check which model grid points fall into domain and create mask
+#         # (1: inside domain; 0: outside domain)
 #         mask_scicex = np.zeros(shape=lon.shape)
 #         for jx in np.arange(lon.shape[0]):
 #             for jy in np.arange(lon.shape[1]):
@@ -536,7 +546,8 @@ class SeaIceDrift():
 #         n = len(lon)
 #         x, y = self.map(lon, lat)
 #
-#         # Check which model grid points fall into domain and create mask (1: inside domain; 0: outside domain)
+#         # Check which model grid points fall into domain and create mask
+#         # (1: inside domain; 0: outside domain)
 #         mask_scicex = np.zeros(n)
 #         for j in range(n):
 #             if self.scicex_box.contains_points([(x[j], y[j])]):
@@ -550,14 +561,16 @@ class SeaIceDrift():
 #             return
 #         # Store SCICEX vertices (lon,lat)
 #         scicex_vertices = (
-#             (-15, 87), (-60, 86.58), (-130, 80), (-141, 80), (-141, 70), (-155, 72), (175, 75.5), (172, 78.5),
-#             (163, 80.5),
-#             (126, 78.5), (110, 84.33), (80, 84.42), (57, 85.17), (33, 83.8), (8, 84.08))
+#             (-15, 87), (-60, 86.58), (-130, 80), (-141, 80), (-141, 70),
+#             (-155, 72), (175, 75.5), (172, 78.5),(163, 80.5),(126, 78.5),
+#             (110, 84.33), (80, 84.42), (57, 85.17), (33, 83.8), (8, 84.08))
 #         # Map projection
 #         boundlat = 50.
 #         l0 = 0.
-#         self.map = Basemap(projection='nplaea', boundinglat=boundlat, lon_0=l0, resolution='c')
-#         self.scicex_box = matplotlib.path.Path([self.map(i[0], i[1]) for i in scicex_vertices])
+#         self.map = Basemap(projection='nplaea', boundinglat=boundlat,
+#                            lon_0=l0, resolution='c')
+#         path_list = [self.map(i[0], i[1]) for i in scicex_vertices]
+#         self.scicex_box = matplotlib.path.Path(path_list)
 #
 #     def compute_monthly_mean_over_domain(self):
 #         self.log_section('Compute monthly mean averaged over whole domain')
@@ -712,14 +725,19 @@ class SeaIceDrift():
 #             self.log_subsection('Model {0}'.format(model.name))
 #             self.log_subsubsection('Metrics computed over SCICEX box')
 #             self._print_results(model, SCICEX)
-#             self.log_subsubsection('Metrics computed over domain north of {0}'.format(self.lat_threshold))
+#             self.log_subsubsection('Metrics computed over domain north of {0}'
+#                                    ''.format(self.lat_threshold))
 #             self._print_results(model, LAT)
 #
 #     def _print_results(self, model, domain):
-#         self.log_output('Slope ratio Drift-Concentration = {0:.3}'.format(model.slope_ratio_drift_siconc[domain]))
-#         self.log_output('Mean error Drift-Concentration (%) = {0:.4}'.format(model.error_drift_siconc[domain]))
-#         self.log_output('Slope ratio Drift-Thickness = {0:.3}'.format(model.slope_ratio_drift_sivol[domain]))
-#         self.log_output('Mean error Drift-Thickness (%) = {0:.4}'.format(model.error_drift_sivol[domain]))
+#         self.log_output('Slope ratio Drift-Concentration = {0:.3}'
+#                         ''.format(model.slope_ratio_drift_siconc[domain]))
+#         self.log_output('Mean error Drift-Concentration (%) = {0:.4}'
+#                         ''.format(model.error_drift_siconc[domain]))
+#         self.log_output('Slope ratio Drift-Thickness = {0:.3}'
+#                         ''.format(model.slope_ratio_drift_sivol[domain]))
+#         self.log_output('Mean error Drift-Thickness (%) = {0:.4}'
+#                         ''.format(model.error_drift_sivol[domain]))
 #
 #     def save(self):
 #         if not self.save_variables:
@@ -732,9 +750,12 @@ class SeaIceDrift():
 #             model.save_slope(DOMAINS)
 #
 #         for domain in DOMAINS:
-#             iris.save(self.drift_IABP[domain], self.drift_IABP_clim_file(domain), zlib=True)
-#             iris.save(self.siconc_OSISAF[domain], self.siconc_OSISAF_clim_file(domain), zlib=True)
-#             iris.save(self.sivol_PIOMAS[domain], self.sivol_PIOMAS_clim_file(domain), zlib=True)
+#             iris.save(self.drift_IABP[domain],
+#                       self.drift_IABP_clim_file(domain), zlib=True)
+#             iris.save(self.siconc_OSISAF[domain],
+#                       self.siconc_OSISAF_clim_file(domain), zlib=True)
+#             iris.save(self.sivol_PIOMAS[domain],
+#                       self.sivol_PIOMAS_clim_file(domain), zlib=True)
 #
 #         csv_path = os.path.join(self.dir, 'obs_metric_drift_siconc_{0.start_year}-{0.end_year}.csv'.format(self))
 #         with open(csv_path, 'w') as csvfile:
@@ -797,7 +818,9 @@ class SeaIceDrift():
 #         self._annotate_points(ax, sivol, drift)
 #         self._annotate_points(ax, sivol_obs, drift_obs)
 #         ax.grid()
-#         ax.set_title('Seasonal cycle 1979-2013 {0} {1}'.format(domain, model.name), fontsize=18)
+#         ax.set_title('Seasonal cycle 1979-2013 {0} {1}'.format(domain,
+#                                                                model.name),
+#                      fontsize=18)
 #
 #     def _plot_drift_siconc(self, ax, domain, model):
 #         drift = model.drift[domain].data
@@ -815,11 +838,16 @@ class SeaIceDrift():
 #         siconc_obs = self.siconc_OSISAF[domain].data
 #
 #         ax.plot(siconc, drift, 'ro-', label=model.name)
-#         ax.plot(siconc, slope_siconc * siconc + intercept_siconc, 'r:', linewidth=2)
+#         ax.plot(siconc, slope_siconc * siconc + intercept_siconc, 'r:',
+#                 linewidth=2)
 #         ax.plot(siconc_obs, drift_obs, 'bo-',
-#                 label='IABP / OSI SAF ($s_A$=' + str(np.round(slope_ratio_siconc, 1)) + '; $\epsilon_A$=' + str(
-#                     np.round(error_siconc, 1)) + '$\%$)')
-#         ax.plot(siconc_obs, slope_siconc_obs * siconc_obs + intercept_siconc_obs, 'b:', linewidth=2)
+#                 label='IABP / OSI SAF ($s_A$=' +
+#                       str(np.round(slope_ratio_siconc, 1)) +
+#                       '; $\epsilon_A$=' + str(np.round(error_siconc, 1)) +
+#                       '$\%$)')
+#         ax.plot(siconc_obs, slope_siconc_obs * siconc_obs +
+#                 intercept_siconc_obs,
+#                 'b:', linewidth=2)
 #         ax.legend(loc='lower left', shadow=True, frameon=False, fontsize=12)
 #         ax.set_xlabel('Sea ice concentration', fontsize=18)
 #         ax.set_ylabel('Sea ice drift speed (km d$^{-1}$)', fontsize=18)
@@ -829,11 +857,14 @@ class SeaIceDrift():
 #         self._annotate_points(ax, siconc, drift)
 #         self._annotate_points(ax, siconc_obs, drift_obs)
 #         ax.grid(linewidth=0.01)
-#         ax.set_title('Seasonal cycle 1979-2013 {0} {1}'.format(domain, model.name), fontsize=18)
+#         ax.set_title('Seasonal cycle 1979-2013 {0} {1}'.format(domain,
+#                                                                model.name),
+#                      fontsize=18)
 #
 #     def _annotate_points(self, ax, xvalues, yvalues):
 #         for x, y, z in zip(xvalues, yvalues, range(1, 12 + 1)):
-#             ax.annotate(calendar.month_abbr[z][0], xy=(x, y), xytext=(10, 5), ha='right', textcoords='offset points')
+#             ax.annotate(calendar.month_abbr[z][0], xy=(x, y), xytext=(10, 5),
+#                         ha='right', textcoords='offset points')
 #
 #     def _get_plot_limits(self, sivol, sivol_obs):
 #         low = min(min(sivol), min(sivol_obs)) - 0.4
@@ -874,28 +905,40 @@ class SeaIceDrift():
 #         return self._scratch_dir
 #
 #     def save_climatologies(self, domain):
-#         iris.save(self.drift[domain], self.drift_clim_file(domain), zlib=True)
-#         iris.save(self.siconc[domain], self.siconc_clim_file(domain), zlib=True)
-#         iris.save(self.sivol[domain], self.sivol_clim_file(domain), zlib=True)
+#         iris.save(self.drift[domain], self.drift_clim_file(domain),
+#                   zlib=True)
+#         iris.save(self.siconc[domain], self.siconc_clim_file(domain),
+#                   zlib=True)
+#         iris.save(self.sivol[domain], self.sivol_clim_file(domain),
+#                   zlib=True)
 #
 #     def save_slope(self, domains):
 #         siconc_path = os.path.join(self.scratch_dir, self.name,
-#                                    'metric_drift_siconc_{0.start_year}-{0.end_year}.csv'.format(self))
+#                                    'metric_drift_siconc_'
+#                                    '{0.start_year}-{0.end_year}'
+#                                    '.csv'.format(self))
 #         sivol_path = os.path.join(self.scratch_dir, self.name,
-#                                   'metric_drift_sivol_{0.start_year}-{0.end_year}.csv'.format(self))
+#                                   'metric_drift_sivol_'
+#                                   '{0.start_year}-{0.end_year}'
+#                                   '.csv'.format(self))
 #         with open(siconc_path, 'w') as csvfile:
 #             csv_writer = csv.writer(csvfile)
-#             csv_writer.writerow(('domain', 'slope', 'intercept', 'slope_ratio', 'error'))
+#             csv_writer.writerow(('domain', 'slope', 'intercept',
+#                                  'slope_ratio', 'error'))
 #             for domain in domains:
-#                 csv_writer.writerow((domain, self.slope_drift_siconc[domain], self.intercept_drift_siconc[domain],
-#                                      self.slope_ratio_drift_siconc[domain], self.error_drift_siconc[domain]))
+#                 csv_writer.writerow((domain, self.slope_drift_siconc[domain],
+#                                      self.intercept_drift_siconc[domain],
+#                                      self.slope_ratio_drift_siconc[domain],
+#                                      self.error_drift_siconc[domain]))
 #
 #         with open(sivol_path, 'w') as csvfile:
 #             csv_writer = csv.writer(csvfile)
 #             csv_writer.writerow(('domain', 'slope', 'intercept', 'slope_ratio', 'error'))
 #             for domain in domains:
-#                 csv_writer.writerow((domain, self.slope_drift_sivol[domain], self.intercept_drift_sivol[domain],
-#                                      self.slope_ratio_drift_sivol[domain], self.error_drift_sivol[domain]))
+#                 csv_writer.writerow((domain, self.slope_drift_sivol[domain],
+#                                      self.intercept_drift_sivol[domain],
+#                                      self.slope_ratio_drift_sivol[domain],
+#                                      self.error_drift_sivol[domain]))
 #
 #     @property
 #     def scratch_dir(self):
@@ -904,7 +947,8 @@ class SeaIceDrift():
 #     @scratch_dir.setter
 #     def scratch_dir(self, value):
 #         self._scratch_dir = value
-#         if self._scratch_dir and not os.path.isdir(os.path.join(self.scratch_dir, self.name)):
+#         if self._scratch_dir and \
+#             not os.path.isdir(os.path.join(self.scratch_dir, self.name)):
 #             os.mkdir(os.path.join(self.scratch_dir, self.name))
 #
 #     @property
@@ -953,36 +997,48 @@ class SeaIceDrift():
 #
 #     @property
 #     def drift_file(self):
-#         return os.path.join(self.scratch_dir, self.name, 'drift_{0.start_year}-{0.end_year}.nc'.format(self))
+#         return os.path.join(self.scratch_dir, self.name,
+#                             'drift_{0.start_year}-{0.end_year}'
+#                             '.nc'.format(self))
 #
 #     @property
 #     def siconc_file(self):
-#         return os.path.join(self.scratch_dir, self.name, 'siconc_{0.start_year}-{0.end_year}.nc'.format(self))
+#         return os.path.join(self.scratch_dir, self.name,
+#                             'siconc_{0.start_year}-{0.end_year}'
+#                             '.nc'.format(self))
 #
 #     @property
 #     def sivol_file(self):
-#         return os.path.join(self.scratch_dir, self.name, 'sivol_{0.start_year}-{0.end_year}.nc'.format(self))
+#         return os.path.join(self.scratch_dir, self.name,
+#                             'sivol_{0.start_year}-{0.end_year}'
+#                             '.nc'.format(self))
 #
 #
 #     def drift_clim_file(self, domain):
 #         return os.path.join(self.scratch_dir, self.name,
-#                             'drift_clim_{1}_{0.start_year}-{0.end_year}.nc'.format(self, domain))
+#                             'drift_clim_{1}_{0.start_year}-{0.end_year}'
+#                             '.nc'.format(self, domain))
 #
 #     def siconc_clim_file(self, domain):
 #         return os.path.join(self.scratch_dir, self.name,
-#                             'siconc_clim_{1}_{0.start_year}-{0.end_year}.nc'.format(self, domain))
+#                             'siconc_clim_{1}_{0.start_year}-{0.end_year}'
+#                             '.nc'.format(self, domain))
 #
 #     def sivol_clim_file(self, domain):
 #         return os.path.join(self.scratch_dir, self.name,
-#                             'sivol_clim_{1}_{0.start_year}-{0.end_year}.nc'.format(self, domain))
+#                             'sivol_clim_{1}_{0.start_year}-{0.end_year}'
+#                             '.nc'.format(self, domain))
 #
 #
-# # if __name__ == '__main__':
-# #     # nemo = Model('NEMO', '/group_workspaces/jasmin2/primavera1/WP2/OCE/NEMO-LIM3-6/HIST_ORCA1/', 'ORCA1_mesh_mask.nc')
-# #     nemo = Model('NEMO', '/group_workspaces/jasmin2/primavera1/WP2/OCE/NEMO-LIM3-6/HIST_ORCA1/', 'ORCA1_mesh_mask.nc')
-# #     start_time = datetime.datetime.now()
-# #     SeaIceDrift(1979, 2013, (nemo,)).compute()
-# #     print ('Ellapsed time: {0}'.format(datetime.datetime.now() - start_time))
+# if __name__ == '__main__':
+#     nemo = Model('NEMO',
+#                  '/group_workspaces/jasmin2/primavera1/WP2/OCE/'
+#                  'NEMO-LIM3-6/HIST_ORCA1/',
+#                  'ORCA1_mesh_mask.nc')
+#     start_time = datetime.datetime.now()
+#     SeaIceDrift(1979, 2013, (nemo,)).compute()
+#     print ('Ellapsed time: {0}'.format(datetime.datetime.now() - start_time))
+
 if __name__ == '__main__':
     iris.FUTURE.netcdf_promote = True
 
