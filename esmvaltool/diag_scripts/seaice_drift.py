@@ -36,48 +36,41 @@ class SeaIceDrift():
     def __init__(self, settings_file):
         with open(settings_file) as file:
             self.cfg = yaml.safe_load(file)
+
+        with open(self.cfg['input_files'][0]) as file:
+            self.input_files = yaml.safe_load(file)
         logging.basicConfig(format="%(asctime)s [%(process)d] %(levelname)-8s "
                                    "%(name)s,%(lineno)s\t%(message)s")
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(self.cfg['log_level'].upper())
 
-    def get_input_files(self, index=0, short_name=None, ):
-        """Get a dictionary with input files from metadata.yml files."""
-        metadata_file = self.cfg['input_files'][index]
-        with open(metadata_file) as file:
-            metadata = yaml.safe_load(file)
-
-        if short_name is not None:
-            metadata = metadata[short_name]
-
-        return metadata
-
     def compute(self):
         self.logger.info('Loading sea ice concentration')
-        siu_files = self.get_input_files(short_name='siconc')
-        for filename, attributes in six.iteritems(siu_files):
+        for filename, attributes in six.iteritems(self.input_files['siconc']):
             siconc = iris.load_cube(filename, 'sea_ice_area_fraction')
 
         self.logger.info('Loading sea ice thickness')
-        siu_files = self.get_input_files(short_name='sithick')
-        for filename, attributes in six.iteritems(siu_files):
+        for filename, attributes in six.iteritems(self.input_files['sithick']):
             sithick = iris.load_cube(filename, 'sea_ice_thickness')
 
         self.logger.info('Load sea ice velocities')
 
-        siu_files = self.get_input_files(short_name='siu')
-        for filename, attributes in six.iteritems(siu_files):
-            siu = iris.load_cube(filename, 'sea_ice_x_velocity')
+        if 'sispeed' in self.input_files:
+            for filename, attributes in six.iteritems(self.input_files['sispeed']):
+                sispeed = iris.load_cube(filename, 'sea_ice_speed')
+        else:
+            for filename, attributes in six.iteritems(self.input_files['siu']):
+                siu = iris.load_cube(filename, 'sea_ice_x_velocity')
 
-        siv_files = self.get_input_files(short_name='siv')
-        for filename, attributes in six.iteritems(siv_files):
-            siv = iris.load_cube(filename, 'sea_ice_y_velocity')
+            for filename, attributes in six.iteritems(self.input_files['siv']):
+                siv = iris.load_cube(filename, 'sea_ice_y_velocity')
 
-        # drift = ((siu ** 2 + siv ** 2) ** 0.5)
-        # drift = drift.aggregated_by(('year', 'month_number'), iris.analysis.MEAN)
-        # drift.short_name = 'sivel'
-        # drift.long_name = 'Ice velocity'
-        # drift.convert_units('km day-1')
+            sispeed = ((siu ** 2 + siv ** 2) ** 0.5)
+            sispeed = sispeed.aggregated_by(('year', 'month_number'), iris.analysis.MEAN)
+            sispeed.short_name = 'sispeed'
+            sispeed.standard_name = 'sea_ice_speed'
+            sispeed.long_name = 'Sea-ice speed'
+            sispeed.convert_units('km day-1')
 
 
 

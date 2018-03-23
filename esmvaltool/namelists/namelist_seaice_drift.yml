@@ -24,11 +24,7 @@ diagnostics:
         mip: SIday
         field: T2MO
         preprocessor: none
-      siu:
-        mip: SIday
-        field: T2MO
-        preprocessor: none
-      siv:
+      sispeed:
         mip: SIday
         field: T2MO
         preprocessor: none
