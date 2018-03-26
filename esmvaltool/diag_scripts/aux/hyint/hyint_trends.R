@@ -44,6 +44,7 @@ print(paste0(diag_base,": starting timeseries calculation"))
 #-----------------Loading data-----------------------#
 # open experiment field
 
+gridfile<-getfilename.indices(work_dir,diag_base,model_idx,grid=T)
 infile<-getfilename.indices(work_dir,diag_base,model_idx,season)
 # test if file contains all requested variables and keep file open for reading attributes
 nc <- nc_open(infile)

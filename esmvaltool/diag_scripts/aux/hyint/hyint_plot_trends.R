@@ -9,7 +9,6 @@ hyint.plot.trends<-function(work_dir,plot_dir,ref_dir,ref_idx,season) {
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
-
 # ingest list of settings
 plot_type <- settings$plot_type
 selregions <- settings$selregions

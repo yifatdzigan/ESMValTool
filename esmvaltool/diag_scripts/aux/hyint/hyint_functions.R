@@ -46,7 +46,7 @@ getfilename.regridded<-function(spath,rgrid,var0,model_idx){
 return(filename)
 }
 
-getfilename.indices<-function(spath,label,model_idx,season,hist=F,hist_years=hist_years){
+getfilename.indices<-function(spath,label,model_idx,season,hist=F,hist_years=hist_years,grid=grid){
   exp    <- models_name[model_idx]
   year1  <- models_start_year[model_idx]
   year2  <- models_end_year[model_idx]
@@ -58,6 +58,7 @@ getfilename.indices<-function(spath,label,model_idx,season,hist=F,hist_years=his
   }
   model_ens <- models_ensemble[model_idx]
   filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"_",toString(year2),"_",season,".nc")
+  if (grid) { filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,".grid") }
 return(filename)
 }
 
@@ -389,7 +390,7 @@ createLandSeaMask <- function(regrid = './gridDef', ref_file = ref_file, loc = "
         system(cmd)
 
         ## Regridding the topographic map to chosen grid
-        cmd <- paste('cdo remapcon,', regrid, ' ',  loc,  '/topo.nc ', loc, regridded_topo, sep = "")
+        cmd <- paste('cdo remapcon2,', regrid, ' ',  loc,  '/topo.nc ', loc, regridded_topo, sep = "")
         print(cmd)
         system(cmd)
 

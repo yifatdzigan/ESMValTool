@@ -12,10 +12,10 @@
 #####################################################################
 
 # Replace here global values from namelist_hyint.xml
-write_ncdf=T
-run_regridding=T
+write_ncdf=F
+run_regridding=F
 force_regridding=F
-run_diagnostic=T
+run_diagnostic=F
 force_diagnostic=F
 etccdi_preproc=F
 run_timeseries=T
@@ -42,7 +42,7 @@ topography_highres <- "/home/arnone/work/data/Elevation/GMTED2010_15n030_0125deg
 
 # Diagnostic options
 norm_years=c(1976,2005)  # reference normalization period
-norm_years=c(1990,2000)  # reference normalization period
+#norm_years=c(1990,2000)  # reference normalization period
 external_norm=F#"HIST"       # a) F=use internal data to normalize over the norm_years period
                       # b) list of names of normalization files (one per input data file or one for all)
                       # c) "HIST" to automatically generate the name of the historical experiment associated with the model name 
@@ -53,7 +53,7 @@ external_r95=external_norm    # a) F=use internal data to evaluate r95 threshold
                               # c) "HIST" to automatically generate the name of the historical experiment associated with the model name
 
 # Plotting options
-plot_type <- 14  # 1) lon/lat maps per individual field/exp/single year, 2) lon/lat maps per individual field exp-ref-diff/single year, 
+plot_type <- 15  # 1) lon/lat maps per individual field/exp/single year, 2) lon/lat maps per individual field exp-ref-diff/single year, 
                 # 3) lon/lat maps multi-field/exp-ref-diff/single year,  4) lon/lat maps multifield/exp/multiyear,  
                 # 11) timeseries over required individual region/exp, 12) timeseries over multiple regions/exp
                 # 13) timeseries with multiple models, 14) summary trend coefficients multiple regions  
@@ -65,7 +65,7 @@ ryearplot <- 2006 # c(1997,2002,2003) # years to be plotted for experiments (map
 rmultiyear_mean <- T # T to plot multiyear mean (this override ryearplot)
 ryearplot_ref <- c("EXP") # year to be plotted for reference dataset: options a) "EXP" == same as experiments, b) one year only, e.g. c(1998)    
 force_ref <- F # set TRUE to force plotting of reference data as any other experiment
-label= "test" # user defined extra label for figure file name
+label= "egu2018-0m" # user defined extra label for figure file name
 map_continents <- -2 # thickness of continents: positive values in white, negative values in gray
 map_continents_regions <- F # T to plot also regional boundaries
 
@@ -75,11 +75,11 @@ legend_distance=3
 
 # timeseries options
 weight_tseries=T  # T to calculate area weighted time averages
-trend_years= F# c(2006,2100,1976,2005) # a) F=all; 
+trend_years= c(2006,2100,1976,2005) # a) F=all; 
                          # b) c(year1,year2) to apply trend calculation and plotting only to a limited time interval (year1<=years<=year2) 
                          # c) c(year1,year2,year3,year4) to apply trend to two separate time intervals (year1<=years<=year2) and (year3<=years<=year4)
 removedesert=F      # T to remove (flag as NA) grid points with mean annual pr < 0.5 mm/day (desertic areas, Giorgi et al. 2014)
-maskSeaLand=F # T to mask depending on seaLandElevation threshold
+maskSeaLand=T # T to mask depending on seaLandElevation threshold
 seaLandElevation=0 # a) 0 land; b) positive value: land above given elevation;
                    # c) negative value: ocean below given depth. The topography/bathymetry file is generated with cdo from ETOPO data. 
 reverse_maskSeaLand=F # T to reject what selected, F to keep what selected
@@ -237,7 +237,7 @@ tlevels_m[38,]=c(2,8)*0.01
 tlevels_m[39,]=c(4,8)*0.01
 tlevels_m[40,]=c(5,25)*0.01
 
-if (T) {  # undefine levels if you wish to plot actual range of target values
+if (F) {  # undefine levels if you wish to plot actual range of target values
  tlevels_m[]=NA
  levels_m[]=NA
 }
