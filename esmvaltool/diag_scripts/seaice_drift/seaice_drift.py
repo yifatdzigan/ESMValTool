@@ -46,17 +46,19 @@ class SeaIceDrift():
 
     def compute(self):
         self.logger.info('Loading sea ice concentration')
+
         for filename, attributes in six.iteritems(self.input_files['siconc']):
             siconc = iris.load_cube(filename, 'sea_ice_area_fraction')
 
         self.logger.info('Loading sea ice thickness')
         for filename, attributes in six.iteritems(self.input_files['sithick']):
-            sithick = iris.load_cube(filename, 'sea_ice_thickness')
+            sivol = iris.load_cube(filename, 'sea_ice_thickness') * siconc
 
         self.logger.info('Load sea ice velocities')
 
         if 'sispeed' in self.input_files:
-            for filename, attributes in six.iteritems(self.input_files['sispeed']):
+            sispeed_iter = six.iteritems(self.input_files['sispeed'])
+            for filename, attributes in sispeed_iter:
                 sispeed = iris.load_cube(filename, 'sea_ice_speed')
         else:
             for filename, attributes in six.iteritems(self.input_files['siu']):
@@ -73,15 +75,20 @@ class SeaIceDrift():
             sispeed.long_name = 'Sea-ice speed'
             sispeed.convert_units('km day-1')
 
-            lat_mask = sicon.coord('latitude').points > 50
+        lat_mask = siconc.coord('latitude').points > self.cfg['latitude_treshold']
 
 
-            sispeed_mean = self._compute_domain_mean(sispeed, mask)
-            siconc_mean = self._compute_domain_mean(siconc, mask)
-            sivol_mean = self._compute_domain_mean(sivol, mask)
+        sispeed_mean = self._compute_mean(sispeed, lat_mask)
+        del sispeed
+        siconc_mean = self._compute_mean(siconc, lat_mask)
+        del siconc
+        sivol_mean = self._compute_mean(sivol, lat_mask)
+        del sivol
 
-    def _compute_domain_mean(self, data, mask):
-        return data.collapsed(['latitude', 'longitude'], iris.analysis.MEAN, weights=mask)
+    def _compute_mean(self, data, mask):
+        domain_mean = data.collapsed(['latitude', 'longitude'],
+                                     iris.analysis.MEAN, weights=mask)
+        return domain_mean.aggregated_by('month_number', iris.analysis.MEAN)
 
 # def main():
 #     cfg = get_cfg()
@@ -107,8 +114,6 @@ class SeaIceDrift():
 #
 # DOMAINS = (SCICEX, LAT)
 #
-# iris.FUTURE.netcdf_promote = True
-# iris.FUTURE.netcdf_no_unlimited = True
 #
 #
 # class SeaIceDrift(object):
@@ -189,36 +194,50 @@ class SeaIceDrift():
 #     def log_subsection(self, subsection_name):
 #         self.subsection += 1
 #         self.subsubsection = 0
-#         print('  {0}.{1} {2}'.format(self.section, self.subsection, subsection_name))
+#         print('  {0}.{1} {2}'.format(self.section, self.subsection,
+#                                      subsection_name))
 #
 #     def log_subsubsection(self, subsection_name):
 #         self.subsubsection += 1
-#         print('    {0:c}) {1}'.format(self.subsubsection + 96, subsection_name))
+#         print('    {0:c}) {1}'.format(self.subsubsection + 96,
+#                                       subsection_name))
 #
 #     def log_output(self, text_to_print):
 #         print('      {0}'.format(text_to_print))
 #
-#     @property
-#     def drift_IABP_file(self):
-#         return os.path.join(self.dir, 'drift_IABP_lat{0.lat_threshold}_{0.start_year}-{0.end_year}.nc'.format(self))
-#
-#     @property
-#     def siconc_OSISAF_file(self):
-#         return os.path.join(self.dir, 'siconc_OSISAF_{0.start_year}-{0.end_year}.nc'.format(self))
-#
-#     @property
-#     def sivol_PIOMAS_file(self):
-#         return os.path.join(self.dir, 'sivol_PIOMAS_{0.start_year}-{0.end_year}.nc'.format(self))
-#
-#     def drift_IABP_clim_file(self, domain):
-#         return os.path.join(self.dir, 'drift_IABP_clim_{1}_lat{0.lat_threshold}_'
-#                                       '{0.start_year}-{0.end_year}.nc'.format(self, domain))
-#
-#     def siconc_OSISAF_clim_file(self, domain):
-#         return os.path.join(self.dir, 'siconc_OSISAF_clim_{1}_{0.start_year}-{0.end_year}.nc'.format(self, domain))
-#
-#     def sivol_PIOMAS_clim_file(self, domain):
-#         return os.path.join(self.dir, 'sivol_PIOMAS_clim_{1}_{0.start_year}-{0.end_year}.nc'.format(self, domain))
+    # @property
+    # def drift_IABP_file(self):
+    #     return os.path.join(self.dir, 'drift_IABP_lat{0.lat_threshold}_'
+    #                                   '{0.start_year}-{0.end_year}.nc'
+    #                         .format(self))
+    #
+    # @property
+    # def siconc_OSISAF_file(self):
+    #     return os.path.join(self.dir, 'siconc_OSISAF_'
+    #                                   '{0.start_year}-{0.end_year}.nc'
+    #                         .format(self))
+    #
+    # @property
+    # def sivol_PIOMAS_file(self):
+    #     return os.path.join(self.dir, 'sivol_PIOMAS_'
+    #                                   '{0.start_year}-{0.end_year}.nc'
+    #                         .format(self))
+    #
+    # def drift_IABP_clim_file(self, domain):
+    #     return os.path.join(self.dir, 'drift_IABP_clim_{1}_'
+    #                                   'lat{0.lat_threshold}_'
+    #                                   '{0.start_year}-{0.end_year}.nc'
+    #                         .format(self, domain))
+    #
+    # def siconc_OSISAF_clim_file(self, domain):
+    #     return os.path.join(self.dir, 'siconc_OSISAF_clim_{1}_'
+    #                                   '{0.start_year}-{0.end_year}.nc'
+    #                         .format(self, domain))
+    #
+    # def sivol_PIOMAS_clim_file(self, domain):
+    #     return os.path.join(self.dir, 'sivol_PIOMAS_clim_{1}_'
+    #                                   '{0.start_year}-{0.end_year}.nc'
+    #                         .format(self, domain))
 #
 #     def compute(self):
 #         self.load_models()
@@ -251,7 +270,8 @@ class SeaIceDrift():
 #         iris.coord_categorisation.add_day_of_year(cube, 'time')
 #         iris.coord_categorisation.add_year(cube, 'time')
 #         iris.coord_categorisation.add_month_number(cube, 'time')
-#         model.drift[RAW] = cube.aggregated_by(('year', 'month_number'), iris.analysis.MEAN)
+#         model.drift[RAW] = cube.aggregated_by(('year', 'month_number'),
+#                                               iris.analysis.MEAN)
 #         model.drift[RAW].short_name = 'sivel'
 #         model.drift[RAW].long_name = 'Ice velocity'
 #         model.drift[RAW].convert_units('km day-1')
@@ -260,7 +280,8 @@ class SeaIceDrift():
 #     def _load_velocity(self, model, component):
 #         fname = 'si{0}_OIday*.nc'.format(component)
 #         with iris.FUTURE.context(cell_datetime_objects=True):
-#             cubes = iris.load(os.path.join(model.path, fname), self.years_constraint)
+#             cubes = iris.load(os.path.join(model.path, fname),
+#                               self.years_constraint)
 #         equalise_attributes(cubes)
 #         iris.util.unify_time_units(cubes)
 #         cube = cubes.concatenate_cube()
@@ -287,18 +308,24 @@ class SeaIceDrift():
 #
 #         fname = 'sivol_OImon*.nc'
 #         siconc_path = os.path.join(model.path, fname)
-#         model.sivol[RAW] = self.load_cube(siconc_path, 'sea_ice_volume_per_unit_gridcell_area')
+#         model.sivol[RAW] = self.load_cube(siconc_path,
+#                                           'sea_ice_volume_per_unit_'
+#                                           'gridcell_area')
 #         iris.save(model.sivol[RAW], model.sivol_file, zlib=True)
-#
+
 #     def load_cube(self, data_path, standard_name):
 #         with iris.FUTURE.context(cell_datetime_objects=True):
-#             cubes = iris.load(data_path, (self.years_constraint & iris.Constraint(standard_name)))
+#             cubes = iris.load(data_path,
+#                               (self.years_constraint &
+#                                iris.Constraint(standard_name)))
 #
 #         equalise_attributes(cubes)
 #         iris.util.unify_time_units(cubes)
 #         cube = cubes.concatenate_cube()
-#         cube.add_dim_coord(iris.coords.DimCoord(range(1, cube.shape[1] + 1), var_name='j'), 1)
-#         cube.add_dim_coord(iris.coords.DimCoord(range(1, cube.shape[2] + 1), var_name='i'), 2)
+#         cube.add_dim_coord(iris.coords.DimCoord(range(1, cube.shape[1] + 1),
+#                                                 var_name='j'), 1)
+#         cube.add_dim_coord(iris.coords.DimCoord(range(1, cube.shape[2] + 1),
+#                                                 var_name='i'), 2)
 #         iris.coord_categorisation.add_day_of_year(cube, 'time')
 #         iris.coord_categorisation.add_year(cube, 'time')
 #         iris.coord_categorisation.add_month_number(cube, 'time')
@@ -322,11 +349,16 @@ class SeaIceDrift():
 #     def _load_IABP_bouys(self):
 #         self.log_subsection('Sea ice drift (IABP buoys)')
 #         if not self.recalculate and os.path.isfile(self.drift_IABP_file):
-#             self.drift_IABP[SCICEX] = iris.load_cube(self.drift_IABP_file, 'Drift mean over SCICEX domain')
-#             self.drift_IABP[LAT] = iris.load_cube(self.drift_IABP_file, 'Drift mean over latitude threshold')
+#             self.drift_IABP[SCICEX] = iris.load_cube(self.drift_IABP_file,
+#                                                      'Drift mean over SCICEX '
+#                                                      'domain')
+#             self.drift_IABP[LAT] = iris.load_cube(self.drift_IABP_file,
+#                                                   'Drift mean over latitude '
+#                                                   'threshold')
 #             return
 #
-#         # List sea ice drift speed data files - retrieved from NSIDC (https://nsidc.org/data/NSIDC-0116)
+#         # List sea ice drift speed data files -
+#         # retrieved from NSIDC (https://nsidc.org/data/NSIDC-0116)
 #         filelist = glob.glob(os.path.join(self.dir_iabp, '*v3.txt'))
 #         filelist.sort()
 #         n_files = len(filelist)  # number of files
