@@ -19,7 +19,7 @@ import sys
 import iris
 # import iris.coords
 # import iris.util
-# import iris.cube
+import iris.cube
 # import iris.exceptions
 import iris.analysis
 # import iris.coord_categorisation
@@ -39,6 +39,10 @@ class SeaIceDrift():
 
         with open(self.cfg['input_files'][0]) as file:
             self.input_files = yaml.safe_load(file)
+            for files in self.input_files.values():
+                for attributes in files.values():
+                    attributes['alias'] = '{0[model]}_{0[ensemble]}_' \
+                                          '{0[start_year]}'.format(attributes)
         logging.basicConfig(format="%(asctime)s [%(process)d] %(levelname)-8s "
                                    "%(name)s,%(lineno)s\t%(message)s")
         self.logger = logging.getLogger(__name__)
@@ -46,48 +50,72 @@ class SeaIceDrift():
 
     def compute(self):
         self.logger.info('Loading sea ice concentration')
+        siconc = {}
+        sivol = {}
+        sispeed = {}
 
         for filename, attributes in six.iteritems(self.input_files['siconc']):
-            siconc = iris.load_cube(filename, 'sea_ice_area_fraction')
+            alias = attributes['alias']
+            siconc[alias] = iris.load_cube(filename, 'sea_ice_area_fraction')
 
         self.logger.info('Loading sea ice thickness')
         for filename, attributes in six.iteritems(self.input_files['sithick']):
-            sivol = iris.load_cube(filename, 'sea_ice_thickness') * siconc
+            alias = attributes['alias']
+            sivol[alias] = iris.load_cube(filename, 'sea_ice_thickness') * siconc[alias]
 
         self.logger.info('Load sea ice velocities')
 
         if 'sispeed' in self.input_files:
             sispeed_iter = six.iteritems(self.input_files['sispeed'])
             for filename, attributes in sispeed_iter:
-                sispeed = iris.load_cube(filename, 'sea_ice_speed')
+                alias = attributes['alias']
+                sispeed[alias] = iris.load_cube(filename, 'sea_ice_speed')
         else:
+            siu = {}
+            siv = {}
             for filename, attributes in six.iteritems(self.input_files['siu']):
-                siu = iris.load_cube(filename, 'sea_ice_x_velocity')
+                alias = attributes['alias']
+                siu[alias]= iris.load_cube(filename, 'sea_ice_x_velocity')
 
             for filename, attributes in six.iteritems(self.input_files['siv']):
-                siv = iris.load_cube(filename, 'sea_ice_y_velocity')
+                alias = attributes['alias']
+                siv[alias] = iris.load_cube(filename, 'sea_ice_y_velocity')
 
-            sispeed = ((siu ** 2 + siv ** 2) ** 0.5)
-            sispeed = sispeed.aggregated_by(('year', 'month_number'),
-                                            iris.analysis.MEAN)
-            sispeed.short_name = 'sispeed'
-            sispeed.standard_name = 'sea_ice_speed'
-            sispeed.long_name = 'Sea-ice speed'
-            sispeed.convert_units('km day-1')
+            for alias in siu.keys():
+                speed = ((siu[alias] ** 2 + siv[alias] ** 2) ** 0.5)
+                del siu[alias]
+                del siv[alias]
+                speed = speed.aggregated_by(('year', 'month_number'),
+                                                iris.analysis.MEAN)
+                speed.short_name = 'sispeed'
+                speed.standard_name = 'sea_ice_speed'
+                speed.long_name = 'Sea-ice speed'
+                speed.convert_units('km day-1')
+                sispeed[alias] = speed
 
-        lat_mask = siconc.coord('latitude').points > self.cfg['latitude_treshold']
+        for alias in sispeed.keys():
+            self.logger.info('Averaging {0}'.format(alias))
+            lat_mask = siconc[alias].coord('latitude').points > self.cfg[
+                'latitude_treshold']
+            self.logger.info('Averaging sispeed'.format(alias))
+            print(sispeed[alias])
+            sispeed[alias] = self._compute_mean(sispeed[alias], lat_mask)
+            self.logger.info('Averaging siconc'.format(alias))
+            siconc[alias] = self._compute_mean(siconc[alias], lat_mask)
+            self.logger.info('Averaging sivol'.format(alias))
+            sivol[alias] = self._compute_mean(sivol[alias], lat_mask)
 
-
-        sispeed_mean = self._compute_mean(sispeed, lat_mask)
-        del sispeed
-        siconc_mean = self._compute_mean(siconc, lat_mask)
-        del siconc
-        sivol_mean = self._compute_mean(sivol, lat_mask)
-        del sivol
+        print(sispeed)
+        print(siconc)
+        print(sivol)
 
     def _compute_mean(self, data, mask):
-        domain_mean = data.collapsed(['latitude', 'longitude'],
-                                     iris.analysis.MEAN, weights=mask)
+        domain_mean = iris.cube.CubeList()
+        for time_slice in data.slices_over('time'):
+            domain_mean.append(time_slice.collapsed(['latitude', 'longitude'],
+                                                    iris.analysis.MEAN,
+                                                    weights=mask))
+        domain_mean = domain_mean.merge_cube()
         return domain_mean.aggregated_by('month_number', iris.analysis.MEAN)
 
 # def main():
