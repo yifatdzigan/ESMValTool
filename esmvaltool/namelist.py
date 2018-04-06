@@ -241,6 +241,7 @@ def _add_cmor_info(variable, override=False):
 
     # Copy the following keys from CMOR table
     cmor_keys = ['standard_name', 'long_name', 'units']
+
     table_entry = CMOR_TABLES[variable['cmor_table']].get_variable(
         variable['mip'], variable['short_name'])
 
