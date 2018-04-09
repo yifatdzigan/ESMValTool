@@ -6,6 +6,7 @@ import os
 import sys
 import six
 import numpy as np
+import time
 
 import iris
 import iris.cube
@@ -69,10 +70,11 @@ class OceanHeatContent():
                     size = 0
                 depth_weight[x] = size
             thetao.add_aux_coord(AuxCoord(var_name='depth_weight',
-                                         points=depth_weight),
+                                          points=depth_weight),
                                  thetao.coord_dims(depth))
 
-            thetao = thetao.extract(iris.Constraint(depth_weight=lambda x: x > 0))
+            has_weight = iris.Constraint(depth_weight=lambda x: x > 0)
+            thetao = thetao.extract(has_weight)
             depth_weight = thetao.coord('depth_weight').points
 
             ohc2d = CubeList()
@@ -93,16 +95,39 @@ class OceanHeatContent():
             ohc2d.var_name = 'ohc'
             ohc2d.long_name = 'Ocean Heat Content per area unit'
             self.logger.debug(ohc2d)
-            if self.write_plots:
-                qplt.contourf(ohc2d, 25)
-                plt.gca().coastlines()
-                plot_filename = 'ohc2D_{0[project]}_{0[model]}_{0[ensemble]}' \
-                                '.{1}'.format(attributes, self.cfg['output_file_type'])
-                plt.savefig(os.path.join(self.cfg['plot_dir'], plot_filename))
 
-            if self.write_netcdf:
-                iris.save(ohc2d, os.path.join(self.cfg['plot_dir'],
-                                              os.path.basename(filename).replace('thetao', 'ohc')))
+            self._plot(ohc2d, attributes)
+            self._save_netcdf(ohc2d, filename)
+
+    def _save_netcdf(self, ohc2d, filename):
+        if self.write_netcdf:
+            if not os.path.isdir(self.cfg['work_dir']):
+                os.makedirs(self.cfg['work_dir'])
+            new_filename = os.path.basename(filename).replace('thetao',
+                                                              'ohc')
+            netcdf_path = os.path.join(self.cfg['work_dir'],
+                                       new_filename)
+            iris.save(ohc2d, netcdf_path)
+
+    def _plot(self, ohc2d, attributes):
+        if self.write_plots:
+            if not os.path.isdir(self.cfg['plot_dir']):
+                os.makedirs(self.cfg['plot_dir'])
+            for time_slice in ohc2d.slices_over('time'):
+                qplt.pcolormesh(time_slice)
+                datetime = time_slice.coord('time').cell(0).point
+                time_str = datetime.strftime('%Y-%m')
+                plot_filename = 'ohc2D_{0[project]}_{0[model]}_' \
+                                '{0[ensemble]}_{1}' \
+                                '.{2}'.format(attributes,
+                                              time_str,
+                                              self.cfg['output_file_type'])
+                plot_path = os.path.join(self.cfg['plot_dir'],
+                                         plot_filename)
+                self.logger.debug(plot_path)
+                plt.savefig(plot_path)
+                plt.close()
+
 
 if __name__ == '__main__':
-    OceanHeatContent(settings_file = sys.argv[1]).compute()
+    OceanHeatContent(settings_file=sys.argv[1]).compute()
