@@ -97,6 +97,7 @@ _LIST_INPUT_FUNCTIONS = {
     'mask_fillvalues',
     'multi_model_statistics',
     'save',
+    'cleanup',
 }
 assert _LIST_INPUT_FUNCTIONS.issubset(set(PREPROCESSOR_FUNCTIONS))
 
@@ -107,6 +108,7 @@ _LIST_OUTPUT_FUNCTIONS = {
     'mask_fillvalues',
     'multi_model_statistics',
     'save',
+    'cleanup',
 }
 assert _LIST_OUTPUT_FUNCTIONS.issubset(set(PREPROCESSOR_FUNCTIONS))
 
@@ -151,7 +153,7 @@ def _group_input(in_files, out_files):
         """Find the output file which matches input file best."""
         in_chunks = os.path.basename(in_file).split('_')
         score = 0
-        fname = None
+        fname = []
         for out_file in out_files:
             out_chunks = os.path.basename(out_file).split('_')
             tmp = sum(c in out_chunks for c in in_chunks)
