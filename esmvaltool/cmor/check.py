@@ -237,8 +237,8 @@ class CMORCheck(object):
         for (axis, coordinate) in self._cmor_var.coordinates.items():
             if coordinate.generic_level:
                 var_name = 'generic_level'
-                if self._cube.coords(axis, dim_coords=True):
-                    cube_coord = self._cube.coord(axis, dim_coords=True)
+                if self._cube.coords(axis=axis, dim_coords=True):
+                    cube_coord = self._cube.coord(axis=axis, dim_coords=True)
                     if not cube_coord.standard_name:
                         self.report_error(self._does_msg, var_name,
                                           'have standard_name')
