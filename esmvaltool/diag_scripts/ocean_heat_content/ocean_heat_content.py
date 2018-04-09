@@ -6,7 +6,6 @@ import os
 import sys
 import six
 import numpy as np
-import time
 
 import iris
 import iris.cube
