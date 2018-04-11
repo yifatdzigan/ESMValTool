@@ -38,7 +38,7 @@ class Blocking():
         self.zg500 = None
         self.north_threshold = -10
         self.south_threshold = 0
-        self.months = range(1, 13)
+        self.months = range(1, 3)
         self.smoothing_window = 3
 
     def compute(self):
@@ -50,7 +50,7 @@ class Blocking():
             def latitude_filter(cell):
                 return self.min_latitude <= cell.point <= self.max_latitude
 
-            zg500 = zg500.extract(iris.Constraint(latitude=latitude_filter))
+            # zg500 = zg500.extract(iris.Constraint(latitude=latitude_filter))
 
             if len(set(self.months)) != 12:
                 print('Extracting months ...')
@@ -58,18 +58,18 @@ class Blocking():
                     iris.Constraint(month_number=self.months))
             iris.coord_categorisation.add_month(zg500, 'time')
             zg500 = zg500.aggregated_by(
-                ['day_of_month', 'month_number', 'year'],
+                ['day_of_month', 'month', 'year'],
                 iris.analysis.MEAN)
 
             result = iris.cube.CubeList(
                 [self._blocking_1d(zg500, month) for month in self.months]).merge_cube()
-            iris.util.promote_aux_coord_to_dim_coord(result, 'month')
+            self.logger.debug(result.data)
             cmap = colors.LinearSegmentedColormap.from_list('mymap', (
                 (1, 1, 1), (0.7, 0.1, 0.09)), N=15)
             iris.quickplot.pcolormesh(result, cmap=cmap, vmin=0, vmax=15)
 
-            matplotlib.pyplot.ylabel('Month ')
-            matplotlib.pyplot.xlabel('Longitude ')
+            # matplotlib.pyplot.ylabel('Month ')
+            # matplotlib.pyplot.xlabel('Longitude ')
             matplotlib.pyplot.axis('tight')
 
             matplotlib.pyplot.show()
@@ -100,11 +100,14 @@ class Blocking():
             self._smooth_over_longitude(blocking_frequency),
             var_name="block1d",
             units="days per month",
+            long_name="Blocking pattern",
             attributes=None,
             )
 
         blocking_cube.add_dim_coord(zg500.coord('longitude'), 0)
         month_coord = zg500.coord('month_number').copy(month)
+        blocking_cube.add_aux_coord(month_coord)
+        month_coord = zg500.coord('month').copy(zg500.coord('month').points[0])
         blocking_cube.add_aux_coord(month_coord)
 
         return blocking_cube
