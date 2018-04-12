@@ -41,7 +41,8 @@ class Blocking():
         self.north_threshold = self.cfg.get('north_threshold', -10.0)
         self.south_threshold = self.cfg.get('south_threshold', 0.0)
         self.months = self.cfg.get('months', list(range(1, 13)))
-        self.smoothing_window = self.cfg.get('smoothing_window', 15)
+        self.max_color_scale = self.cfg.get('max_color_scale', 15)
+        self.smoothing_window = self.cfg.get('smoothing_window', 3)
         if self.smoothing_window % 2 == 0:
             raise ValueError('Smoothing should use an odd window '
                              'so the center of it is clear  ')
@@ -55,27 +56,20 @@ class Blocking():
         for filename, attributes in six.iteritems(self.input_files['zg']):
             zg500 = iris.load_cube(filename, 'geopotential_height')
 
-            def latitude_filter(cell):
-                return self.min_latitude <= cell.point <= self.max_latitude
-
-            # zg500 = zg500.extract(iris.Constraint(latitude=latitude_filter))
 
             if len(set(self.months)) != 12:
                 print('Extracting months ...')
                 zg500 = zg500.extract(
                     iris.Constraint(month_number=self.months))
             iris.coord_categorisation.add_month(zg500, 'time')
-            zg500 = zg500.aggregated_by(
-                ['day_of_month', 'month', 'year'],
-                iris.analysis.MEAN)
-
             results = [self._blocking_1d(zg500, month) for month in
                        self.months]
             result = iris.cube.CubeList(results).merge_cube()
             self.logger.debug(result.data)
             cmap = colors.LinearSegmentedColormap.from_list('mymap', (
-                (1, 1, 1), (0.7, 0.1, 0.09)), N=15)
-            iris.quickplot.pcolormesh(result, cmap=cmap, vmin=0, vmax=15)
+                (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
+            iris.quickplot.pcolormesh(result, cmap=cmap, vmin=0,
+                                      vmax=self.max_color_scale)
 
             matplotlib.pyplot.axis('tight')
             matplotlib.pyplot.yticks(self.months)

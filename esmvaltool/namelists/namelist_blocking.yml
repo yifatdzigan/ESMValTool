@@ -13,12 +13,20 @@ preprocessors:
       levels: [50000,]
       scheme: nearest
     multi_model_statistics: False
+    extract_region:
+      long1: 0
+      long2: 360
+      lat1: 45
+      lat2: 90
+#    regrid:
+#      target_grid: 1x1
+#      scheme: linear
 
 diagnostics:
   blocking:
     description: Sea-ice drift
     variables:
-      tas:
+      zg:
         reference_model: ERA-Interim
         mip: day
         field: T2M
@@ -32,5 +40,6 @@ diagnostics:
         offset: 5.0
         north_threshold: -10.0
         south_threshold: 0.0
-        months: [1,]
-        smoothing_window: 15
+#        months: [1,2]
+        smoothing_window: 3
+        max_color_scale: 10

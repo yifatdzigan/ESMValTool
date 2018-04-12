@@ -56,38 +56,11 @@ class siconc(Fix):
         return cube
 
 
-
 class zg(Fix):
 
-    def fix_file(self, filepath, output_dir):
-        """
-        Apply fixes to the files prior to creating the cube.
-
-        Should be used only to fix errors that prevent loading or can
-        not be fixed in the cube (i.e. those related with missing_value
-        and _FillValue)
-
-        Parameters
-        ----------
-        filepath: basestring
-            file to fix
-        output_dir: basestring
-            path to the folder to store the fixe files, if required
-
-        Returns
-        -------
-        basestring
-            Path to the corrected file. It can be different from the original
-            filepath if a fix has been applied, but if not it should be the
-            original filepath
-
-        """
-        original_dataset = Dataset(filepath, mode='a')
-        original_dataset.realm = 'atmos'
-        original_dataset.close()
-        return filepath
-
     def fix_metadata(self, cube):
+        cube.attributes['realm'] = 'atmos'
+
         lat_2D = cube.coord('latitude')
         lat_1D = lat_2D.copy(lat_2D.points[:, 0], lat_2D.bounds[:, 0, 1:3])
         cube.remove_coord('latitude')
