@@ -13,11 +13,12 @@ preprocessors:
       levels: [50000,]
       scheme: nearest
     multi_model_statistics: False
+
 diagnostics:
   blocking:
     description: Sea-ice drift
     variables:
-      zg:
+      tas:
         reference_model: ERA-Interim
         mip: day
         field: T2M
