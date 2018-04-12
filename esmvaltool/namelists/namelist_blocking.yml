@@ -1,7 +1,7 @@
 models:
   - {model: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
      project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-     start_year: 1950,  end_year: 1955}
+     start_year: 1950,  end_year: 1952}
 #  - {model: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
 #     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
 #     start_year: 1951,  end_year: 1951}
@@ -26,3 +26,10 @@ diagnostics:
       blocking:
         script: blocking/blocking.py
         title: "Blocking diagnostic"
+        central_latitude: 60.0
+        span: 20.0
+        offset: 5.0
+        north_threshold: -10.0
+        south_threshold: 0.0
+        months: [1,]
+        smoothing_window: 15
