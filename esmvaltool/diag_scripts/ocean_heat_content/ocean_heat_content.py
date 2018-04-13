@@ -1,9 +1,8 @@
-# """Python example diagnostic."""
-import logging
-import yaml
+"""Ocean heat content diagnostic"""
 
 import os
 import sys
+
 import six
 import numpy as np
 
@@ -14,63 +13,44 @@ import iris.util
 from iris.analysis import SUM
 from iris.coords import AuxCoord
 from iris.cube import CubeList
-
+import iris.quickplot as qplt
 
 import matplotlib.pyplot as plt
 
-import iris.quickplot as qplt
+from esmvaltool.diag_scripts.diagnostic import Diagnostic
 
-class OceanHeatContent():
+
+class OceanHeatContent(Diagnostic):
+    """
+    Ocean heat content diagnostic
+
+    Allowed parameters:
+    - min_depth: float=0
+    - max_depth: float=np.inf
+
+    Parameters
+    ----------
+    settings_file: str
+        Path to the settings file
+
+    """
+
     def __init__(self, settings_file):
-        with open(settings_file) as file:
-            self.cfg = yaml.safe_load(file)
 
-        with open(self.cfg['input_files'][0]) as file:
-            self.input_files = yaml.safe_load(file)
-            for files in self.input_files.values():
-                for attributes in files.values():
-                    attributes['alias'] = '{0[model]}_{0[ensemble]}_' \
-                                          '{0[start_year]}'.format(attributes)
-        logging.basicConfig(format="%(asctime)s [%(process)d] %(levelname)-8s "
-                                   "%(name)s,%(lineno)s\t%(message)s")
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(self.cfg['log_level'].upper())
-        self.write_plots = self.cfg['write_plots']
-        self.write_netcdf = self.cfg['write_netcdf']
+        super().__init__(settings_file)
 
         self.min_depth = self.cfg.get('min_depth', 0.)
         self.max_depth = self.cfg.get('max_depth', np.inf)
 
     def compute(self):
+        """Compute diagnostic"""
         self.logger.info('Computing ocean heat content')
 
         for filename, attributes in six.iteritems(self.input_files['thetao']):
             thetao = iris.load_cube(filename,
                                     'sea_water_potential_temperature')
             self.logger.debug(thetao)
-            depth = thetao.coord('depth')
-            if not depth.has_bounds():
-                depth.guess_bounds()
-
-            depth_weight = np.zeros(depth.shape)
-            for x in range(depth_weight.size):
-                high = depth.bounds[x, 0]
-                low = depth.bounds[x, 1]
-                if low <= self.min_depth:
-                    continue
-                if high >= self.max_depth:
-                    continue
-                if low > self.max_depth:
-                    low = self.max_depth
-                if high < self.min_depth:
-                    high = self.min_depth
-                size = low - high
-                if size < 0:
-                    size = 0
-                depth_weight[x] = size
-            thetao.add_aux_coord(AuxCoord(var_name='depth_weight',
-                                          points=depth_weight),
-                                 thetao.coord_dims(depth))
+            self._compute_depth_weights(thetao)
 
             has_weight = iris.Constraint(depth_weight=lambda x: x > 0)
             thetao = thetao.extract(has_weight)
@@ -79,15 +59,16 @@ class OceanHeatContent():
             ohc2d = CubeList()
             final_weight = None
             self.logger.debug('Starting computation...')
-            for slice in thetao.slices_over('time'):
+            for time_slice in thetao.slices_over('time'):
                 if final_weight is None:
-                    index = slice.coord_dims('depth')[0]
+                    index = time_slice.coord_dims('depth')[0]
                     depth_weight *= 4000 * 1020
-                    final_weight = iris.util.broadcast_to_shape(depth_weight,
-                                                                slice.shape,
-                                                                (index,))
-                ohc2d.append(slice.collapsed('depth', SUM,
-                                             weights=final_weight))
+                    final_weight = \
+                        iris.util.broadcast_to_shape(depth_weight,
+                                                     time_slice.shape,
+                                                     (index,))
+                ohc2d.append(time_slice.collapsed('depth', SUM,
+                                                  weights=final_weight))
             self.logger.debug('Merging results...')
             ohc2d = ohc2d.merge_cube()
             ohc2d.units = 'J m^-2'
@@ -97,6 +78,30 @@ class OceanHeatContent():
 
             self._plot(ohc2d, attributes)
             self._save_netcdf(ohc2d, filename)
+
+    def _compute_depth_weights(self, thetao):
+        depth = thetao.coord('depth')
+        if not depth.has_bounds():
+            depth.guess_bounds()
+        depth_weight = np.zeros(depth.shape)
+        for current_depth in range(depth_weight.size):
+            high = depth.bounds[current_depth, 0]
+            low = depth.bounds[current_depth, 1]
+            if low <= self.min_depth:
+                continue
+            if high >= self.max_depth:
+                continue
+            if low > self.max_depth:
+                low = self.max_depth
+            if high < self.min_depth:
+                high = self.min_depth
+            size = low - high
+            if size < 0:
+                size = 0
+            depth_weight[current_depth] = size
+        thetao.add_aux_coord(AuxCoord(var_name='depth_weight',
+                                      points=depth_weight),
+                             thetao.coord_dims(depth))
 
     def _save_netcdf(self, ohc2d, filename):
         if self.write_netcdf:
