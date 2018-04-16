@@ -25,8 +25,7 @@ class Diagnostic():
         self.run_dir = self.cfg['run_dir']
         self.work_dir = self.cfg['work_dir']
         self.version = self.cfg['run_dir']
-        self.output_file = self.cfg['output_file']
-
+        self.output_file_type = self.cfg['output_file_type']
 
     def compute(self):
         raise NotImplementedError('Diagnostics must implement the '
