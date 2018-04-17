@@ -33,7 +33,7 @@ outfile<-getfilename.trends(work_dir,label,model_idx,season)
 nregions=length(selregions)
 
 # Define fields to be used (main list loaded from cfg_file)
-if (selfields[1]!=F) { field_names=field_names[selfields] }
+if (selfields_trends[1]!=F) { field_names=field_names[selfields_trends] }
 
 # Years to be considered based on namelist and cfg_file
 years <- year1:year2
@@ -61,16 +61,12 @@ nc_close(nc)
 if (maskSeaLand) {
   topo_file_idx=paste0(topography_file,model_idx,'.nc')
   if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=gridfile,ref_file=infile,regridded_topo=topo_file_idx,topo_only=T) } 
-relevation=ncdf.opener(topo_file_idx,"topo","lon","lat",rotate="no")
+relevation=ncdf.opener(topo_file_idx,"topo",rotate="no")
 }
-
-# check lon and lat names
-lon_name="lon"
-lat_name="lat"
 
 # remove desert areas if required (mean annual precipitation <0.5 mm, Giorgi et al. 2014)
 if (removedesert) {
-  pry<-ncdf.opener(infile,"pry",lon_name,lat_name,rotate="no")
+  pry<-ncdf.opener(infile,"pry",rotate="no")
   retdes=which(pry<0.5)
   pry[retdes]=NA
   retdes2D=apply(pry*0,c(1,2),sum)+1 # create mask with NAs for deserts and 1's for not-desert
@@ -78,7 +74,7 @@ if (removedesert) {
 }
 
 for (var in field_names) {
-  rfield<-ncdf.opener(infile,var,lon_name,lat_name,rotate="no")
+  rfield<-ncdf.opener(infile,var,rotate="no")
   print("===========================================")
   print(paste(infile,var))
 

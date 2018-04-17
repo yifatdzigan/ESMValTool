@@ -18,7 +18,7 @@ run_regridding=T
 force_regridding=F
 run_diagnostic=T
 force_diagnostic=F
-etccdi_preproc=F
+etccdi_preproc=T
 run_timeseries=T
 write_plots=T
 output_file_type="png"
@@ -70,7 +70,7 @@ ryearplot_ref <- c("EXP") # year to be plotted for reference dataset: options a)
 force_ref <- F # set TRUE to force plotting of reference data as any other experiment
 label= "egu2018" # user defined extra label for figure file name
 label= "test" # user defined extra label for figure file name
-label=paste0(label,"-",c("0","500","700","1000","2000","3000"),"m")
+#label=paste0(label,"-",c("0","500","700","1000","2000","3000"),"m")
 #label=label[c(1:4)]
 #label=paste0(label,"-mountain")
 #label=label[1]
@@ -88,7 +88,7 @@ trend_years= c(2006,2100,1976,2005) # a) F=all;
                          # c) c(year1,year2,year3,year4) to apply trend to two separate time intervals (year1<=years<=year2) and (year3<=years<=year4)
 removedesert=F      # T to remove (flag as NA) grid points with mean annual pr < 0.5 mm/day (desertic areas, Giorgi et al. 2014)
 maskSeaLand=T # T to mask depending on seaLandElevation threshold
-seaLandElevation=0 # a) 0 land; b) positive value: land above given elevation;
+seaLandElevation=500 # a) 0 land; b) positive value: land above given elevation;
                    # c) negative value: ocean below given depth. The topography/bathymetry file is generated with cdo from ETOPO data. 
 reverse_maskSeaLand=F # T to reject what selected, F to keep what selected
 highreselevation=F#500 # a) F: neglect; b) value: threshold of minimum elevation to be overplotted with contour lines of elevation
@@ -163,6 +163,9 @@ etccdi_list_import=etccdi_yr_list
 	#etccdi_yr_list[c(1,3,5,7,12,13,14,15,16,17,18,19,20)]
 
 field_names=c(hyint_list,etccdi_yr_list,tas_list)
+
+selfields_trends=c(8:15)
+
 selfields=c(8,4,9,1,2,3) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
 selfields=c(8,4,1,9,3,2) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
 #selfields=c(5) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  

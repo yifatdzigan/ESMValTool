@@ -40,7 +40,7 @@ years=year1:year2
 timeseason=season2timeseason(season)
 
 # file opening
-pr_list=ncdf.opener.time(infile,"pr",tmonths=timeseason,tyears=years,rotate=rotLongitude)
+pr_list=ncdf.opener.universal(infile,"pr",tmonths=timeseason,tyears=years,rotate=rotLongitude)
 # time array
 datas=pr_list$time
 print(str(datas))
@@ -84,7 +84,7 @@ if (external_r95[1]==F) {
   r95_idx<-model_idx # assume each model has its r95_threshold file
   if (length(external_r95) == 1) { r95_idx<-1 } # if list of files with r95_threshold has only 1 entry, use that for all models
   print(paste(diag_base,": loading external r95_threshold data from ",external_r95[r95_idx]))
-  r95_threshold<-ncdf.opener(external_r95[r95_idx],"r95_threshold","lon","lat",rotate="no")
+  r95_threshold<-ncdf.opener(external_r95[r95_idx],"r95_threshold",rotate="no")
 }
 r95_threshold365<-replicate(365,r95_threshold)
 r95_threshold366<-replicate(366,r95_threshold)
@@ -177,18 +177,18 @@ if (external_norm[1]==F) { # calculate normalization function
   }
   if (length(external_norm) == 1) { mean_idx<-1 } # if list of files with normalization functions has only 1 entry, use that for all models
   print(paste(diag_base,": loading external normalization data from ",external_norm[mean_idx]))
-  pry_mean<-ncdf.opener(external_norm[mean_idx],"pry_mean","lon","lat",rotate="no")
-  dsl_mean<-ncdf.opener(external_norm[mean_idx],"dsl_mean","lon","lat",rotate="no")
-  wsl_mean<-ncdf.opener(external_norm[mean_idx],"wsl_mean","lon","lat",rotate="no")
-  int_mean<-ncdf.opener(external_norm[mean_idx],"int_mean","lon","lat",rotate="no")
-  pa_mean<-ncdf.opener(external_norm[mean_idx],"pa_mean","lon","lat",rotate="no")
-  r95_mean<-ncdf.opener(external_norm[mean_idx],"r95_mean","lon","lat",rotate="no")
-  pry_mean_sd<-ncdf.opener(external_norm[mean_idx],"pry_mean_sd","lon","lat",rotate="no")
-  dsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"dsl_mean_sd","lon","lat",rotate="no")
-  wsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"wsl_mean_sd","lon","lat",rotate="no")
-  int_mean_sd<-ncdf.opener(external_norm[mean_idx],"int_mean_sd","lon","lat",rotate="no")
-  pa_mean_sd<-ncdf.opener(external_norm[mean_idx],"pa_mean_sd","lon","lat",rotate="no")
-  r95_mean_sd<-ncdf.opener(external_norm[mean_idx],"r95_mean_sd","lon","lat",rotate="no")
+  pry_mean<-ncdf.opener(external_norm[mean_idx],"pry_mean",rotate="no")
+  dsl_mean<-ncdf.opener(external_norm[mean_idx],"dsl_mean",rotate="no")
+  wsl_mean<-ncdf.opener(external_norm[mean_idx],"wsl_mean",rotate="no")
+  int_mean<-ncdf.opener(external_norm[mean_idx],"int_mean",rotate="no")
+  pa_mean<-ncdf.opener(external_norm[mean_idx],"pa_mean",rotate="no")
+  r95_mean<-ncdf.opener(external_norm[mean_idx],"r95_mean",rotate="no")
+  pry_mean_sd<-ncdf.opener(external_norm[mean_idx],"pry_mean_sd",rotate="no")
+  dsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"dsl_mean_sd",rotate="no")
+  wsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"wsl_mean_sd",rotate="no")
+  int_mean_sd<-ncdf.opener(external_norm[mean_idx],"int_mean_sd",rotate="no")
+  pa_mean_sd<-ncdf.opener(external_norm[mean_idx],"pa_mean_sd",rotate="no")
+  r95_mean_sd<-ncdf.opener(external_norm[mean_idx],"r95_mean_sd",rotate="no")
 }
 
 # remove 0s from normalizing functions
@@ -222,8 +222,8 @@ if (external_norm[1]==F) { # calculate or load hyint_mean from file to be consis
 } else { # load normalization data from file
   mean_idx<-model_idx # assume each model has its normalization file
   if (length(external_norm) == 1) { mean_idx<-1 } # if list of files with normalization functions has only 1 entry, use that for all models
-  hyint_mean<-ncdf.opener(external_norm[mean_idx],"hyint_mean","lon","lat",rotate="no")
-  hyint_mean_sd<-ncdf.opener(external_norm[mean_idx],"hyint_mean_sd","lon","lat",rotate="no")
+  hyint_mean<-ncdf.opener(external_norm[mean_idx],"hyint_mean",rotate="no")
+  hyint_mean_sd<-ncdf.opener(external_norm[mean_idx],"hyint_mean_sd",rotate="no")
 }
 
 # HyInt list

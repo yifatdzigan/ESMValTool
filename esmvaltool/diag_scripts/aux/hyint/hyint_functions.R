@@ -523,7 +523,7 @@ return(el_list)
 ##########################################################
 
 #function to open ncdf files (much more refined, with CDO-based interpolation)
-ncdf.opener<-function(namefile,namevar=NULL,namelon="lon",namelat="lat",rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2",exportlonlat=T)
+ncdf.opener.old<-function(namefile,namevar=NULL,namelon="lon",namelat="lat",rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2",exportlonlat=T)
 {
 #function to open netcdf files. It uses ncdf4 library. support only 1D (t), 2D (x,y) or 3D (x,y,t) data in any netcdf format.
 #automatically rotate matrix to place greenwich at the center (flag "rotate") and flip the latitudes in order to have increasing
@@ -608,6 +608,181 @@ if (interp2grid) {system2("rm",tempfile)}
 
 return(daily)
 }
+
+#universal function to open a single var 3D (x,y,time) ncdf files: it includes rotation, y-axis filpping, possible time selection and CDO-based interpolation
+#to replace both ncdf.opener.time and ncdf.opener (deprecated and removed)
+#automatically rotate matrix to place greenwich at the center (flag "rotate") and flip the latitudes in order to have increasing
+#if required (flag "interp2grid") additional interpolation with CDO can be used. "grid" can be used to specify the target grid name
+#time selection based on package PCICt must be specifed with both "tmonths" and "tyears" flags
+#it returns a list including its own dimensions
+ncdf.opener.universal<-function(namefile,namevar=NULL,namelon=NULL,namelat=NULL,tmonths=NULL,tyears=NULL,rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2",exportlonlat=T) {
+
+        require(ncdf4)
+
+        #check if timeflag is activated or full file must be loaded
+        if (is.null(tyears) | is.null(tmonths)) {
+                timeflag=FALSE
+                print("No time and months specified, loading all the data")
+                } else {
+                timeflag=TRUE
+                print("tyears and tmonths are set!")
+                require(PCICt)
+                }
+
+        if (rotate=="full") {rot=T; move1=move2=1/2} #180 degrees rotation of longitude
+        if (rotate=="half") {rot=T; move1=1/4; move2=3/4} #90 degree rotation (useful for TM90)
+        if (rotate=="no") {rot=F} #keep as it is
+
+        #interpolation made with CDO: second order conservative remapping
+        if (interp2grid) {
+                print(paste("Remapping with CDO on",grid,"grid"))
+                filename=basename(normalizePath(namefile))
+                filedir=dirname(normalizePath(namefile))
+                cdo=Sys.which("cdo")
+                tempfile=paste0(file.path(filedir,paste0("tempfile_",filename)))
+                system2(cdo,args=c(paste0(remap_method,",",grid),namefile,tempfile))
+                namefile=tempfile
+        }
+        #define rotate function (faster than with apply)
+        rotation<-function(line) {
+                vettore=line; dims=length(dim(vettore))
+                if (dims==1) #for longitudes
+                {ll=length(line); line[(ll*move1):ll]=vettore[1:(ll*move2+1)]; line[1:(ll*move1-1)]=vettore[(ll*move2+2):ll]-360}
+                if (dims==2) #for x,y data
+                {ll=length(line[,1]); line[(ll*move1):ll,]=vettore[1:(ll*move2+1),]; line[1:(ll*move1-1),]=vettore[(ll*move2+2):ll,]}
+                if (dims==3) #for x,y,t data
+                {ll=length(line[,1,1]); line[(ll*move1):ll,,]=vettore[1:(ll*move2+1),,]; line[1:(ll*move1-1),,]=vettore[(ll*move2+2):ll,,]}
+                return(line)    }
+
+        #define flip function ('cos rev/apply is not working)
+        flipper<-function(field) {
+                dims=length(dim(field))
+                if (dims==2) {ll=length(field[1,]); field=field[,ll:1]} #for x,y data
+                if (dims==3) {ll=length(field[1,,1]); field=field[,ll:1,]} #for x,y,t data
+                return(field) }
+
+        #opening file: getting variable (if namevar is given, that variable is extracted)
+        print(paste("opening file:",namefile))
+        a=nc_open(namefile)
+
+        #if no name provided load the only variable available
+        if (is.null(namevar)) {
+                namevar=names(a$var)
+                if (length(namevar)>1) {print(namevar); stop("More than one var in the files, please select it with namevar=yourvar")}
+        }
+
+        #load axis: updated version, looking for dimension directly stored inside the variable
+        naxis=unlist(lapply(a$var[[namevar]]$dim,function (x) x["name"] ))
+        for (axis in naxis) {
+                assign(axis,ncvar_get(a,axis))
+                print(paste(axis,":",length(get(axis)),"records"))
+        }
+
+        if (timeflag) {
+                print("selecting years and months")
+
+                #based on preprocessing of CDO time format: get calendar type and use PCICt package for irregular data
+                caldata=ncatt_get(a,"time","calendar")$value
+                timeline=as.PCICt(as.character(time),format="%Y%m%d",cal=caldata)
+
+                # break if the calendar has not been recognized
+                if (any(is.na(timeline))) {
+                        stop("Calendar from NetCDF is unsupported or not present. Stopping!!!")
+                }
+
+                #break if the data requested is not there
+                lastday_base=paste0(max(tyears),"-",max(tmonths),"-28") #uses number.days.month, which loops to get the month change
+                lastday=as.PCICt(paste0(max(tyears),"-",max(tmonths),"-",number.days.month(lastday_base)),cal=caldata,format="%Y-%m-%d")
+                firstday=as.PCICt(paste0(min(tyears),"-",min(tmonths),"-01"),cal=caldata,format="%Y-%m-%d")
+                #print(max(timeline)); print(lastday); print(min(timeline)); print(firstday)
+
+                if (max(timeline)<lastday | min(timeline)>firstday) {
+                        stop("You requested a time interval that is not present in the NetCDF")
+                }
+        }
+
+        #time selection and variable loading
+        print("loading full field...")
+        field=ncvar_get(a,namevar)
+
+        if (timeflag) {
+
+                # select data we need
+                select=which(as.numeric(format(timeline,"%Y")) %in% tyears & as.numeric(format(timeline,"%m")) %in% tmonths)
+                field=field[,,select]
+                time=timeline[select]
+
+                print(paste("This is a",caldata,"calendar"))
+                print(paste(length(time),"days selected from",time[1],"to",time[length(time)]))
+
+                print(paste("Months that have been loaded are.. "))
+                print(unique(format(time,"%Y-%m")))
+        }
+        #check for dimensions (presence or not of time dimension)
+        dimensions=length(dim(field))
+
+        #if dimensions are multiple, get longitude, latitude
+        #if needed, rotate and flip the array
+        xlist=c("lon","Lon","longitude","Longitude","lon_2")
+        ylist=c("lat","Lat","latitude","Latitude","lat_2")
+        if (dimensions>1)
+        {
+                #assign ics and ipsilon 
+                if (is.null(namelon)) {
+                        if (any(xlist %in% naxis))  {
+                                ics=get(naxis[naxis %in% xlist],a$dim)$vals } else {print("WARNING: No lon found"); ics=NA}
+                        } else {
+                                ics=ncvar_get(a,namelon)
+                        }
+                if (is.null(namelat)) {
+                        if (any(ylist %in% naxis))  {
+                                ipsilon=get(naxis[naxis %in% ylist],a$dim)$vals} else {print("WARNING: No lat found"); ipsilon=NA}
+                        } else {
+                                ipsilon=ncvar_get(a,namelat)
+                        }
+
+                #longitute rotation around Greenwich
+                if (rot)     {
+                        print("rotating...")
+                        ics=rotation(ics); field=rotation(field)
+                }
+                if (ipsilon[2]<ipsilon[1] & length(ipsilon)>1 )
+                        if (length(ics)>1) {
+                                print("flipping...")
+                                ipsilon=sort(ipsilon)
+                                field=flipper(field)
+                        }
+
+                 #exporting variables to the main program
+                 if (exportlonlat){
+		   assign("ics",ics, envir = .GlobalEnv)
+	           assign("ipsilon",ipsilon, envir = .GlobalEnv)
+	         }
+               assign(naxis[naxis %in% xlist],ics)
+               assign(naxis[naxis %in% ylist],ipsilon)
+        }
+
+        if (dimensions>3) {stop("This file is more than 3D file")}
+
+        #close connection
+        nc_close(a)
+        #remove interpolated file
+        if (interp2grid) {system2("rm",tempfile)}
+
+        #showing array properties
+        print(paste(dim(field)))
+        if (timeflag) {print(paste("From",time[1],"to",time[length(time)]))}
+
+        #returning file list
+        return(mget(c("field",naxis)))
+}
+
+#ncdf.opener is a simplified wrapper for ncdf.opener.universal which returns only the field, ignoring the list
+ncdf.opener<-function(namefile,namevar=NULL,namelon=NULL,namelat=NULL,tmonths=NULL,tyears=NULL,rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2",exportlonlat=T) {
+        field=ncdf.opener.universal(namefile,namevar,namelon,namelat,tmonths,tyears,rotate,interp2grid,grid,remap_method,exportlonlat=exportlonlat)
+        return(field$field)
+}
+
 
 #function to open ncdf files (much more refined, with CDO-based interpolation)
 ncdf.opener.time<-function(namefile,namevar=NULL,namelon=NULL,namelat=NULL,tmonths=NULL,tyears=NULL,ics=ics,ipsilon=ipsilon,rotate="full",interp2grid=F,grid="r144x73",remap_method="remapcon2")
