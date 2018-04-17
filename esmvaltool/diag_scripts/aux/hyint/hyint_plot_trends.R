@@ -9,10 +9,6 @@ hyint.plot.trends<-function(work_dir,plot_dir,ref_dir,ref_idx,season) {
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
-# ingest list of settings
-plot_type <- settings$plot_type
-selregions <- settings$selregions
-
 #source('interface_data/r.interface')
 var_type = c("tseries","tseries-sd","trend","trend-stat")
 # diag_base <- "HyInt"
@@ -32,6 +28,12 @@ if (selfields[1]!=F) {
   title_unit_m=title_unit_m[selfields,,drop=F] 
 }
 
+# Update number of panels and columns if selfields has one element only 
+if (length(selfields) == 1) { 
+	npancol=1
+	npanrow=1
+}
+
 # Define array to store plotting limits for each panel of multi-panel figures 
 plot_limits=array(NaN,c(4,length(field_names)))
 
@@ -46,7 +48,7 @@ dir.create(plot_dir_ref,recursive=T)
 
 # Handle label tag when overplotting data from tseries files with different labels in plot_type 14,15,16
 label_figname=label[1]
-if (length(label)>1 & plot_type>13 ) { label_figname=paste0(label[1],"-plus") }
+if (length(label)>1 & plot_type>=10 ) { label_figname=paste0(label[1],"-plus") }
 
 # Startup graphics for multi-model timeseries
 if ((plot_type == 13)|(plot_type == 15)) {
@@ -73,12 +75,14 @@ for (model_idx in 1:nmodels) {
   plot_dir_exp=plot_dir # file.path(plot_dir,exp,paste0(year1,"_",year2),season)
   dir.create(plot_dir_exp,recursive=T)
 
-  # check path to reference dataset
-  if (ref_dir!=work_dir) {
-    ref_dir=file.path(ref_dir,diag_base)
-  } else {
-    ref_dir=file.path(work_dir,dataset_ref,paste0(year1_ref,"_",year2_ref),season)
-  }
+#  # check path to reference dataset
+   if (!exists("ref_dir")) { ref_dir = work_dir}
+   if (file.exists(ref_dir) == F) { stop(paste(diag_base,": reference file path not found")) }
+#  if (ref_dir!=work_dir) {
+#    ref_dir=file.path(ref_dir,diag_base)
+#  } else {
+#    ref_dir=file.path(work_dir,dataset_ref,paste0(year1_ref,"_",year2_ref),season)
+#  }
 
   # Years to be considered based on namelist and cfg_file
   years <- year1:year2
@@ -108,7 +112,7 @@ for (model_idx in 1:nmodels) {
     par(mfrow=c(npanrow,npancol),cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(8,8,2,2),oma=c(1,1,1,1))
   }
 
-  store_label=label
+ if (model_idx == 1) {store_label=label} 
   #------------ Loop over label when plotting more timeseries files in the same panel ----------
   for (ilabel in 1:length(store_label)) {
     label = store_label[ilabel]
@@ -124,7 +128,7 @@ for (model_idx in 1:nmodels) {
     ivar<-which(field_names==var)
     for (stype in var_type[1:2]) { 
       svar=paste0(var,"_",stype)
-      rfield=ncdf.opener(infile,svar,"region","Time",rotate="no")
+      rfield=ncdf.opener(infile,svar,"region","time",rotate="no")
       assign(svar,rfield) # assign field data to field name       
       nc<-nc_open(infile)
       dlname <- ncatt_get(nc,svar,"long_name")
@@ -141,7 +145,7 @@ for (model_idx in 1:nmodels) {
   }
 
   # store size of time and region arrays
-  time<-ncdf.opener(infile,"Time","Time",rotate="no") + 1950
+  time<-ncdf.opener(infile,"time","time",rotate="no") + 1950
   regions<-ncdf.opener(infile,"regions","region","boundaries",rotate="no")
 
   #-----------------Producing figures------------------------#
@@ -187,7 +191,7 @@ for (model_idx in 1:nmodels) {
     # Startup graphics for one timeseries in one figure 
     if (plot_type == 11) {
       figname=getfilename.figure(plot_dir_exp,field,year1,year2,model_idx,season,
-              "",region_codes[iregion],label,"timeseries_single",output_file_type)
+              "",region_codes[iregion],label_figname,"timeseries_single",output_file_type)
       graphics.startup(figname,output_file_type,diag_script_cfg)
       par(cex.main=1.3,cex.axis=1.2,cex.lab=1.2,mar=c(4,4,2,2),oma=c(1,1,1,1))
     } 
@@ -201,10 +205,11 @@ for (model_idx in 1:nmodels) {
       par(mfg=c(par_row,par_col,npanrow,npancol)) 
 
       # Base plot
-      if (!(plot_type == 13 & model_idx >1)) {
+      if (!(plot_type == 13 & model_idx >1)&ilabel==1) {
         ylab=paste0(title_unit_m[ifield,1])
         if (title_unit_m[ifield,4]!="") { ylab=paste0(ylab,"(",title_unit_m[ifield,4],")")}  
-        plot(time,tfield_exp[1,],ylim=c(tmp.levels[1],tmp.levels[length(tmp.levels)]),xlim=xlim,
+        # plot(time,tfield_exp[1,],ylim=c(tmp.levels[1],tmp.levels[length(tmp.levels)]),xlim=xlim,
+        plot(time,type="n",ylim=c(tmp.levels[1],tmp.levels[length(tmp.levels)]),xlim=xlim,
              xlab="Year",ylab=ylab,main=title_unit_m[ifield,3])               
         # store panel plot limits
         plot_limits[,ifield]=par("usr")
@@ -225,6 +230,7 @@ for (model_idx in 1:nmodels) {
       for (ireg in 1:nregions) { 
         iselreg=selregions[ireg]  
         col_ts=ireg
+	if (length(label) > 1) {col_ts=c("dodgerblue4","darkseagreen4","goldenrod4","coral4","grey","mediumorchid1","black")[ilabel]} 
         if (plot_type == 13) { col_ts=model_idx } 
         if (add_trend_sd) {
           lines(time,tfield_exp[ireg,]+tfield_exp_sd[ireg,],lty=3,col=col_ts)
@@ -299,23 +305,23 @@ for (model_idx in 1:nmodels) {
         # store panel plot limits
         plot_limits[,ifield]=par("usr")
       }
-      
+
       # Update plot limits in case panel has changed
       par(usr=plot_limits[,ifield])
-
       for (ireg in 1:nregions) {
         iregion=selregions[ireg]
         ixregion = iregion
         if (plot_type==15) { ixregion = model_idx }
         # add errorbar (standard error) 
-        if (!anyNA(trend_exp_stat[iregion,])) {
+	if (!anyNA(trend_exp_stat[iregion,])) {
           arrows(xregions[ixregion], trend_exp[iregion,2]-trend_exp_stat[iregion,2], xregions[ixregion], trend_exp[iregion,2]+trend_exp_stat[iregion,2], 
                  length=0.05, angle=90, code=3)
           points(xregions[ixregion], trend_exp[iregion,2], pch=22, col="grey40", bg="white",cex=2)
           # add filled points for significant (95% level)
-          col90=c("dodgerblue3","darkseagreen3","goldenrod3","coral3")
-          col95=c("dodgerblue4","darkseagreen4","goldenrod4","coral4")
+          col90=c("dodgerblue3","darkseagreen3","goldenrod3","coral3","grey","mediumorchid1","black")
+          col95=c("dodgerblue4","darkseagreen4","goldenrod4","coral4","grey","mediumorchid1","black")
           if (trend_exp_stat[iregion,4]<=0.1) { points(xregions[ixregion], trend_exp[iregion,2], pch=22, col=col90[ilabel], bg=col90[ilabel],cex=2)}
+          points(xregions[ixregion], trend_exp[iregion,2], pch=22, col=col95[ilabel], bg=col95[ilabel],cex=2)
           if (trend_exp_stat[iregion,4]<=0.05) { points(xregions[ixregion], trend_exp[iregion,2], pch=22, col=col95[ilabel], bg=col95[ilabel],cex=2)}
         } else {
           print(paste("MISSING VALUES in index ",field,", region ",region_codes[iregion]))

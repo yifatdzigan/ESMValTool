@@ -23,11 +23,11 @@ year2_ref=models_end_year[ref_idx]
 years_ref <- year1_ref:year2_ref
 
 # check path to reference dataset
-if (ref_dir!=work_dir) {
-  ref_dir=file.path(ref_dir,diag_base,paste0(year1_ref,"_",year2_ref),season)
-} else {
-  ref_dir=file.path(work_dir,dataset_ref,paste0(year1_ref,"_",year2_ref),season)
-}
+#if (ref_dir!=work_dir) {
+#  ref_dir=file.path(ref_dir,diag_base,paste0(year1_ref,"_",year2_ref),season)
+#} else {
+#  ref_dir=file.path(work_dir,dataset_ref,paste0(year1_ref,"_",year2_ref),season)
+#}
 
 # Define fields to be used
 if (selfields[1]!=F) {
@@ -43,21 +43,23 @@ nquantity=c(1,3,3,1) # 1=exp_only, 3=exp/ref/exp-ref
 
 # Define regions to be used
 nregions=length(selregions)
+if (nregions > dim(regions)[1]) { stop(paste(diag_base,": requesting regions outside list"))}
+
 
 # ------- loading reference data ----------
 # load topography if needed
 if (maskSeaLand) {
-  topo_file_idx=paste0(topography_file,model_idx,'.nc')
-  if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=paste0(grid_file,model_idx),regridded_topo=topo_file_idx,topo_only=T) }
+  topo_file_idx=paste0(topography_file,ref_idx,'.nc')
+  gridfile<-getfilename.indices(work_dir,diag_base,ref_idx,grid=T)
+  if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=gridfile,regridded_topo=topo_file_idx,topo_only=T) }
   relevation=ncdf.opener(topo_file_idx,"topo","lon","lat",rotate="no")
 }
-
 if (highreselevation) { highresel=get.elevation(elev_range=c(highreselevation,9000)) }
 
 # produce desert areas map if required from reference file (mean annual precipitation <0.5 mm, Giorgi et al. 2014)
 if (removedesert) {
   ref_filename<-getfilename.indices(ref_dir,diag_base,ref_idx,season)
-  pry<-ncdf.opener(ref_filename,"pry","Lon","Lat",rotate="no")
+  pry<-ncdf.opener(ref_filename,"pry","lon","lat",rotate="no")
   retdes=which(pry<0.5)
   pry[retdes]=NA
   retdes2D=apply(pry*0,c(1,2),sum)+1 # create mask with NAs for deserts and 1's for not-desert
@@ -65,10 +67,10 @@ if (removedesert) {
 }
 
 # open reference field
+ref_filename<-getfilename.indices(ref_dir,diag_base,ref_idx,season)
+print(paste("Reading reference ",ref_filename))
 for (field in field_names) {
-  ref_filename<-getfilename.indices(ref_dir,diag_base,ref_idx,season)
-  print(paste("Reading reference ",ref_filename))
-  field_ref=ncdf.opener(ref_filename,field,"Lon","Lat",rotate="no")
+  field_ref=ncdf.opener(ref_filename,field,"lon","lat",rotate="no")
   if (removedesert) { field_ref<-field_ref*retdes3D }
   if (maskSeaLand) {field_ref<-apply.elevation.mask(field_ref,relevation,seaLandElevation)}
   if (rmultiyear_mean) { # if requested calculate multiyear average and store at time=1
@@ -88,8 +90,8 @@ for (model_idx in c(1:(length(models_name)))) {
   year2  <- models_end_year[model_idx]
 
   # set main paths
-  work_dir_exp=file.path(work_dir,exp,paste0(year1,"_",year2),season)
-  plot_dir_exp=file.path(plot_dir,exp,paste0(year1,"_",year2),season)
+  work_dir_exp=work_dir #file.path(work_dir,exp,paste0(year1,"_",year2),season)
+  plot_dir_exp=plot_dir # file.path(plot_dir,exp,paste0(year1,"_",year2),season)
   dir.create(plot_dir_exp,recursive=T)
 
   # Years to be considered based on namelist and cfg_file
@@ -109,7 +111,7 @@ for (model_idx in c(1:(length(models_name)))) {
   for (field in field_names) {
     filename<-getfilename.indices(work_dir_exp,diag_base,model_idx,season)
     print(paste("Reading experiment ",filename))
-    field_exp=ncdf.opener(filename,field,"Lon","Lat",rotate="no")
+    field_exp=ncdf.opener(filename,field,"lon","lat",rotate="no")
     if (removedesert) { field_exp<-field_exp*retdes3D }
     if (maskSeaLand) { field_exp<-apply.elevation.mask(field_exp,relevation,seaLandElevation)}
     if (rmultiyear_mean) { # if requested calculate multiyear average and store it at time=1

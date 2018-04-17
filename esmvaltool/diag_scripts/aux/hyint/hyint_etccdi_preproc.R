@@ -6,20 +6,20 @@
 #        remapping the data from gaussian to lonlat, changing longitude range from 0/360 to -180/180
 #        and merging all indices into the HyInt indices file. 
 
-hyint.etccdi.preproc<-function(work_dir,etccdi_dir,cdo_grid,model_idx,season,yrmon="yr") {
+hyint.etccdi.preproc<-function(work_dir,etccdi_dir,etccdi_list_import,cdo_grid,model_idx,season,yrmon="yr") {
 # load settings
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
 
-  for (model_idx in c(1:(length(models_name)))) {
+#  for (model_idx in c(1:(length(models_name)))) {
     year1  <- toString(models_start_year[model_idx])
     year2  <- toString(models_end_year[model_idx])
     print(str(c(year1,year2)))
    # work_dir_tmp<-paste(c(work_dir,models_name[model_idx],paste0(year1,"_",year2),season),collapse="/")
    # hyint_file<-getfilename.indices(work_dir_tmp,diag_base,model_idx,season)
     hyint_file<-getfilename.indices(work_dir,diag_base,model_idx,season)
-    etccdi_files<-getfilename.etccdi(etccdi_dir,etccdi_yr_list,model_idx,yrmon="yr")
+    etccdi_files<-getfilename.etccdi(etccdi_dir,etccdi_list_import,model_idx,yrmon="yr")
     for (sfile in etccdi_files) {      
       cdo_command<-paste0("cdo -sellonlatbox,-180,180,-90,90  -delvar,time_bnds ",sfile," ",sfile,"_tmp") 
       if (rgrid != F) { 
@@ -39,7 +39,7 @@ for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp)
     system(mv_command)
     system(cdo_command)
     system(rm_command)
-  }
+#  }
 return(0)
 }
 

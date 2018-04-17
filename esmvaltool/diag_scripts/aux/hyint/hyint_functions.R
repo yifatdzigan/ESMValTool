@@ -46,19 +46,22 @@ getfilename.regridded<-function(spath,rgrid,var0,model_idx){
 return(filename)
 }
 
-getfilename.indices<-function(spath,label,model_idx,season,hist=F,hist_years=hist_years,grid=grid){
+getfilename.indices<-function(spath,label,model_idx,season,hist=F,hist_years=hist_years,grid=F){
   exp    <- models_name[model_idx]
-  year1  <- models_start_year[model_idx]
-  year2  <- models_end_year[model_idx]
   model_exp <- models_experiment[model_idx]
-  if (hist) { 
-    model_exp <- "historical"
-    year1 <- hist_years[1]
-    year2 <- hist_years[2]
-  }
   model_ens <- models_ensemble[model_idx]
-  filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"_",toString(year2),"_",season,".nc")
-  if (grid) { filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,".grid") }
+  if (grid) {  
+    filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,".grid") 
+  } else {
+    year1  <- models_start_year[model_idx]
+    year2  <- models_end_year[model_idx]
+    if (hist) { 
+      model_exp <- "historical"
+      year1 <- hist_years[1]
+      year2 <- hist_years[2]
+    }
+    filename=paste0(spath,"/",label,"_",exp,"_",model_exp,"_",model_ens,"_",toString(year1),"_",toString(year2),"_",season,".nc")
+  }
 return(filename)
 }
 
@@ -95,6 +98,7 @@ return(filename)
 }
 
 getfilename.figure<-function(spath,var,year1,year2,model_idx,season,syears,sregion,label,map,output_file_type,multimodel=F) {
+  if (nchar(var) > 10) { var <- substr(var,1,10) }
   exp    <- models_name[model_idx]
   year1  <- models_start_year[model_idx]
   year2  <- models_end_year[model_idx]

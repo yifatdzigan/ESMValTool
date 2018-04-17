@@ -84,7 +84,7 @@ if (external_r95[1]==F) {
   r95_idx<-model_idx # assume each model has its r95_threshold file
   if (length(external_r95) == 1) { r95_idx<-1 } # if list of files with r95_threshold has only 1 entry, use that for all models
   print(paste(diag_base,": loading external r95_threshold data from ",external_r95[r95_idx]))
-  r95_threshold<-ncdf.opener(external_r95[r95_idx],"r95_threshold","Lon","Lat",rotate="no")
+  r95_threshold<-ncdf.opener(external_r95[r95_idx],"r95_threshold","lon","lat",rotate="no")
 }
 r95_threshold365<-replicate(365,r95_threshold)
 r95_threshold366<-replicate(366,r95_threshold)
@@ -177,18 +177,18 @@ if (external_norm[1]==F) { # calculate normalization function
   }
   if (length(external_norm) == 1) { mean_idx<-1 } # if list of files with normalization functions has only 1 entry, use that for all models
   print(paste(diag_base,": loading external normalization data from ",external_norm[mean_idx]))
-  pry_mean<-ncdf.opener(external_norm[mean_idx],"pry_mean","Lon","Lat",rotate="no")
-  dsl_mean<-ncdf.opener(external_norm[mean_idx],"dsl_mean","Lon","Lat",rotate="no")
-  wsl_mean<-ncdf.opener(external_norm[mean_idx],"wsl_mean","Lon","Lat",rotate="no")
-  int_mean<-ncdf.opener(external_norm[mean_idx],"int_mean","Lon","Lat",rotate="no")
-  pa_mean<-ncdf.opener(external_norm[mean_idx],"pa_mean","Lon","Lat",rotate="no")
-  r95_mean<-ncdf.opener(external_norm[mean_idx],"r95_mean","Lon","Lat",rotate="no")
-  pry_mean_sd<-ncdf.opener(external_norm[mean_idx],"pry_mean_sd","Lon","Lat",rotate="no")
-  dsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"dsl_mean_sd","Lon","Lat",rotate="no")
-  wsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"wsl_mean_sd","Lon","Lat",rotate="no")
-  int_mean_sd<-ncdf.opener(external_norm[mean_idx],"int_mean_sd","Lon","Lat",rotate="no")
-  pa_mean_sd<-ncdf.opener(external_norm[mean_idx],"pa_mean_sd","Lon","Lat",rotate="no")
-  r95_mean_sd<-ncdf.opener(external_norm[mean_idx],"r95_mean_sd","Lon","Lat",rotate="no")
+  pry_mean<-ncdf.opener(external_norm[mean_idx],"pry_mean","lon","lat",rotate="no")
+  dsl_mean<-ncdf.opener(external_norm[mean_idx],"dsl_mean","lon","lat",rotate="no")
+  wsl_mean<-ncdf.opener(external_norm[mean_idx],"wsl_mean","lon","lat",rotate="no")
+  int_mean<-ncdf.opener(external_norm[mean_idx],"int_mean","lon","lat",rotate="no")
+  pa_mean<-ncdf.opener(external_norm[mean_idx],"pa_mean","lon","lat",rotate="no")
+  r95_mean<-ncdf.opener(external_norm[mean_idx],"r95_mean","lon","lat",rotate="no")
+  pry_mean_sd<-ncdf.opener(external_norm[mean_idx],"pry_mean_sd","lon","lat",rotate="no")
+  dsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"dsl_mean_sd","lon","lat",rotate="no")
+  wsl_mean_sd<-ncdf.opener(external_norm[mean_idx],"wsl_mean_sd","lon","lat",rotate="no")
+  int_mean_sd<-ncdf.opener(external_norm[mean_idx],"int_mean_sd","lon","lat",rotate="no")
+  pa_mean_sd<-ncdf.opener(external_norm[mean_idx],"pa_mean_sd","lon","lat",rotate="no")
+  r95_mean_sd<-ncdf.opener(external_norm[mean_idx],"r95_mean_sd","lon","lat",rotate="no")
 }
 
 # remove 0s from normalizing functions
@@ -222,8 +222,8 @@ if (external_norm[1]==F) { # calculate or load hyint_mean from file to be consis
 } else { # load normalization data from file
   mean_idx<-model_idx # assume each model has its normalization file
   if (length(external_norm) == 1) { mean_idx<-1 } # if list of files with normalization functions has only 1 entry, use that for all models
-  hyint_mean<-ncdf.opener(external_norm[mean_idx],"hyint_mean","Lon","Lat",rotate="no")
-  hyint_mean_sd<-ncdf.opener(external_norm[mean_idx],"hyint_mean_sd","Lon","Lat",rotate="no")
+  hyint_mean<-ncdf.opener(external_norm[mean_idx],"hyint_mean","lon","lat",rotate="no")
+  hyint_mean_sd<-ncdf.opener(external_norm[mean_idx],"hyint_mean_sd","lon","lat",rotate="no")
 }
 
 # HyInt list
@@ -249,9 +249,9 @@ field_list<-c("pry","dsl","wsl","int","pa","r95","hyint","pry_mean","dsl_mean","
              "pry_norm","dsl_norm","wsl_norm","int_norm","pa_norm","r95_norm","r95_threshold")
 
 # dimensions definition
-x <- ncdim_def( "Lon", "degrees", ics)
-y <- ncdim_def( "Lat", "degrees", ipsilon)
-t <- ncdim_def( "Time", "years", years,unlim=T)
+x <- ncdim_def( "lon", "degrees_east", ics, longname="longitude")
+y <- ncdim_def( "lat", "degrees_north", ipsilon, longname="latitude")
+t <- ncdim_def( "time", "years", years,unlim=T,longname="time")
 
 for (var in field_list) {
   field <- get(var,hyint_list)

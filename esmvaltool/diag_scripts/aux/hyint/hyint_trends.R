@@ -60,13 +60,17 @@ nc_close(nc)
 # Get seaLandElevation mask
 if (maskSeaLand) {
   topo_file_idx=paste0(topography_file,model_idx,'.nc')
-  if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=paste0(grid_file,model_idx),ref_file=infile,regridded_topo=topo_file_idx,topo_only=T) } 
-  relevation=ncdf.opener(topo_file_idx,"topo","longitude","latitude",rotate="no")
+  if (!file.exists(topo_file_idx)) { createLandSeaMask(regrid=gridfile,ref_file=infile,regridded_topo=topo_file_idx,topo_only=T) } 
+relevation=ncdf.opener(topo_file_idx,"topo","lon","lat",rotate="no")
 }
+
+# check lon and lat names
+lon_name="lon"
+lat_name="lat"
 
 # remove desert areas if required (mean annual precipitation <0.5 mm, Giorgi et al. 2014)
 if (removedesert) {
-  pry<-ncdf.opener(infile,"pry","Lon","Lat",rotate="no")
+  pry<-ncdf.opener(infile,"pry",lon_name,lat_name,rotate="no")
   retdes=which(pry<0.5)
   pry[retdes]=NA
   retdes2D=apply(pry*0,c(1,2),sum)+1 # create mask with NAs for deserts and 1's for not-desert
@@ -74,7 +78,7 @@ if (removedesert) {
 }
 
 for (var in field_names) {
-  rfield<-ncdf.opener(infile,var,"Lon","Lat",rotate="no")
+  rfield<-ncdf.opener(infile,var,lon_name,lat_name,rotate="no")
   print("===========================================")
   print(paste(infile,var))
 
@@ -168,7 +172,7 @@ var_region <- 1:nregions
 regiondim <- ncdim_def("region","number",var_region)
 coeffdim <- ncdim_def("coefficients","number",1:4)
 boundarydim <- ncdim_def("boundaries","degrees",1:4)
-timedim <- ncdim_def( "Time", "years since 1950-01-01 00:00:00", (years-1950),unlim=T)
+timedim <- ncdim_def( "time", "years since 1950-01-01 00:00:00", (years-1950),unlim=T)
 
 # variables definition
 for (var in field_names) {
