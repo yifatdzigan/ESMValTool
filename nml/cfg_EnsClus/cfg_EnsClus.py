@@ -24,7 +24,7 @@ area='Eu'                   #regional average (examples:'EAT':Euro-Atlantic
                             #                           'NH': Northern Hemisphere)
                             #                           'Eu': Europe)
 kind='hist'                 #hist: historical, scen:scenario
-extreme='75th_percentile'   #75th_percentile, mean, maximum
+extreme='75th_percentile'   #75th_percentile, mean, maximum, std, trend
 
 #---------------------about cluster analysis------------------------------------------
 numclus=3              #number of clusters
@@ -32,3 +32,6 @@ numclus=3              #number of clusters
 perc=80                #cluster analysis is applied on a number of PCs such as they explain
                        #'perc' of total variance
 numpcs='no'            #number of PCs
+
+#---------------------about plots------------------------------------------------------
+field_to_plot='anomalies'     #field to plot ('climatologies', 'anomalies', '75th_percentile', 'mean', 'maximum', 'std', 'trend')

@@ -40,6 +40,7 @@ from esmval_lib import ESMValProject
 # Import full diagnostic routines
 from ens_anom import ens_anom
 from ens_eof_kmeans import ens_eof_kmeans 
+from ens_plots import ens_plots
 
 def main(project_info):
     print('\n>>>>>>>>>>>> EnsClus.py is running! <<<<<<<<<<<<\n')
@@ -107,7 +108,7 @@ def main(project_info):
 
     #____________Building the name of output files
     name_outputs=variables[0]+'_'+str(cfg.numens)+'ens_'+cfg.season+'_'+cfg.area+'_'+cfg.kind
-    print('The name of the output files will be <variable>_{0}.ext'.format(name_outputs))
+    print('The name of the output files will be <variable>_{0}.txt'.format(name_outputs))
  
     ####################### PRECOMPUTATION #######################
     #____________run ens_anom as a module
@@ -116,6 +117,10 @@ def main(project_info):
     ####################### EOF AND K-MEANS ANALYSES #######################
     #____________run ens_eof_kmeans as a module
     ens_eof_kmeans(out_dir,name_outputs,cfg.numens,cfg.numpcs,cfg.perc,cfg.numclus)
+
+    ####################### PLOT AND SAVE FIGURES ################################
+    #____________run ens_plots as a module
+    ens_plots(out_dir,name_outputs,cfg.numclus,cfg.field_to_plot)
 
     print('\n>>>>>>>>>>>> ENDED SUCCESSFULLY!! <<<<<<<<<<<<\n')
     print('')
