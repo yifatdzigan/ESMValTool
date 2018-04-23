@@ -18,11 +18,14 @@ run_regridding=T
 force_regridding=F
 run_diagnostic=T
 force_diagnostic=F
-etccdi_preproc=T
+etccdi_preproc=F
 run_timeseries=T
 write_plots=T
 output_file_type="png"
 diag_script_cfg="./esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r"
+
+# Define time dimension name
+timedimname="time"
 
 # Pre-processing options
 seasons <- c("ALL")   # seasons to be analysed: "ALL", "DJF", ...
@@ -44,8 +47,8 @@ etccdi_dir <- "/work/users/arnone/data/ETCCDI/historical+rcp85/"
 
 
 # Diagnostic options
-norm_years=c(1976,2005)  # reference normalization period
-#norm_years=c(1990,2000)  # reference normalization period
+#norm_years=c(1976,2005)  # reference normalization period
+norm_years=c(1990,2000)  # reference normalization period
 external_norm=F#"HIST"       # a) F=use internal data to normalize over the norm_years period
                       # b) list of names of normalization files (one per input data file or one for all)
                       # c) "HIST" to automatically generate the name of the historical experiment associated with the model name 
@@ -68,12 +71,12 @@ ryearplot <- 2006 # c(1997,2002,2003) # years to be plotted for experiments (map
 rmultiyear_mean <- T # T to plot multiyear mean (this override ryearplot)
 ryearplot_ref <- c("EXP") # year to be plotted for reference dataset: options a) "EXP" == same as experiments, b) one year only, e.g. c(1998)    
 force_ref <- F # set TRUE to force plotting of reference data as any other experiment
-label= "egu2018" # user defined extra label for figure file name
+#label= "egu2018" # user defined extra label for figure file name
 label= "test" # user defined extra label for figure file name
 #label=paste0(label,"-",c("0","500","700","1000","2000","3000"),"m")
 #label=label[c(1:4)]
 #label=paste0(label,"-mountain")
-#label=label[1]
+#label=label[6]
 map_continents <- -2 # thickness of continents: positive values in white, negative values in gray
 map_continents_regions <- F # T to plot also regional boundaries
 
@@ -83,12 +86,12 @@ legend_distance=3
 
 # timeseries options
 weight_tseries=T  # T to calculate area weighted time averages
-trend_years= c(2006,2100,1976,2005) # a) F=all; 
+trend_years= F#c(2006,2100,1976,2005) # a) F=all; 
                          # b) c(year1,year2) to apply trend calculation and plotting only to a limited time interval (year1<=years<=year2) 
                          # c) c(year1,year2,year3,year4) to apply trend to two separate time intervals (year1<=years<=year2) and (year3<=years<=year4)
 removedesert=F      # T to remove (flag as NA) grid points with mean annual pr < 0.5 mm/day (desertic areas, Giorgi et al. 2014)
-maskSeaLand=T # T to mask depending on seaLandElevation threshold
-seaLandElevation=500 # a) 0 land; b) positive value: land above given elevation;
+maskSeaLand=F # T to mask depending on seaLandElevation threshold
+seaLandElevation=0 # a) 0 land; b) positive value: land above given elevation;
                    # c) negative value: ocean below given depth. The topography/bathymetry file is generated with cdo from ETOPO data. 
 reverse_maskSeaLand=F # T to reject what selected, F to keep what selected
 highreselevation=F#500 # a) F: neglect; b) value: threshold of minimum elevation to be overplotted with contour lines of elevation
@@ -113,7 +116,6 @@ tag_legend=c(T,F,F) # 1=model name, 2=model experiment, 3=model ensemble (select
 region_names=c("World","World60","Tropics","South-America","Africa","North-America","India","Europe","East-Asia","Australia")
 region_codes=c("Globe","GL","TR","SA","AF","NA","IN","EU","EA","AU")
 selregions=c(1:10) # Select one or more index values to define regions to be used. Default c(1) == global. 
-#selregions=c(1)
 #selregions=c(6)
 
 boxregion=3  #-2 # !=0 plot region boxes over maps with thickness = abs(boxregion) and white (>0) or grey (<0).  This automatically works on global maps only.
@@ -158,26 +160,26 @@ etccdi_yr_list=c("altcddETCCDI","altcsdiETCCDI","altcwdETCCDI","altwsdiETCCDI","
               "rx5dayETCCDI","sdiiETCCDI","suETCCDI","tn10pETCCDI","tn90pETCCDI","tnnETCCDI",
               "tnxETCCDI","trETCCDI","tx10pETCCDI","tx90pETCCDI","txnETCCDI","txxETCCDI","wsdiETCCDI")
 tas_list=c("tas")
-etccdi_list_import=etccdi_yr_list
+etccdi_list_import=c("wsdiETCCDI")#etccdi_yr_list
 #etccdi_list_import=tas_list
 	#etccdi_yr_list[c(1,3,5,7,12,13,14,15,16,17,18,19,20)]
 
 field_names=c(hyint_list,etccdi_yr_list,tas_list)
 
-selfields_trends=c(8:15)
+selfields_trends=c(1:9)
 
 selfields=c(8,4,9,1,2,3) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
 selfields=c(8,4,1,9,3,2) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
 #selfields=c(5) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
 selfields=c(1,9,8,4,2,3,21,22,23,24,25,26,27,28)
 #selfields=c(6,8:11,21:31)+9
-selfields=c(1,2,3,4,8,9,c(5,7,12:19)+9)
+#selfields=c(1,2,3,4,8,9,c(5,7,12:19)+9)
+selfields=c(1:9)
 #selfields=c(1:40)
 #selfields=c(27)
 #selfields=c(1:4i1)
 #selfields=c(6,8:11,21,22,24:32)+9
 #selfields=c(4,c(14,18,17,5,7)+9)
-
 
 # define titles and units
 title_unit_m=matrix(nrow=length(field_names),ncol=4)
@@ -330,8 +332,6 @@ mountain_tlevels_m[39,]=c(0,8)*0.01
 mountain_tlevels_m[40,]=c(10,80)*0.01
 mountain_tlevels_m[41,]=c(3,9)*0.01
 
-
-
 #regions=mountain_regions
 #region_names=mountain_region_names
 #region_codes=mountain_region_codes
@@ -382,4 +382,3 @@ palette2=colorRampPalette(c("blue","white","red"))
 palette3=colorRampPalette(c("darkblue","blue","dodgerblue","white","orange","red","darkred"))
 palette_giorgi2011=colorRampPalette(c("white","khaki1","darkseagreen2","mediumseagreen","lightskyblue1",                
                       "lightskyblue","deepskyblue2","dodgerblue2","dodgerblue3","royalblue4"))
-

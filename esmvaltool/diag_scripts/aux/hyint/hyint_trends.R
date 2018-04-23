@@ -96,6 +96,7 @@ for (var in field_names) {
     iselreg=selregions[ireg]
     # extract data and perform averages
     print(paste("Working on ",region_names[iselreg]))           
+
     tfield[ireg,]<-calc.region.timeseries(ics,ipsilon,rfield,regions[iselreg,],weighted_mean=weight_tseries)
     tfield_sd[ireg,]<-calc.region.timeseries(ics,ipsilon,rfield,regions[iselreg,],calc_sd=T)
   }    
@@ -168,7 +169,7 @@ var_region <- 1:nregions
 regiondim <- ncdim_def("region","number",var_region)
 coeffdim <- ncdim_def("coefficients","number",1:4)
 boundarydim <- ncdim_def("boundaries","degrees",1:4)
-timedim <- ncdim_def( "time", "years since 1950-01-01 00:00:00", (years-1950),unlim=T)
+timedim <- ncdim_def( timedimname, "years since 1950-01-01 00:00:00", (years-1950),unlim=T)
 
 # variables definition
 for (var in field_names) {

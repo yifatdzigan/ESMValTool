@@ -11,13 +11,9 @@ hyint.etccdi.preproc<-function(work_dir,etccdi_dir,etccdi_list_import,cdo_grid,m
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
-
-#  for (model_idx in c(1:(length(models_name)))) {
     year1  <- toString(models_start_year[model_idx])
     year2  <- toString(models_end_year[model_idx])
     print(str(c(year1,year2)))
-   # work_dir_tmp<-paste(c(work_dir,models_name[model_idx],paste0(year1,"_",year2),season),collapse="/")
-   # hyint_file<-getfilename.indices(work_dir_tmp,diag_base,model_idx,season)
     hyint_file<-getfilename.indices(work_dir,diag_base,model_idx,season)
     etccdi_files<-getfilename.etccdi(etccdi_dir,etccdi_list_import,model_idx,yrmon="yr")
     for (sfile in etccdi_files) {      
@@ -25,13 +21,14 @@ for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp)
       if (rgrid != F) { 
         cdo_command<-paste0("cdo setgrid,",cdo_grid," -delvar,time_bnds ",sfile," ",sfile,"_tmp")  
       } 
-
       system(cdo_command)
     }
+    
     mv_command<-paste("mv -n ",hyint_file,paste0(hyint_file,"_tmp"))
     etccdi_files_tmp<-paste(etccdi_files,"_tmp",sep="",collapse=" ")
     print(paste0("HyInt: merging ",length(etccdi_files)," ETCCDI files"))
-    cdo_command<-paste0("cdo -O merge ",paste0(hyint_file,"_tmp "),etccdi_files_tmp," ",hyint_file)
+    cdo_command<-paste0("cdo -O merge -sellonlatbox,-180,180,-90,90 ",
+			 paste0(hyint_file,"_tmp "),etccdi_files_tmp," ",hyint_file)
     rm_command<-paste("rm ",etccdi_files_tmp)
     print(mv_command)
     print(cdo_command)
@@ -39,7 +36,7 @@ for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp)
     system(mv_command)
     system(cdo_command)
     system(rm_command)
-#  }
+    
 return(0)
 }
 

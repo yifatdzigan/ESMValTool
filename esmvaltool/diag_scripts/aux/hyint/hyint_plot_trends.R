@@ -9,6 +9,8 @@ hyint.plot.trends<-function(work_dir,plot_dir,ref_dir,ref_idx,season) {
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 for (myname in names(settings)) { temp=get(myname,settings); assign(myname,temp) }
 
+
+
 #source('interface_data/r.interface')
 var_type = c("tseries","tseries-sd","trend","trend-stat")
 # diag_base <- "HyInt"
@@ -128,7 +130,7 @@ for (model_idx in 1:nmodels) {
     ivar<-which(field_names==var)
     for (stype in var_type[1:2]) { 
       svar=paste0(var,"_",stype)
-      rfield=ncdf.opener(infile,svar,"region","time",rotate="no")
+      rfield=ncdf.opener(infile,svar,"region",timedimname,rotate="no")
       assign(svar,rfield) # assign field data to field name       
       nc<-nc_open(infile)
       dlname <- ncatt_get(nc,svar,"long_name")
@@ -145,7 +147,7 @@ for (model_idx in 1:nmodels) {
   }
 
   # store size of time and region arrays
-  time<-ncdf.opener(infile,"time","time",rotate="no") + 1950
+  time<-ncdf.opener(infile,timedimname,timedimname,rotate="no") + 1950
   regions<-ncdf.opener(infile,"regions","region","boundaries",rotate="no")
 
   #-----------------Producing figures------------------------#

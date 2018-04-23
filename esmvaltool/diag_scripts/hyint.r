@@ -61,14 +61,10 @@ source('esmvaltool/diag_scripts/aux/hyint/hyint_etccdi_preproc.R')
 source('esmvaltool/diag_scripts/aux/hyint/hyint_trends.R')
 source('esmvaltool/diag_scripts/aux/hyint/hyint_plot_maps.R')
 source('esmvaltool/diag_scripts/aux/hyint/hyint_plot_trends.R')
-
-#source('interface_data/r.interface')
-#source('diag_scripts/lib/R/info_output.r')
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
 
 ## Do not print warnings
 #options(warn=0)var0 <- names(metadata)[1]
-
 
 # Read settings and metadata files
 args <- commandArgs(trailingOnly = TRUE)
@@ -93,21 +89,8 @@ climolist0 <- get(climofiles[1],list0)
 diag_base = climolist0$diagnostic
 print(paste(diag_base,": starting routine"))
 
-#field_type0 = climolist0$field
-#field_type0 <- field_types[1]
-#info_output(paste0("<<<<<<<< Entering ", diag_script), verbosity, 4)
-#info_output("+++++++++++++++++++++++++++++++++++++++++++++++++", verbosity, 1)
-#info_output(paste0("plot - ", diag_script, " (var: ", var0, ")"), verbosity, 1)
-#info_output("+++++++++++++++++++++++++++++++++++++++++++++++++", verbosity, 1)
-
-## Create working dirs if they do not exist
-#etccdi_dir=file.path(work_dir,"extremeEvents_main")
-#work_dir=file.path(work_dir, diag_base)
-#plot_dir=file.path(plot_dir, diag_base)
-
 if (length(etccdi_dir) != 1) {etcddi_dir = work_dir}
 regridding_dir=run_dir
-
 dir.create(plot_dir, recursive=T,  showWarnings = F)
 dir.create(work_dir, recursive=T, showWarnings = F)
 dir.create(regridding_dir, recursive=T, showWarnings = F)
@@ -118,7 +101,6 @@ models_start_year=unname(sapply(list0, '[[', 'start_year'))
 models_end_year=unname(sapply(list0, '[[', 'end_year'))
 models_experiment=unname(sapply(list0, '[[', 'exp'))
 models_ensemble=unname(sapply(list0, '[[', 'ensemble'))
-
 
 # select reference model
 ref_idx=which(models_name == reference_model) # select reference dataset; if not available, use last of list
@@ -142,15 +124,10 @@ if (write_netcdf) {
   # loop through models 
   for (model_idx in c(1:(length(models_name)))) {
 
-    # Create regridding subdir
-    #dir.create(paste(regridding_dir,models_name[model_idx],sep="/"), showWarnings = F)   
-
     # Setup filenames 
     climofile <- climofiles[model_idx] 
     sgrid <- "noregrid"; if (rgrid != F) {sgrid <- rgrid}
     regfile <- getfilename.regridded(regridding_dir,sgrid,var0,model_idx)
- 
-    #    regfile <- climofile
 
     # If needed, pre-process file regridding, selecting lon/lat region of interest and adding absolute time axis 
     if (run_regridding) {
@@ -169,7 +146,7 @@ if (write_netcdf) {
       # Loop through seasons and call diagnostic
       for (seas in seasons) {
         
-        hyint.diagnostic(work_dir,regfile,model_idx,seas)
+        hyint.diagnostic(work_dir,regfile,model_idx,seas,rewrite=force_diagnostic)
       }
     }
   }
@@ -206,4 +183,3 @@ if (write_plots) {
     }
   }
 }
-#info_output(paste0(">>>>>>>> Leaving ", diag_script), verbosity, 4)

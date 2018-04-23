@@ -2,7 +2,7 @@
 #-----Hydroclimatic Intensity (HyInt) diagnostic-----#
 #-------------E. Arnone (June 2017)------------------#
 ######################################################
-hyint.diagnostic<-function(work_dir,infile,model_idx,season) {
+hyint.diagnostic<-function(work_dir,infile,model_idx,season,rewrite=FALSE) {
 
 # load settings
 source('esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r')
@@ -22,7 +22,7 @@ model_ens <- models_ensemble[model_idx]
 outfile<-getfilename.indices(work_dir,diag_base,model_idx,season)
 
 # If diagnostic output file already exists skip calculation
-if(file.exists(outfile) & !force_diagnostic) { 
+if(file.exists(outfile) & !rewrite) { 
   print(paste0(diag_base,": output file already exists:",outfile)) 
   print(paste0(diag_base,": skipping calculation"))
   return()
@@ -40,16 +40,22 @@ years=year1:year2
 timeseason=season2timeseason(season)
 
 # file opening
-pr_list=ncdf.opener.universal(infile,"pr",tmonths=timeseason,tyears=years,rotate=rotLongitude)
+pr_list=ncdf.opener.universal(infile,namevar="pr",tmonths=timeseason,tyears=years,rotate=rotLongitude)
+
+#extract calendar and time unit from the original file
+tcal=attributes(pr_list$time)$cal
+tunit=attributes(pr_list$time)$units
+
 # time array
-datas=pr_list$time
-print(str(datas))
+#datas=pr_list$time
+#print(str(datas))
 #etime=list(day=as.numeric(format(datas,"%d")),month=as.numeric(format(datas,"%m")),year=as.numeric(format(datas,"%Y")),data=datas)
-etime=power.date.new(datas)
+#etime=power.date.new(datas)
+etime=power.date.new(pr_list$time)
 
 # declare and convert variable
 pr=pr_list$field*86400.   # convert (Kg m-2 s-1) to (mm day-1) 
-ntime=length(pr[1,1,])
+ntime=length(pr_list$time)
 
 #############################################################
 #--------HyInt calculation (Giorgi et al. 2011/14)----------#
@@ -248,10 +254,15 @@ field_list<-c("pry","dsl","wsl","int","pa","r95","hyint","pry_mean","dsl_mean","
              "pry_mean_sd","dsl_mean_sd","wsl_mean_sd","int_mean_sd","pa_mean_sd","r95_mean_sd","hyint_mean_sd",
              "pry_norm","dsl_norm","wsl_norm","int_norm","pa_norm","r95_norm","r95_threshold")
 
+TIME=paste(tunit," since ",year1,"-",timeseason[1],"-01 00:00:00",sep="")
+
 # dimensions definition
 x <- ncdim_def( "lon", "degrees_east", ics, longname="longitude")
 y <- ncdim_def( "lat", "degrees_north", ipsilon, longname="latitude")
-t <- ncdim_def( "time", "years", years,unlim=T,longname="time")
+t <- ncdim_def( timedimname, "years", years,unlim=T,calendar=tcal,longname=timedimname)
+#timedim <- ncdim_def( timedimname, "years since 1950-01-01 00:00:00", (years-1950),unlim=T)
+
+#t <- ncdim_def( timedimname, TIME, years, unlim=T, calendar=tcal, longname=timedimname)
 
 for (var in field_list) {
   field <- get(var,hyint_list)
