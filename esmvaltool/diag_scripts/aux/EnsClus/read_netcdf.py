@@ -19,9 +19,15 @@ def read3Dncfield(ifile):
     for variab in fh.variables:
         variabs.append(variab)
     print('The variables in the nc file are: ', variabs)
-
-    lat         = fh.variables['lat'][:]
-    lon         = fh.variables['lon'][:]
+    
+    if ('lat' in variabs):
+        lat     = fh.variables['lat'][:]
+    elif ('latitude' in variabs):
+        lat     = fh.variables['latitude'][:]
+    if ('lon' in variabs):
+        lon     = fh.variables['lon'][:]
+    elif ('longitude' in variabs):
+        lon     = fh.variables['longitude'][:]
     time        = fh.variables['time'][:]
     time_units  = fh.variables['time'].units
     var_units   = fh.variables[variabs[0]].units
@@ -97,8 +103,14 @@ def read_N_2Dfields(ifile):
     #print('The variables in the nc file are: ', variabs)
     
     num         = fh.variables['num'][:]
-    lat         = fh.variables['lat'][:]
-    lon         = fh.variables['lon'][:]
+    if ('lat' in variabs):
+        lat     = fh.variables['lat'][:]
+    elif ('latitude' in variabs):
+        lat     = fh.variables['latitude'][:]
+    if ('lon' in variabs):
+        lon     = fh.variables['lon'][:]
+    elif ('longitude' in variabs):
+        lon     = fh.variables['longitude'][:]
     var         = fh.variables[variabs[3]][:,:,:]
     var_units   = fh.variables[variabs[3]].units
     txt='{0} dimension [num x lat x lon]: {1}'.format(variabs[3],var.shape)

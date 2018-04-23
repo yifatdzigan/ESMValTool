@@ -50,7 +50,6 @@ def get_input_files(cfg, index=0):
 
 
 def main():
-
     cfg = get_cfg()
     logger.setLevel(cfg['log_level'].upper())
 
