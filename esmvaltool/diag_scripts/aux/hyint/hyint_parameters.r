@@ -12,16 +12,15 @@
 #####################################################################
 
 # Replace here global values from namelist_hyint.xml
-write_ncdf=T
-write_netcdf=T
+# write_netcdf=T
+# write_plots=T
 run_regridding=T
 force_regridding=F
 run_diagnostic=T
 force_diagnostic=F
 etccdi_preproc=F
 run_timeseries=T
-write_plots=T
-output_file_type="png"
+# output_file_type="png"
 diag_script_cfg="./esmvaltool/diag_scripts/aux/hyint/hyint_parameters.r"
 
 # Define time dimension name
@@ -47,8 +46,7 @@ etccdi_dir <- "/work/users/arnone/data/ETCCDI/historical+rcp85/"
 
 
 # Diagnostic options
-#norm_years=c(1976,2005)  # reference normalization period
-norm_years=c(1990,2000)  # reference normalization period
+#norm_years=c(1976,2005)  # reference normalization period - set in namelist
 external_norm=F#"HIST"       # a) F=use internal data to normalize over the norm_years period
                       # b) list of names of normalization files (one per input data file or one for all)
                       # c) "HIST" to automatically generate the name of the historical experiment associated with the model name 
@@ -59,24 +57,23 @@ external_r95=external_norm    # a) F=use internal data to evaluate r95 threshold
                               # c) "HIST" to automatically generate the name of the historical experiment associated with the model name
 
 # Plotting options
-plot_type <- 14  # 1) lon/lat maps per individual field/exp/single year, 2) lon/lat maps per individual field exp-ref-diff/single year, 
+# Plot_type set in namelist
+# plot_type <- 14  # 1) lon/lat maps per individual field/exp/single year, 2) lon/lat maps per individual field exp-ref-diff/single year, 
                 # 3) lon/lat maps multi-field/exp-ref-diff/single year,  4) lon/lat maps multifield/exp/multiyear,  
                 # 11) timeseries over required individual region/exp, 12) timeseries over multiple regions/exp
                 # 13) timeseries with multiple models, 14) summary trend coefficients multiple regions  
                 #  15) summary trend coefficients multiple models 
-npancol=4 # number of columns for trend/tseries multi-panel figures
-npanrow=4 # number of rows for trend/tseries multi-panel figures
+npancol=2 # number of columns for trend/tseries multi-panel figures
+npanrow=3 # number of rows for trend/tseries multi-panel figures
 ryearplot <- 2006 # c(1997,2002,2003) # years to be plotted for experiments (maps over individual years): 
                   # a) actual years, b) "FIRST" = first year in dataset or c) "ALL"  = all years in dataset. E.g., c(1998,2000,2005)   
 rmultiyear_mean <- T # T to plot multiyear mean (this override ryearplot)
 ryearplot_ref <- c("EXP") # year to be plotted for reference dataset: options a) "EXP" == same as experiments, b) one year only, e.g. c(1998)    
 force_ref <- F # set TRUE to force plotting of reference data as any other experiment
-#label= "egu2018" # user defined extra label for figure file name
-label= "test" # user defined extra label for figure file name
-#label=paste0(label,"-",c("0","500","700","1000","2000","3000"),"m")
-#label=label[c(1:4)]
-#label=paste0(label,"-mountain")
-#label=label[6]
+
+# user defined extra label for figure file name
+#label= "test" set in namelist 
+
 map_continents <- -2 # thickness of continents: positive values in white, negative values in gray
 map_continents_regions <- F # T to plot also regional boundaries
 
@@ -115,10 +112,10 @@ tag_legend=c(T,F,F) # 1=model name, 2=model experiment, 3=model ensemble (select
 # region box matrix (predefined following Giorgi et al. 2011,2014): add here further regions and select those needed through iregion
 region_names=c("World","World60","Tropics","South-America","Africa","North-America","India","Europe","East-Asia","Australia")
 region_codes=c("Globe","GL","TR","SA","AF","NA","IN","EU","EA","AU")
-selregions=c(1:10) # Select one or more index values to define regions to be used. Default c(1) == global. 
-#selregions=c(6)
+# Select one or more index values to define regions to be used. Default c(1) == global. 
+# selregions=c(1:10) # set in namelist 
 
-boxregion=3  #-2 # !=0 plot region boxes over maps with thickness = abs(boxregion) and white (>0) or grey (<0).  This automatically works on global maps only.
+boxregion=F  #-2 # !=0 plot region boxes over maps with thickness = abs(boxregion) and white (>0) or grey (<0).  This automatically works on global maps only.
 
 regions=matrix(nrow=length(region_names),ncol=4)
 # c(lon1,lon2,lat1,lat2) NOTE: lon(-180/180)
@@ -133,25 +130,6 @@ regions[8,]=c(-10,30,35,70)
 regions[9,]=c(100,150,20,50)
 regions[10,]=c(110,160,-40,-10)
 
-# mountain regions
-mountain_region_names=c("World","Tibetan-Plateau","Loess-Plateau","Yunnan-Guizhou-Plateau","Alps","US-Rockies",
-			                       "Appalachian-Mountains","Andes","Mongolian-Plateau","North-Tibetan-Plateau",
-					                              "South-Tibetan-Plateau")
-mountain_region_codes=c("Globe","TP","LO","YG","AL","RO","AP","AN","MO","NT","ST")
-mountain_regions=matrix(nrow=length(mountain_region_names),ncol=4)
-mountain_regions[1,]=c(-180,180,-90,90) # First row = global
-mountain_regions[2,]=c(70,106,25,40)
-mountain_regions[3,]=c(100,116,33,43)
-mountain_regions[4,]=c(96,110,20,29)
-mountain_regions[5,]=c(4,19,43,49)
-mountain_regions[6,]=c(-125,-95,34,49)
-mountain_regions[7,]=c(-83,-68,34,46)
-mountain_regions[8,]=c(-80,-62,-45,-10)
-mountain_regions[9,]=c(88,120,42,52)
-# From Wang et al. 2014 Cli Dyn
-mountain_regions[10,]=c(92.43,102.03,32.20,38.80)
-mountain_regions[11,]=c(80.08,102.97,27.73,33.58)
-
 # define fields for timeseries calculation and plotting
 hyint_list=c("int_norm","dsl_norm","wsl_norm","hyint","int","dsl","wsl","pa_norm","r95_norm")
 etccdi_yr_list=c("altcddETCCDI","altcsdiETCCDI","altcwdETCCDI","altwsdiETCCDI","cddETCCDI",
@@ -159,27 +137,12 @@ etccdi_yr_list=c("altcddETCCDI","altcsdiETCCDI","altcwdETCCDI","altwsdiETCCDI","
               "r10mmETCCDI","r1mmETCCDI","r20mmETCCDI","r95pETCCDI","r99pETCCDI","rx1dayETCCDI",
               "rx5dayETCCDI","sdiiETCCDI","suETCCDI","tn10pETCCDI","tn90pETCCDI","tnnETCCDI",
               "tnxETCCDI","trETCCDI","tx10pETCCDI","tx90pETCCDI","txnETCCDI","txxETCCDI","wsdiETCCDI")
-tas_list=c("tas")
-etccdi_list_import=c("wsdiETCCDI")#etccdi_yr_list
-#etccdi_list_import=tas_list
-	#etccdi_yr_list[c(1,3,5,7,12,13,14,15,16,17,18,19,20)]
 
-field_names=c(hyint_list,etccdi_yr_list,tas_list)
+etccdi_list_import=etccdi_yr_list
+field_names=c(hyint_list,etccdi_yr_list)
 
-selfields_trends=c(1:9)
-
-selfields=c(8,4,9,1,2,3) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
-selfields=c(8,4,1,9,3,2) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
-#selfields=c(5) # c(1,2,3,4) # Select one or more fields to be plotted with the required order  
-selfields=c(1,9,8,4,2,3,21,22,23,24,25,26,27,28)
-#selfields=c(6,8:11,21:31)+9
-#selfields=c(1,2,3,4,8,9,c(5,7,12:19)+9)
-selfields=c(1:9)
-#selfields=c(1:40)
-#selfields=c(27)
-#selfields=c(1:4i1)
-#selfields=c(6,8:11,21,22,24:32)+9
-#selfields=c(4,c(14,18,17,5,7)+9)
+# Select one or more fields to be plotted with the required order  
+# selfields=c(8,4,1,9,3,2) # set in the namelist
 
 # define titles and units
 title_unit_m=matrix(nrow=length(field_names),ncol=4)
@@ -240,7 +203,6 @@ levels_m[37,]=c(-20,140,-4,4)
 levels_m[38,]=c(-30,30,-5,5)
 levels_m[39,]=c(0,50,-2,2)
 levels_m[40,]=c(-20,320,-2,2)
-levels_m[41,]=c(150,250,-20,20)
 
 # define levels for contour/yrange for trends (minlev,maxlev)
 ntlev=24
@@ -285,60 +247,9 @@ tlevels_m[37,]=c(0,160)*0.01
 tlevels_m[38,]=c(2,8)*0.01
 tlevels_m[39,]=c(0,8)*0.01
 tlevels_m[40,]=c(-100,300)*0.01
-tlevels_m[41,]=c(3,9)*0.01
 
-# define levels for mountain regions
-ntlev=24
-mountain_tlevels_m=matrix(nrow=length(field_names),ncol=2)
-mountain_tlevels_m[1,]=c(0,0.2)*0.01
-mountain_tlevels_m[2,]=c(-0.1,0.1)*0.01
-mountain_tlevels_m[3,]=c(-0.2,0.1)*0.01
-mountain_tlevels_m[4,]=c(0.18,0.22)*0.01#c(0,0.4)*0.01
-mountain_tlevels_m[5,]=c(0,1.2)*0.01
-mountain_tlevels_m[6,]=c(-1,8)*0.01
-mountain_tlevels_m[7,]=c(-1,8)*0.01
-mountain_tlevels_m[8,]=c(-0.2,0.3)*0.01
-mountain_tlevels_m[9,]=c(0.25,0.3)*0.01#c(0.1,0.5)*0.01
-mountain_tlevels_m[10,]=c(0,200)*0.01
-mountain_tlevels_m[11,]=c(0,12)*0.01
-mountain_tlevels_m[12,]=c(0,20)*0.01
-mountain_tlevels_m[13,]=c(0,20)*0.01
-mountain_tlevels_m[14,]=c(5,10)*0.01 # c(0,30)*0.01
-mountain_tlevels_m[15,]=c(-70,0)*0.01
-mountain_tlevels_m[16,]=c(-2,1)*0.01#c(-5,5)*0.01
-mountain_tlevels_m[17,]=c(-1,0)*0.01
-mountain_tlevels_m[18,]=c(-70,10)*0.01
-mountain_tlevels_m[19,]=c(-10,90)*0.01
-mountain_tlevels_m[20,]=c(-60,0)*0.01
-mountain_tlevels_m[21,]=c(-100,220)*0.01
-mountain_tlevels_m[22,]=c(-5,15)*0.01
-mountain_tlevels_m[23,]=c(-30,10)*0.01
-mountain_tlevels_m[24,]=c(0,6)*0.01
-mountain_tlevels_m[25,]=c(0,200)*0.01
-mountain_tlevels_m[26,]=c(0,200)*0.01
-mountain_tlevels_m[27,]=c(0,30)*0.01
-mountain_tlevels_m[28,]=c(0,50)*0.01
-mountain_tlevels_m[29,]=c(0,15)*0.01
-mountain_tlevels_m[30,]=c(0,140)*0.01
-mountain_tlevels_m[31,]=c(-50,0)*0.01
-mountain_tlevels_m[32,]=c(0,30)*0.01
-mountain_tlevels_m[33,]=c(0,8)*0.01
-mountain_tlevels_m[34,]=c(0,8)*0.01
-mountain_tlevels_m[35,]=c(0,150)*0.01
-mountain_tlevels_m[36,]=c(-60,0)*0.01
-mountain_tlevels_m[37,]=c(0,60)*0.01
-mountain_tlevels_m[38,]=c(2,8)*0.01
-mountain_tlevels_m[39,]=c(0,8)*0.01
-mountain_tlevels_m[40,]=c(10,80)*0.01
-mountain_tlevels_m[41,]=c(3,9)*0.01
-
-#regions=mountain_regions
-#region_names=mountain_region_names
-#region_codes=mountain_region_codes
-#tlevels_m=mountain_tlevels_m
-
-
-if (F) {  # undefine levels if you wish to plot actual range of target values
+autolevels=F # undefine levels if you wish to plot actual range of target values
+if (autolevels) {  
  tlevels_m[]=NA
  levels_m[]=NA
 }
@@ -346,10 +257,7 @@ if (F) {  # undefine levels if you wish to plot actual range of target values
 # Specific settings for PNG output
 png_height=720
 png_width=960
-#png_width=720
 png_width=1440
-#png_width=720
-#png_height=360
 png_units="px"
 png_pointsize=12
 png_bg="white"

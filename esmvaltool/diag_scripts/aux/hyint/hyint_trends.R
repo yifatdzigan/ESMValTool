@@ -33,7 +33,7 @@ outfile<-getfilename.trends(work_dir,label,model_idx,season)
 nregions=length(selregions)
 
 # Define fields to be used (main list loaded from cfg_file)
-if (selfields_trends[1]!=F) { field_names=field_names[selfields_trends] }
+if (selfields[1]!=F) { field_names=field_names[selfields] }
 
 # Years to be considered based on namelist and cfg_file
 years <- year1:year2
