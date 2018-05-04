@@ -25,7 +25,7 @@ library(tools)
 library(yaml)
 
 # read parameters
-source('esmvaltool/diag_scripts/aux/rainfarm/rainfarm_parameters.r')
+source('esmvaltool/diag_scripts/rainfarm/rainfarm_parameters.r')
 
 # read settings and metadata files
 args <- commandArgs(trailingOnly = TRUE)
@@ -104,9 +104,8 @@ for (model_idx in c(1:(length(models_name)))) {
   }
 
   ## Call diagnostic
-  dir.create(paste0(work_dir,"/",exp), showWarnings = FALSE)
   print(paste0(diag_base,": calling rainfarm"))
-  filename <- paste0(work_dir,"/",exp,"/",inregname,"_downscaled") 
+  filename <- paste0(work_dir,"/",inregname,"_downscaled") 
 
   # reformat arguments from parameter_file
   if (rainfarm_args$conserv_glob == T) {rainfarm_args$conserv_glob <- ""}
@@ -115,7 +114,7 @@ for (model_idx in c(1:(length(models_name)))) {
   # generate weights file if needed
   # (for more information use 'rfweights -h')
   if (rainfarm_args$weights_climo != F) {
-    fileweights <- paste0(work_dir,"/",exp,"/",inregname,"_w.nc")
+    fileweights <- paste0(work_dir,"/",inregname,"_w.nc")
     snf <- ""
     if (rainfarm_args$nf != F) {snf <- paste("-n ",rainfarm_args$nf)}
     command_w<-paste("rfweights -w ",fileweights,snf," -c ",rainfarm_args$weights_climo,inregfile)  

@@ -46,6 +46,6 @@ diagnostics:
                                     # NOTE: lon(0/360) 
         rgrid: false #"r320x160"    # set desired regridding resolution (e.g., comparing different datasets)  
         slope: 1.7 # spatial spectral slope       
-        nens: 1    # number of ensemble members to be calculated
+        nens: 2    # number of ensemble members to be calculated
         nf:   8    # subdivisions for downscaling
 
