@@ -12,7 +12,7 @@ preprocessors:
         scheme: linear
 
 diagnostics:
-  zmNAM:
+  zmnam:
     description: Zonal mean Northern Annular Mode
     variables: 
         zg:
@@ -20,7 +20,7 @@ diagnostics:
           field: T3D
     scripts: 
         main: 
-          script: zmnam.py                                   
+          script: zmnam/zmnam.py                              
           title: "Zonal mean NAM diagnostics"
 
           ## Information required: 
