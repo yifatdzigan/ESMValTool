@@ -53,20 +53,18 @@ def get_cfg():
 def main(config):
     #cfg = get_cfg()
     cfg = config
-    #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
-    #print(cfg)
-    #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print('(1)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print(cfg)
+    print('(1)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     logger.setLevel(cfg['log_level'].upper())
 
     input_files = get_input_files(cfg)
     #os.makedirs(cfg['plot_dir'])
     #os.makedirs(cfg['work_dir'])
                             
-    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print('(2)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     print(input_files)
-    input_files = cfg['input_files'] #
-    print(input_files) #
-    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print('(2)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     #sys.exit()  
     plot_dir=cfg['plot_dir']
     out_dir=cfg['work_dir']
