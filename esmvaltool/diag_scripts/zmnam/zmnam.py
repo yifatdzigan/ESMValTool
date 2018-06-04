@@ -50,8 +50,9 @@ def get_cfg():
     return cfg
 
 
-def main():
-    cfg = get_cfg()
+def main(config):
+    #cfg = get_cfg()
+    cfg = config
     logger.setLevel(cfg['log_level'].upper())
 
     input_files = get_input_files(cfg)
