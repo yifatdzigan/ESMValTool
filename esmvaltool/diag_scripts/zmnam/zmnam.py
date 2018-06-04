@@ -81,7 +81,8 @@ def main(config):
     from zmnam_plot import zmnam_plot
     from zmnam_preproc import zmnam_preproc
 
-    for variable_name, filenames in input_files.items():
+    #for variable_name, filenames in input_files.items():
+    for filenames,variable_name in input_files.items():
         logger.info("Processing variable %s", variable_name)
 
         filenames_cat=[]
