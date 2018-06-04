@@ -53,7 +53,10 @@ def get_cfg():
 def main(config):
     #cfg = get_cfg()
     cfg = config
-    print(cfg); sys.exit()  
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print(cfg)
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    sys.exit()  
     logger.setLevel(cfg['log_level'].upper())
 
     input_files = get_input_files(cfg)
