@@ -65,7 +65,13 @@ def main(config):
     print('(2)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     print(list(input_files.keys()))
     print('(2)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
-    #sys.exit()  
+    print('(3)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print(input_files.items())
+    print('(3)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+
+
+    sys.exit() 
+
     plot_dir=cfg['plot_dir']
     out_dir=cfg['work_dir']
 
