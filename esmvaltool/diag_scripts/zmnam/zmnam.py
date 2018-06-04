@@ -85,7 +85,8 @@ def main(config):
     for filenames,variable_name in input_files.items():
         logger.info("Processing variable %s", variable_name)
         print(filenames) #
-        sys.exit() 
+        filenames=list(filenames) 
+        #sys.exit() 
         filenames_cat=[]
         print('_____________________________\n{0} INPUT FILES:'.format(len(filenames)))
         for i in filenames:
