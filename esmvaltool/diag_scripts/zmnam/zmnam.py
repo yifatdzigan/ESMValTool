@@ -59,8 +59,8 @@ def main(config):
     logger.setLevel(cfg['log_level'].upper())
 
     input_files = get_input_files(cfg)
-    os.makedirs(cfg['plot_dir'])
-    os.makedirs(cfg['work_dir'])
+    #os.makedirs(cfg['plot_dir'])
+    #os.makedirs(cfg['work_dir'])
                             
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     print(input_files)
