@@ -25,6 +25,8 @@ import iris
 import os
 import logging
 
+from esmvaltool.diag_scripts.shared import run_diagnostic # 20180601h1712
+
 logger = logging.getLogger(__name__)
 
 import warnings
@@ -91,6 +93,11 @@ def main():
             zmnam_calc(out_dir+'/',out_dir+'/') 
             zmnam_plot(out_dir+'/',plot_dir+'/')   
 
+# added 20180601h1717
+if __name__ == '__main__':
+    with run_diagnostic() as config:
+        main(config)
+"""
 
 if __name__ == '__main__':
     iris.FUTURE.netcdf_promote = True
@@ -99,4 +106,6 @@ if __name__ == '__main__':
                "%(name)s,%(lineno)s\t%(message)s"
     )
     main()
+
+"""
 
