@@ -56,13 +56,16 @@ def main(config):
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     print(cfg)
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
-    sys.exit()  
     logger.setLevel(cfg['log_level'].upper())
 
     input_files = get_input_files(cfg)
     os.makedirs(cfg['plot_dir'])
     os.makedirs(cfg['work_dir'])
                             
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print(input_files)
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    sys.exit()  
     plot_dir=cfg['plot_dir']
     out_dir=cfg['work_dir']
 
