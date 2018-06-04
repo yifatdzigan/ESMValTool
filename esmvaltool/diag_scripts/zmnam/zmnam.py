@@ -62,9 +62,11 @@ def main(config):
     #os.makedirs(cfg['plot_dir'])
     #os.makedirs(cfg['work_dir'])
                             
-    #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
-    #print(input_files)
-    #print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
+    print(input_files)
+    input_files = cfg['input_files'] #
+    print(input_files) #
+    print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
     #sys.exit()  
     plot_dir=cfg['plot_dir']
     out_dir=cfg['work_dir']
