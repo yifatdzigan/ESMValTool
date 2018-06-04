@@ -1,15 +1,15 @@
 ---
 
 models:
-  - {model: MPI-ESM-LR, project: CMIP5, mip: day, exp: amip, ensemble: r1i1p1, start_year: 1979, end_year: 2008}
+  - {model: MPI-ESM-MR, project: CMIP5, mip: day, exp: amip, ensemble: r1i1p1, start_year: 1979, end_year: 2008}
     #- {model: MPI-ESM-MR, project: CMIP5, mip: day, exp: historical, ensemble: r1i1p1, start_year: 1979, end_year: 2008}
 
 preprocessors:
   preproc:
     extract_levels: false
-    regrid:  
-        target_grid: 2.5x2.5
-        scheme: linear
+    #regrid:  
+    #    target_grid: 2.5x2.5
+    #    scheme: linear
 
 diagnostics:
   zmnam:

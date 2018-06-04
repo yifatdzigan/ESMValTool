@@ -6,9 +6,12 @@ from scipy.stats import linregress
 from mpl_toolkits.basemap import Basemap, addcyclic
 import matplotlib as mpl
 
-plt.style.use('classic')
+#plt.style.use('classic')
 
-def zmnam_plot(datafolder,figfolder): 
+def zmnam_plot(datafolder,figfolder,src_props):
+
+    print('plot: ',src_props)
+    # TODO use src props for naming plots
 
     figs_path = figfolder
     fig_num = 1
@@ -21,7 +24,8 @@ def zmnam_plot(datafolder,figfolder):
     #lev_list = [100000,25000,5000]  # test
 
     # Open daily and monthly PCs
-    file_name = 'daily_pc.nc'
+    #file_name = 'daily_pc.nc'
+    file_name = '_'.join(src_props)+'_pc_da.nc'
     print(in_folder+file_name)
     in_file = nc4.Dataset(in_folder+file_name,"r")
     #
@@ -35,7 +39,8 @@ def zmnam_plot(datafolder,figfolder):
     pc_da   = np.array(in_file.variables['PC_da'][:],dtype='d')
     in_file.close()
 
-    file_name = 'monthly_pc.nc'
+    #file_name = 'monthly_pc.nc'
+    file_name = '_'.join(src_props)+'_pc_mo.nc'
     print(in_folder+file_name)
     in_file = nc4.Dataset(in_folder+file_name,"r")
     #
@@ -158,7 +163,9 @@ def zmnam_plot(datafolder,figfolder):
             # Write current level - trouble above 100 Pa ...
             plt.text(0.20, 0.80, str(int(lev[i_lev]/lev_fac))+ ' hPa', \
             fontsize=12, transform=plt.gcf().transFigure)
-            plt.savefig(figfolder+'test'+str(int(lev[i_lev]/lev_fac))+'.png',format='png')
+            #plt.savefig(figfolder+'test'+str(int(lev[i_lev]/lev_fac))+'.png',format='png')
+            plt.savefig(figfolder+'_'.join(src_props)+'_'+\
+            str(int(lev[i_lev]/lev_fac))+'hPa.png',format='png')
         else: continue
 
     return 

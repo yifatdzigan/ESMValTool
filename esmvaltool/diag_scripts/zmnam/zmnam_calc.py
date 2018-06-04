@@ -18,7 +18,10 @@ def butter_filter(data, fs, lowcut=None, order= 2):
 
     return y    
 
-def zmnam_calc(indir,outdir) :
+def zmnam_calc(indir,outdir,src_props):
+
+    # TODO use src_props to name files
+    #print('calc: ',src_props)
 
     deg_to_r = np.pi/180. 
     lat_weighting = True
@@ -189,8 +192,9 @@ def zmnam_calc(indir,outdir) :
     # Save output files
 
     # (1) daily PCs
-    file_out = nc4.Dataset(outdir+'daily_pc.nc', mode='w', \
-    format = 'NETCDF3_CLASSIC')
+    #file_out = nc4.Dataset(outdir+'daily_pc.nc', mode='w',format = 'NETCDF3_CLASSIC')
+    file_out = nc4.Dataset(outdir+'_'.join(src_props)+'_pc_da.nc', \
+    mode='w',format = 'NETCDF3_CLASSIC')
     file_out.title = 'Zonal mean annular mode (1)'
     file_out.contact = 'F. Serva (federico.serva@artov.isac.cnr.it); \
     C. Cagnazzo (c.cagnazzo@isac.cnr.it)'
@@ -222,8 +226,9 @@ def zmnam_calc(indir,outdir) :
     file_out.close()
 
     # (2) monthly PCs
-    file_out = nc4.Dataset(outdir+'monthly_pc.nc', mode='w', \
-    format = 'NETCDF3_CLASSIC')
+    #file_out = nc4.Dataset(outdir+'monthly_pc.nc', mode='w',format = 'NETCDF3_CLASSIC')
+    file_out = nc4.Dataset(outdir+'_'.join(src_props)+'_pc_mo.nc', \
+    mode='w',format = 'NETCDF3_CLASSIC') 
     file_out.title = 'Zonal mean annular mode (2)'
     file_out.contact = 'F. Serva (federico.serva@artov.isac.cnr.it); \
     C. Cagnazzo (c.cagnazzo@isac.cnr.it)'
@@ -255,8 +260,10 @@ def zmnam_calc(indir,outdir) :
     file_out.close()
 
     # (3) EOFs and explained variance
-    file_out = nc4.Dataset(outdir+'eofs.nc', mode='w', \
-    format = 'NETCDF3_CLASSIC')
+    #file_out = nc4.Dataset(outdir+'eofs.nc', mode='w',format = 'NETCDF3_CLASSIC')
+    file_out = nc4.Dataset(outdir+'_'.join(src_props)+'_eofs.nc', \
+    mode='w',format = 'NETCDF3_CLASSIC')
+ 
     file_out.title = 'Zonal mean annular mode (3)'
     file_out.contact = 'F. Serva (federico.serva@artov.isac.cnr.it); \
     C. Cagnazzo (c.cagnazzo@isac.cnr.it)'

@@ -9,7 +9,8 @@ def zmnam_preproc(ifile,latbound):
     # Compute anomalies from the daily/monthly means. Regrid.
     os.system('cdo ydaymean tmp_full_da_nl.nc tmp_gh_da_nl_dm.nc')
     os.system('cdo sub tmp_full_da_nl.nc tmp_gh_da_nl_dm.nc tmp_gh_da_an.nc')
-    os.system('cdo zonmean -remapcon2,r180x90 tmp_gh_da_an.nc tmp_gh_da_an_zm.nc')
+    #os.system('cdo zonmean -remapcon2,r180x90 tmp_gh_da_an.nc tmp_gh_da_an_zm.nc')
+    os.system('cdo zonmean tmp_gh_da_an.nc tmp_gh_da_an_zm.nc')
 
     os.system('cdo monmean tmp_full_da_nl.nc tmp_gh_mo.nc')
     os.system('cdo ymonmean tmp_gh_mo.nc tmp_gh_mo_mm.nc')
