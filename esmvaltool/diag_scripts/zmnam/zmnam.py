@@ -70,7 +70,7 @@ def main(config):
     print('(3)@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')  
 
 
-    sys.exit() 
+    #sys.exit() 
 
     plot_dir=cfg['plot_dir']
     out_dir=cfg['work_dir']
