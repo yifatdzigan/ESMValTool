@@ -1,33 +1,29 @@
-models:
-  - {model: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
+datasets:
+  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
      project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
      start_year: 1950,  end_year: 1952}
-#  - {model: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
+#  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
 #     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
 #     start_year: 1951,  end_year: 1951}
-#  - {model: ERA-Interim,  project: OBS,  type: reanaly,  version: 1,
+#  - {dataset: ERA-Interim,  project: OBS,  type: reanaly,  version: 1,
 #     start_year: 1980, end_year: 1980,  tier: 3, cmor_table: CMIP6}
 preprocessors:
   extract:
     extract_levels:
       levels: [50000,]
       scheme: nearest
-    multi_model_statistics: False
     extract_region:
       long1: 0
       long2: 360
       lat1: 45
       lat2: 90
-#    regrid:
-#      target_grid: 1x1
-#      scheme: linear
 
 diagnostics:
   blocking:
     description: Sea-ice drift
     variables:
       zg:
-        reference_model: ERA-Interim
+        reference_dataset: ERA-Interim
         mip: day
         field: T2M
         preprocessor: extract

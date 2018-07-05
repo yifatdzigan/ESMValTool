@@ -1,0 +1,27 @@
+---
+
+datasets:
+  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
+     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
+     start_year: 1950,  end_year: 1950}
+  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
+     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
+     start_year: 1951,  end_year: 1951}
+#  - {dataset: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
+#  - {dataset: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
+#  - {dataset: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
+
+diagnostics:
+  ocean_heat_content:
+    description: Ocean heat content
+    variables:
+      thetao:
+        mip: Omon
+        field: T3MO
+        preprocessor: extract
+    scripts:
+      ocean_heat_content:
+        script: ocean_heat_content/ocean_heat_content.py
+        title: "Python example diagnostic"
+        min_depth: 0
+        max_depth: 100
