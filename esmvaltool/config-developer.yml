@@ -17,7 +17,7 @@
 # Only the default drs is mandatory, the others are optional
 ###############################################################################
 PRIMAVERA:
-  input_dir: '[expid]/cmorfiles/CMIP/[institute]/[dataset]/[exp]/[ensemble]/[mip]/[var]/[grid]/[version]'
+  input_dir: 'exp/ecearth/[expid]/cmorfiles/CMIP/[institute]/[dataset]/[exp]/[ensemble]/[mip]/[var]/[grid]/[version]'
   input_file: '[var]_[mip]_[dataset]_[exp]_[ensemble]_[grid]_*.nc'
   output_file: '[project]_[dataset]_[mip]_[exp]_[ensemble]_[field]_[var]_[start_year]-[end_year]'
   cmor_type: 'CMIP6'
@@ -123,7 +123,7 @@ CMIP5:
 OBS:
   input_dir:
     default: '[tier]/[dataset]'
-    BSC: '[type]/[institute]/[dataset]/[freq_folder]/[var][freq_base]'
+    BSC: '[type]/[institute]/[dataset]/[freq_folder]/[var]_[freq_base]'
   input_file:
     default: '[project]_[dataset]_[type]_[version]_[field]_[var]_*'
     BSC: '[var]_*.nc'

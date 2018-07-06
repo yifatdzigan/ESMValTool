@@ -25,7 +25,7 @@ diagnostics:
         field: T2MO
         preprocessor: extract
         additional_datasets:
-          - {dataset: OSISAF, institute: OSI, project: OBS, type: obs, version: 1,
+          - {dataset: osisaf, institute: eumetsat, project: OBS, type: obs, version: 1,
              freq_folder: monthly_mean, freq_base: f6h, tier: 2,
              cmor_table: PRIMAVERA, start_year: 2000,  end_year: 2000}
       sithick:

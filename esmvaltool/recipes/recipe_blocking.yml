@@ -18,6 +18,19 @@ preprocessors:
       lat1: 45
       lat2: 90
 
+  regrid:
+    regrid:
+      target_grid: 1x1
+      scheme: linear
+    extract_levels:
+      levels: [50000,]
+      scheme: nearest
+    extract_region:
+      long1: 0
+      long2: 360
+      lat1: 45
+      lat2: 90
+
 diagnostics:
   blocking:
     description: Sea-ice drift
@@ -27,6 +40,26 @@ diagnostics:
         mip: day
         field: T2M
         preprocessor: extract
+    scripts:
+      blocking:
+        script: blocking/blocking.py
+        title: "Blocking diagnostic"
+        central_latitude: 60.0
+        span: 20.0
+        offset: 5.0
+        north_threshold: -10.0
+        south_threshold: 0.0
+        smoothing_window: 3
+        max_color_scale: 10
+
+  regridded_blocking:
+    description: Sea-ice drift
+    variables:
+      zg:
+        reference_dataset: ERA-Interim
+        mip: day
+        field: T2M
+        preprocessor: regrid
     scripts:
       blocking:
         script: blocking/blocking.py

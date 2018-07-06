@@ -128,7 +128,7 @@ def get_input_dirname_template(variable, rootpath, drs):
     _drs = drs.get(project, 'default')
     input_dir = cfg['input_dir']
     if isinstance(input_dir, six.string_types):
-        dir2 = replace_tags(input_dir, variable)
+        dirs2 = [replace_tags(input_dir, variable)]
     elif _drs in input_dir:
         try:
             insts = cmip5_dataset2inst(variable['dataset'])

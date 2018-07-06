@@ -73,6 +73,7 @@ class zg(Fix):
 
         iris.util.promote_aux_coord_to_dim_coord(cube, lat_1D)
         iris.util.promote_aux_coord_to_dim_coord(cube, lon_1D)
+        return cube
 
 
 class tas(Fix):
@@ -92,3 +93,4 @@ class tas(Fix):
 
         iris.util.promote_aux_coord_to_dim_coord(cube, lat_1D)
         iris.util.promote_aux_coord_to_dim_coord(cube, lon_1D)
+        return cube

@@ -14,10 +14,11 @@ import iris.quickplot
 import matplotlib.pyplot
 from matplotlib import colors
 
-from esmvaltool.diag_scripts.diagnostic import Diagnostic
+import esmvaltool.diag_scripts.shared
+import esmvaltool.diag_scripts.shared.names as n
 
 
-class Blocking(Diagnostic):
+class Blocking(object):
     """
     Blocking diagnostic
 
@@ -39,8 +40,10 @@ class Blocking(Diagnostic):
 
     """
 
-    def __init__(self, settings_file):
-        super().__init__(settings_file)
+    def __init__(self, config):
+        self.cfg = config
+        self.datasets = esmvaltool.diag_scripts.shared.Datasets(self.cfg)
+        self.variables = esmvaltool.diag_scripts.shared.Variables(self.cfg)
 
         self.central_latitude = self.cfg.get('central_latitude', 60.0)
         self.span = self.cfg.get('span', 20.0)
@@ -60,7 +63,7 @@ class Blocking(Diagnostic):
     def compute(self):
         """Compute blocking diagnostic"""
         self.logger.info('Computing blocking')
-        for filename, attributes in six.iteritems(self.input_files['zg']):
+        for filename in self.datasets:
             zg500 = iris.load_cube(filename, 'geopotential_height')
 
             if len(set(self.months)) != 12:
@@ -155,4 +158,5 @@ class Blocking(Diagnostic):
 
 
 if __name__ == '__main__':
-    Blocking(settings_file=sys.argv[1]).compute()
+    with esmvaltool.diag_scripts.shared.run_diagnostic() as config:
+        Blocking(config).compute()
