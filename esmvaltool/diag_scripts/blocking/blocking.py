@@ -72,9 +72,10 @@ class Blocking(object):
                     iris.Constraint(month_number=self.months))
             iris.coord_categorisation.add_month(zg500, 'time')
 
-            results = [self._blocking_1d(zg500, month) for month in
-                       self.months]
-            result = iris.cube.CubeList(results).merge_cube()
+            results = iris.cube.CubeList([self._blocking_1d(zg500, month)
+                                          for month in self.months])
+            results.sort(key=lambda cube: cube.coord("month_number").points[0])
+            result = results.merge_cube()
             if self.cfg[n.WRITE_NETCDF]:
                 new_filename = os.path.basename(filename).replace('zg',
                                                                   'blocking')
@@ -87,26 +88,29 @@ class Blocking(object):
         logger.debug(result.data)
         cmap = colors.LinearSegmentedColormap.from_list('mymap', (
             (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
-        iris.quickplot.pcolormesh(result, cmap=cmap, vmin=0,
-                                  vmax=self.max_color_scale)
+        iris.quickplot.pcolormesh(result, coords=('longitude', 'month'),
+                                  cmap=cmap, vmin=0, vmax=self.max_color_scale)
         plt.axis('tight')
         plt.yticks(self.months)
-        plot_filename = 'ohc2D_{project}_{dataset}_' \
-                        '{ensemble}_{time}' \
+        plot_filename = 'blocking_{project}_{dataset}_' \
+                        '{ensemble}' \
                         '.{out_type}'.format(
             dataset=self.datasets.get_info(n.DATASET, filename),
             project=self.datasets.get_info(n.PROJECT, filename),
             ensemble=self.datasets.get_info(n.ENSEMBLE, filename),
-            time=self.datasets.get_info(n.TIME, filename),
             out_type=self.cfg[n.OUTPUT_FILE_TYPE])
         plot_path = os.path.join(self.cfg[n.PLOT_DIR],
                                  plot_filename)
+        plt.yticks(range(len(self.months)),
+                   result.coord('month').points)
+        ax = plt.gca().invert_yaxis()
         plt.savefig(plot_path)
         plt.close()
 
     def _blocking_1d(self, zg500, month):
         logger.info('Computing month %s...', month)
         zg500 = zg500.extract(iris.Constraint(month_number=month))
+        total_years = len(set(zg500.coord('year').points))
 
         blocking_index = None
         for displacement in [-self.offset, 0, self.offset]:
@@ -117,7 +121,7 @@ class Blocking(object):
             else:
                 blocking_index = block
 
-        blocking_frequency = np.sum(blocking_index, 0) / zg500.coord('time').shape[0]
+        blocking_frequency = np.sum(blocking_index, 0) / total_years
         blocking_frequency = self._smooth_over_longitude(blocking_frequency)
         blocking_cube = iris.cube.Cube(
             blocking_frequency,
