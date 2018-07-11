@@ -67,7 +67,7 @@ class Blocking(object):
             zg500 = iris.load_cube(filename, 'geopotential_height')
 
             if len(set(self.months)) != 12:
-                print('Extracting months ...')
+                logger.info('Extracting months ...')
                 zg500 = zg500.extract(
                     iris.Constraint(month_number=self.months))
             iris.coord_categorisation.add_month(zg500, 'time')
@@ -85,7 +85,6 @@ class Blocking(object):
             self._plot_result(filename, result)
 
     def _plot_result(self, filename, result):
-        logger.debug(result.data)
         cmap = colors.LinearSegmentedColormap.from_list('mymap', (
             (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
         iris.quickplot.pcolormesh(result, coords=('longitude', 'month'),
@@ -93,17 +92,19 @@ class Blocking(object):
         plt.axis('tight')
         plt.yticks(self.months)
         plot_filename = 'blocking_{project}_{dataset}_' \
-                        '{ensemble}' \
+                        '{ensemble}_{start}-{end}' \
                         '.{out_type}'.format(
             dataset=self.datasets.get_info(n.DATASET, filename),
             project=self.datasets.get_info(n.PROJECT, filename),
             ensemble=self.datasets.get_info(n.ENSEMBLE, filename),
+            start=self.datasets.get_info(n.START_YEAR, filename),
+            end=self.datasets.get_info(n.END_YEAR, filename),
             out_type=self.cfg[n.OUTPUT_FILE_TYPE])
         plot_path = os.path.join(self.cfg[n.PLOT_DIR],
                                  plot_filename)
-        plt.yticks(range(len(self.months)),
+        plt.yticks(range(result.coord('month').shape[0]),
                    result.coord('month').points)
-        ax = plt.gca().invert_yaxis()
+        plt.gca().invert_yaxis()
         plt.savefig(plot_path)
         plt.close()
 

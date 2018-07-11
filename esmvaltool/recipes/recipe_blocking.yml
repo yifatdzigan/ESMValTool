@@ -21,7 +21,7 @@ preprocessors:
   regrid:
     regrid:
       target_grid: 2.5x2.5
-      scheme: linear
+      scheme: area_weighted
     extract_levels:
       levels: [50000,]
       scheme: nearest
@@ -33,7 +33,7 @@ preprocessors:
   regrid_1x1:
     regrid:
       target_grid: 1x1
-      scheme: linear
+      scheme: area_weighted
     extract_levels:
       levels: [50000,]
       scheme: nearest
