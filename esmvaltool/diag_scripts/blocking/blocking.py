@@ -1,7 +1,6 @@
 """Blocking diagnostic"""
 import os
-import sys
-import six
+import logging
 
 import numpy as np
 import iris
@@ -11,12 +10,13 @@ import iris.coord_categorisation
 import iris.analysis
 import iris.coords
 import iris.quickplot
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
 from matplotlib import colors
 
 import esmvaltool.diag_scripts.shared
 import esmvaltool.diag_scripts.shared.names as n
 
+logger = logging.getLogger(os.path.basename(__file__))
 
 class Blocking(object):
     """
@@ -62,7 +62,7 @@ class Blocking(object):
 
     def compute(self):
         """Compute blocking diagnostic"""
-        self.logger.info('Computing blocking')
+        logger.info('Computing blocking')
         for filename in self.datasets:
             zg500 = iris.load_cube(filename, 'geopotential_height')
 
@@ -75,26 +75,37 @@ class Blocking(object):
             results = [self._blocking_1d(zg500, month) for month in
                        self.months]
             result = iris.cube.CubeList(results).merge_cube()
-            if self.write_netcdf:
+            if self.cfg[n.WRITE_NETCDF]:
                 new_filename = os.path.basename(filename).replace('zg',
                                                                   'blocking')
-                netcdf_path = os.path.join(self.work_dir,
+                netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
                                            new_filename)
-                iris.save(result, netcdf_path)
-            self._plot_result(result)
+                iris.save(result, netcdf_path, zlib=True)
+            self._plot_result(filename, result)
 
-    def _plot_result(self, result):
-        self.logger.debug(result.data)
+    def _plot_result(self, filename, result):
+        logger.debug(result.data)
         cmap = colors.LinearSegmentedColormap.from_list('mymap', (
             (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
         iris.quickplot.pcolormesh(result, cmap=cmap, vmin=0,
                                   vmax=self.max_color_scale)
-        matplotlib.pyplot.axis('tight')
-        matplotlib.pyplot.yticks(self.months)
-        matplotlib.pyplot.show()
+        plt.axis('tight')
+        plt.yticks(self.months)
+        plot_filename = 'ohc2D_{project}_{dataset}_' \
+                        '{ensemble}_{time}' \
+                        '.{out_type}'.format(
+            dataset=self.datasets.get_info(n.DATASET, filename),
+            project=self.datasets.get_info(n.PROJECT, filename),
+            ensemble=self.datasets.get_info(n.ENSEMBLE, filename),
+            time=self.datasets.get_info(n.TIME, filename),
+            out_type=self.cfg[n.OUTPUT_FILE_TYPE])
+        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
+                                 plot_filename)
+        plt.savefig(plot_path)
+        plt.close()
 
     def _blocking_1d(self, zg500, month):
-        self.logger.info('Computing month %s...', month)
+        logger.info('Computing month %s...', month)
         zg500 = zg500.extract(iris.Constraint(month_number=month))
 
         blocking_index = None
@@ -106,33 +117,44 @@ class Blocking(object):
             else:
                 blocking_index = block
 
-        blocking_frequency = np.sum(blocking_index, 0) / 10.0
+        blocking_frequency = np.sum(blocking_index, 0) / zg500.coord('time').shape[0]
+        blocking_frequency = self._smooth_over_longitude(blocking_frequency)
         blocking_cube = iris.cube.Cube(
-            self._smooth_over_longitude(blocking_frequency),
+            blocking_frequency,
             var_name="block1d",
             units="Days per month",
             long_name="Blocking pattern",
             attributes=None,)
-
         blocking_cube.add_dim_coord(zg500.coord('longitude'), 0)
         month_coord = zg500.coord('month_number').copy(month)
         blocking_cube.add_aux_coord(month_coord)
         month_coord = zg500.coord('month').copy(zg500.coord('month').points[0])
         blocking_cube.add_aux_coord(month_coord)
 
+
         return blocking_cube
 
     def _smooth_over_longitude(self, cube):
         if self.smoothing_window == 1:
             return cube
-        displacement = (self.smoothing_window - 1) // 2
-        array = np.concatenate((cube[-displacement:],
-                                cube,
-                                cube[0:displacement]))
-        ret = np.cumsum(array, dtype=float)
-        ret[self.smoothing_window:] = \
-            ret[self.smoothing_window:] - ret[:-self.smoothing_window]
-        return ret[self.smoothing_window - 1:] / self.smoothing_window
+        logger.debug('Smoothing...')
+        smooth = np.zeros_like(cube)
+        size = cube.shape[0]
+        window = self.smoothing_window // 2
+        for x in range(0, window):
+            win = np.concatenate((cube[0: x + window],
+                                  cube[- window + x:]))
+            smooth[x] = np.mean(win)
+
+        for x in range(window, size - window):
+            smooth[x] = np.mean(cube[x - window: x + window])
+
+        for x in range(size - window, size):
+            win = np.concatenate((cube[x - window:],
+                                  cube[0: x + window - size + 1]))
+            smooth[x] = np.mean(win)
+        logger.debug('Smoothing finished!')
+        return smooth
 
     def _compute_blocking(self, zg500, central_latitude):
         latitude = zg500.coord('latitude')

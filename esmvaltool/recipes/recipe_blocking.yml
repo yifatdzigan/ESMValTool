@@ -20,7 +20,7 @@ preprocessors:
 
   regrid:
     regrid:
-      target_grid: 1x1
+      target_grid: 2.5x2.5
       scheme: linear
     extract_levels:
       levels: [50000,]
@@ -33,7 +33,7 @@ preprocessors:
 
 diagnostics:
   blocking:
-    description: Sea-ice drift
+    description: Blocking
     variables:
       zg:
         reference_dataset: ERA-Interim
@@ -51,9 +51,10 @@ diagnostics:
         south_threshold: 0.0
         smoothing_window: 3
         max_color_scale: 10
+        months: [1,2]
 
   regridded_blocking:
-    description: Sea-ice drift
+    description: Blocking
     variables:
       zg:
         reference_dataset: ERA-Interim
@@ -69,6 +70,6 @@ diagnostics:
         offset: 5.0
         north_threshold: -10.0
         south_threshold: 0.0
-#        months: [1,2]
+        months: [1,2]
         smoothing_window: 3
         max_color_scale: 10

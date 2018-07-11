@@ -124,7 +124,7 @@ class OceanHeatContent(object):
                                 '.{out_type}'.format(
                     dataset=self.datasets.get_info(n.DATASET, filename),
                     project=self.datasets.get_info(n.PROJECT, filename),
-                    ensemble=self.datasets.get_info(n.PROJECT, filename),
+                    ensemble=self.datasets.get_info(n.ENSEMBLE, filename),
                     time=time_str,
                     out_type=self.cfg[n.OUTPUT_FILE_TYPE])
                 plot_path = os.path.join(self.cfg[n.PLOT_DIR],
