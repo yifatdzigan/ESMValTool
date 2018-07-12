@@ -123,7 +123,7 @@ CMIP5:
 OBS:
   input_dir:
     default: '[tier]/[dataset]'
-    BSC: '[type]/[institute]/[dataset]/[freq_folder]/[var]_[freq_base]'
+    BSC: '[type]/[institute]/[dataset]/[freq_folder]/[var]'
   input_file:
     default: '[project]_[dataset]_[type]_[version]_[field]_[var]_*'
     BSC: '[var]_*.nc'

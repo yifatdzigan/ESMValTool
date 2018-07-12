@@ -26,8 +26,8 @@ diagnostics:
         preprocessor: extract
         additional_datasets:
           - {dataset: osisaf, institute: eumetsat, project: OBS, type: obs, version: 1,
-             freq_folder: monthly_mean, freq_base: f6h, tier: 2,
-             cmor_table: PRIMAVERA, start_year: 2000,  end_year: 2000}
+             freq_folder: daily_mean, mip: OImon, short_name: sic, tier: 2,
+             start_year: 1950,  end_year: 1950}
       sithick:
         mip: SIday
         field: T2MO
