@@ -1,7 +1,7 @@
 datasets:
   - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
      project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-     start_year: 1950,  end_year: 1952}
+     start_year: 1950,  end_year: 1955}
 #  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
 #     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
 #     start_year: 1951,  end_year: 1951}
@@ -21,19 +21,7 @@ preprocessors:
   regrid:
     regrid:
       target_grid: 2.5x2.5
-      scheme: area_weighted
-    extract_levels:
-      levels: [50000,]
-      scheme: nearest
-    extract_region:
-      long1: 0
-      long2: 360
-      lat1: 45
-      lat2: 90
-  regrid_1x1:
-    regrid:
-      target_grid: 1x1
-      scheme: area_weighted
+      scheme: linear
     extract_levels:
       levels: [50000,]
       scheme: nearest
@@ -63,46 +51,25 @@ diagnostics:
         south_threshold: 0.0
         smoothing_window: 3
         max_color_scale: 10
-        months: [1,2]
+#        months: [1,2]
 
-#  regridded1x1_blocking:
-#    description: Blocking
-#    variables:
-#      zg:
-#        reference_dataset: ERA-Interim
-#        mip: day
-#        field: T2M
-#        preprocessor: regrid_1x1
-#    scripts:
-#      blocking:
-#        script: blocking/blocking.py
-#        title: "Blocking diagnostic"
-#        central_latitude: 60.0
-#        span: 20.0
-#        offset: 5.0
-#        north_threshold: -10.0
-#        south_threshold: 0.0
-##        months: [1,2]
-#        smoothing_window: 3
-#        max_color_scale: 10
-#
-#  regridded_blocking:
-#    description: Blocking
-#    variables:
-#      zg:
-#        reference_dataset: ERA-Interim
-#        mip: day
-#        field: T2M
-#        preprocessor: regrid
-#    scripts:
-#      blocking:
-#        script: blocking/blocking.py
-#        title: "Blocking diagnostic"
-#        central_latitude: 60.0
-#        span: 20.0
-#        offset: 5.0
-#        north_threshold: -10.0
-#        south_threshold: 0.0
-##        months: [1,2]
-#        smoothing_window: 3
-#        max_color_scale: 10
+  regridded_blocking:
+    description: Blocking
+    variables:
+      zg:
+        reference_dataset: ERA-Interim
+        mip: day
+        field: T2M
+        preprocessor: regrid
+    scripts:
+      blocking:
+        script: blocking/blocking.py
+        title: "Blocking diagnostic"
+        central_latitude: 60.0
+        span: 20.0
+        offset: 5.0
+        north_threshold: -10.0
+        south_threshold: 0.0
+#        months: [1,2]
+        smoothing_window: 3
+        max_color_scale: 10

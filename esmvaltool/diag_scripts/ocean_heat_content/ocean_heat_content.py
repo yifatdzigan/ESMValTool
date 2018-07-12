@@ -69,7 +69,7 @@ class OceanHeatContent(object):
                                                      time_slice.shape,
                                                      (index,))
                 ohc = time_slice.collapsed('depth', SUM,
-                                                  weights=final_weight)
+                                           weights=final_weight)
                 ohc.units = 'J m^-2'
                 ohc.var_name = 'ohc'
                 ohc.long_name = 'Ocean Heat Content per area unit'
@@ -118,21 +118,28 @@ class OceanHeatContent(object):
             for time_slice in ohc2d.slices_over('time'):
                 qplt.pcolormesh(time_slice)
                 datetime = time_slice.coord('time').cell(0).point
-                time_str = datetime.strftime('%Y-%m')
-                plot_filename = 'ohc2D_{project}_{dataset}_' \
-                                '{ensemble}_{time}' \
-                                '.{out_type}'.format(
-                    dataset=self.datasets.get_info(n.DATASET, filename),
-                    project=self.datasets.get_info(n.PROJECT, filename),
-                    ensemble=self.datasets.get_info(n.ENSEMBLE, filename),
-                    time=time_str,
-                    out_type=self.cfg[n.OUTPUT_FILE_TYPE])
-                plot_path = os.path.join(self.cfg[n.PLOT_DIR],
-                                         plot_filename)
-                logger.debug(plot_path)
-
+                plot_path = self._get_plot_name(filename, datetime)
                 plt.savefig(plot_path)
                 plt.close()
+
+    def _get_plot_name(self, filename, datetime):
+        dataset = self.datasets.get_info(n.DATASET, filename)
+        project = self.datasets.get_info(n.PROJECT, filename)
+        ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
+        time_str = datetime.strftime('%Y-%m')
+        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
+
+        plot_filename = 'ohc2D_{project}_{dataset}_' \
+                        '{ensemble}_{time_str}' \
+                        '.{out_type}'.format(dataset=dataset,
+                                             project=project,
+                                             ensemble=ensemble,
+                                             time_str=time_str,
+                                             out_type=out_type)
+
+        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
+                                 plot_filename)
+        return plot_path
 
 
 if __name__ == '__main__':

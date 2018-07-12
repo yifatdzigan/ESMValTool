@@ -18,6 +18,7 @@ import esmvaltool.diag_scripts.shared.names as n
 
 logger = logging.getLogger(os.path.basename(__file__))
 
+
 class Blocking(object):
     """
     Blocking diagnostic
@@ -91,22 +92,34 @@ class Blocking(object):
                                   cmap=cmap, vmin=0, vmax=self.max_color_scale)
         plt.axis('tight')
         plt.yticks(self.months)
-        plot_filename = 'blocking_{project}_{dataset}_' \
-                        '{ensemble}_{start}-{end}' \
-                        '.{out_type}'.format(
-            dataset=self.datasets.get_info(n.DATASET, filename),
-            project=self.datasets.get_info(n.PROJECT, filename),
-            ensemble=self.datasets.get_info(n.ENSEMBLE, filename),
-            start=self.datasets.get_info(n.START_YEAR, filename),
-            end=self.datasets.get_info(n.END_YEAR, filename),
-            out_type=self.cfg[n.OUTPUT_FILE_TYPE])
-        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
-                                 plot_filename)
+        plot_path = self._get_plot_name(filename)
         plt.yticks(range(result.coord('month').shape[0]),
                    result.coord('month').points)
-        plt.gca().invert_yaxis()
+        axes = plt.gca()
+        axes.set_ylim((len(self.months) - 0.5, -0.5))
         plt.savefig(plot_path)
         plt.close()
+
+    def _get_plot_name(self, filename):
+        dataset = self.datasets.get_info(n.DATASET, filename)
+        project = self.datasets.get_info(n.PROJECT, filename)
+        ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
+        start = self.datasets.get_info(n.START_YEAR, filename)
+        end = self.datasets.get_info(n.END_YEAR, filename)
+        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
+
+        plot_filename = 'blocking_{project}_{dataset}_' \
+                        '{ensemble}_{start}-{end}' \
+                        '.{out_type}'.format(dataset=dataset,
+                                             project=project,
+                                             ensemble=ensemble,
+                                             start=start,
+                                             end=end,
+                                             out_type=out_type)
+
+        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
+                                 plot_filename)
+        return plot_path
 
     def _blocking_1d(self, zg500, month):
         logger.info('Computing month %s...', month)
@@ -122,7 +135,7 @@ class Blocking(object):
             else:
                 blocking_index = block
 
-        blocking_frequency = np.sum(blocking_index, 0) / total_years
+        blocking_frequency = np.count_nonzero(blocking_index, 0) / total_years
         blocking_frequency = self._smooth_over_longitude(blocking_frequency)
         blocking_cube = iris.cube.Cube(
             blocking_frequency,
@@ -135,7 +148,6 @@ class Blocking(object):
         blocking_cube.add_aux_coord(month_coord)
         month_coord = zg500.coord('month').copy(zg500.coord('month').points[0])
         blocking_cube.add_aux_coord(month_coord)
-
 
         return blocking_cube
 
