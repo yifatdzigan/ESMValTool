@@ -51,7 +51,6 @@ class Blocking(object):
         self.compute_1d = self.cfg.get('compute_1d', True)
         self.compute_2d = self.cfg.get('compute_2d', True)
 
-
         self.span = self.cfg.get('span', 20.0)
         self.north_threshold = self.cfg.get('north_threshold', -10.0)
         self.south_threshold = self.cfg.get('south_threshold', 0.0)
@@ -75,15 +74,11 @@ class Blocking(object):
         """Compute blocking diagnostic"""
         logger.info('Computing blocking')
         for filename in self.datasets:
-
-
             result = self._blocking(filename)
-            self._blocking_1D(filename, result)
-            self._blocking_2D(filename, result)
+            self._blocking_1d(filename, result)
+            self._blocking_2d(filename, result)
 
     def _blocking(self, filename):
-
-
         zg500 = iris.load_cube(filename, 'geopotential_height')
         iris.coord_categorisation.add_month(zg500, 'time')
 
@@ -100,8 +95,9 @@ class Blocking(object):
 
         blocking = iris.cube.CubeList()
         for lat_point in latitudes:
-            if lat_point + self.span > lat_max or \
-                lat_point -self.span < lat_min:
+            if lat_point + self.span > lat_max:
+                continue
+            if lat_point - self.span < lat_min:
                 continue
             logger.debug('Computing blocking for lat {0}'.format(lat_point))
             blocking.append(self._compute_blocking(zg500, lat_point))
@@ -110,7 +106,7 @@ class Blocking(object):
         iris.coord_categorisation.add_year(blocking_cube, 'time')
         return blocking_cube
 
-    def _blocking_1D(self, filename, blocking_index):
+    def _blocking_1d(self, filename, blocking_index):
         if not self.compute_1d:
             return
 
@@ -122,7 +118,8 @@ class Blocking(object):
         for displacement in [-self.offset, 0, self.offset]:
             central = self.central_latitude + displacement
             lat_value = lat.cell(lat.nearest_neighbour_index(central))
-            block = blocking_index.extract(iris.Constraint(latitude=lat_value)).data
+            lat_constraint = iris.Constraint(latitude=lat_value)
+            block = blocking_index.extract(lat_constraint).data
             if blocking_index is not None:
                 blocking = np.logical_or(blocking, block)
             else:
@@ -161,14 +158,15 @@ class Blocking(object):
             cmap = colors.LinearSegmentedColormap.from_list('mymap', (
                 (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
             iris.quickplot.pcolormesh(result, coords=('longitude', 'month'),
-                                      cmap=cmap, vmin=0, vmax=self.max_color_scale)
+                                      cmap=cmap, vmin=0,
+                                      vmax=self.max_color_scale)
             plt.axis('tight')
-            plt.yticks(self.months)
+            plt.yticks(result.coord('month_number').points)
             plot_path = self._get_plot_name(filename)
             plt.yticks(range(result.coord('month').shape[0]),
                        result.coord('month').points)
             axes = plt.gca()
-            axes.set_ylim((len(self.months) - 0.5, -0.5))
+            axes.set_ylim((result.coord('month').shape[0] - 0.5, -0.5))
             plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2)
 
     def _get_plot_name(self, filename):
@@ -200,29 +198,29 @@ class Blocking(object):
             smooth = np.zeros_like(month_slice.data)
             size = month_slice.shape[0]
             window = self.smoothing_window // 2
-            for x in range(0, window):
-                win = np.concatenate((month_slice.data[0: x + window],
-                                      month_slice.data[- window + x:]))
-                smooth[x] = np.mean(win)
+            for i in range(0, window):
+                win = np.concatenate((month_slice.data[0: i + window],
+                                      month_slice.data[- window + i:]))
+                smooth[i] = np.mean(win)
 
-            for x in range(window, size - window):
-                smooth[x] = np.mean(month_slice.data[x - window: x + window])
+            for i in range(window, size - window):
+                smooth[i] = np.mean(month_slice.data[i - window: i + window])
 
-            for x in range(size - window, size):
-                win = np.concatenate((month_slice.data[x - window:],
-                                      month_slice.data[0: x + window - size + 1]))
-                smooth[x] = np.mean(win)
+            for i in range(size - window, size):
+                win = np.concatenate((
+                    month_slice.data[i - window:],
+                    month_slice.data[0: i + window - size + 1]))
+                smooth[i] = np.mean(win)
             month_slice.data[...] = smooth[...]
         logger.debug('Smoothing finished!')
         return cube
 
     def _compute_blocking(self, zg500, central_latitude):
-
         latitude = zg500.coord('latitude')
-
 
         def _get_lat_cell(coord, latitude):
             return coord.cell(coord.nearest_neighbour_index(latitude))
+
         central_lat = _get_lat_cell(latitude, central_latitude)
         low_lat = _get_lat_cell(latitude, central_latitude - self.span)
         high_lat = _get_lat_cell(latitude, central_latitude + self.span)
@@ -230,7 +228,6 @@ class Blocking(object):
         zg_low = zg500.extract(iris.Constraint(latitude=low_lat))
         zg_central = zg500.extract(iris.Constraint(latitude=central_lat))
         zg_high = zg500.extract(iris.Constraint(latitude=high_lat))
-
 
         north_gradient = (zg_high - zg_central) / \
                          (high_lat.point - central_lat.point)
@@ -241,7 +238,6 @@ class Blocking(object):
             south_gradient.data > self.south_threshold,
             north_gradient.data < self.north_threshold
         )
-
 
         blocking_cube = iris.cube.Cube(
             blocking_index,
@@ -256,17 +252,21 @@ class Blocking(object):
         blocking_cube.add_dim_coord(zg500.coord('longitude'), (1,))
 
         if self.persistence > 1:
-            for lon_slice in blocking_cube.slices_over('longitude'):
-                grouped = ((k, sum(1 for _ in g))
-                           for k, g in itertools.groupby(lon_slice.data))
-                index = 0
-                for value, length in grouped:
-                    if value and length < self.persistence:
-                        lon_slice.data[index: index + length] = False
-                    index += length
+            self._apply_persistence(blocking_cube)
         return blocking_cube
 
-    def _blocking_2D(self, filename, blocking_index):
+    def _apply_persistence(self, blocking_cube):
+        for lon_slice in blocking_cube.slices_over('longitude'):
+            grouped = ((k, sum(1 for _ in g))
+                       for k, g in itertools.groupby(lon_slice.data))
+            index = 0
+            for value, length in grouped:
+                if value and length < self.persistence:
+                    lon_slice.data[index: index + length] = False
+                index += length
+        return blocking_cube
+
+    def _blocking_2d(self, filename, blocking_index):
         if not self.compute_2d:
             return
         total_years = len(set(blocking_index.coord('year').points))
@@ -275,7 +275,6 @@ class Blocking(object):
 
         blocking_index.long_name = 'Blocking index'
         blocking_index.units = 'Days per month'
-
 
         if self.cfg[n.WRITE_NETCDF]:
             new_filename = os.path.basename(filename).replace('zg',
@@ -293,7 +292,7 @@ class Blocking(object):
                     coords=('longitude', 'latitude'),
                     cmap=cmap, vmin=0, vmax=self.max_color_scale
                 )
-                plot_path = self._get_plot_name_2D(
+                plot_path = self._get_plot_name_2d(
                     filename,
                     month_slice.coord('month_number').points[0]
                 )
@@ -302,14 +301,14 @@ class Blocking(object):
                 plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2)
                 plt.close()
 
-    def _get_plot_name_2D(self, filename, month):
+    def _get_plot_name_2d(self, filename, month):
         dataset = self.datasets.get_info(n.DATASET, filename)
         project = self.datasets.get_info(n.PROJECT, filename)
         ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
         start = self.datasets.get_info(n.START_YEAR, filename)
         end = self.datasets.get_info(n.END_YEAR, filename)
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
-        month=calendar.month_abbr[month]
+        month = calendar.month_abbr[month]
 
         plot_filename = 'blocking2D_{month}_{project}_{dataset}_' \
                         '{ensemble}_{start}-{end}' \
@@ -324,7 +323,6 @@ class Blocking(object):
         plot_path = os.path.join(self.cfg[n.PLOT_DIR],
                                  plot_filename)
         return plot_path
-
 
 
 if __name__ == '__main__':

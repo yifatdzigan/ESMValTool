@@ -17,8 +17,6 @@ preprocessors:
       long2: 360
       lat1: 20
       lat2: 90
-    save:
-      optimize_access: timeseries
 
   regrid:
     regrid:
