@@ -15,8 +15,10 @@ preprocessors:
     extract_region:
       long1: 0
       long2: 360
-      lat1: 45
+      lat1: 20
       lat2: 90
+    save:
+      optimize_access: timeseries
 
   regrid:
     regrid:
@@ -28,7 +30,7 @@ preprocessors:
     extract_region:
       long1: 0
       long2: 360
-      lat1: 45
+      lat1: 30
       lat2: 90
 
 diagnostics:
@@ -41,35 +43,48 @@ diagnostics:
         field: T2M
         preprocessor: extract
     scripts:
-      blocking:
+      blocking1D:
         script: blocking/blocking.py
         title: "Blocking diagnostic"
+        compute_2d: False
+        compute_1d: True
         central_latitude: 60.0
         span: 20.0
         offset: 5.0
         north_threshold: -10.0
         south_threshold: 0.0
         smoothing_window: 3
+        max_color_scale: 10
+
+      blocking2D:
+        script: blocking/blocking.py
+        title: "Blocking diagnostic"
+        compute_2d: True
+        compute_1d: False
+        span: 15.0
+        north_threshold: -10.0
+        south_threshold: 0.0
+        persistence: 5
         max_color_scale: 10
 #        months: [1,2]
 
-  regridded_blocking:
-    description: Blocking
-    variables:
-      zg:
-        reference_dataset: ERA-Interim
-        mip: day
-        field: T2M
-        preprocessor: regrid
-    scripts:
-      blocking:
-        script: blocking/blocking.py
-        title: "Blocking diagnostic"
-        central_latitude: 60.0
-        span: 20.0
-        offset: 5.0
-        north_threshold: -10.0
-        south_threshold: 0.0
-#        months: [1,2]
-        smoothing_window: 3
-        max_color_scale: 10
+#  regridded_blocking:
+#    description: Blocking
+#    variables:
+#      zg:
+#        reference_dataset: ERA-Interim
+#        mip: day
+#        field: T2M
+#        preprocessor: regrid
+#    scripts:
+#      blocking:
+#        script: blocking/blocking.py
+#        title: "Blocking diagnostic"
+#        central_latitude: 60.0
+#        span: 20.0
+#        offset: 5.0
+#        north_threshold: -10.0
+#        south_threshold: 0.0
+##        months: [1,2]
+#        smoothing_window: 3
+#        max_color_scale: 10
