@@ -43,6 +43,10 @@ def get_required(short_name, field=None):
             ('tro3', 'T3' + frequency),
             ('ps', 'T2' + frequency + 's'),
         ],
+        'sispeed': [
+            ('siu', 'T3' + frequency),
+            ('siv', 'T3' + frequency),
+        ],
     }
 
     if short_name in required:
@@ -64,6 +68,7 @@ def derive(cubes, variable):
         'lwp': calc_lwp,
         'swcre': calc_swcre,
         'toz': calc_toz,
+        'sispeed': calc_sispeed,
     }
 
     if short_name not in functions:
@@ -340,3 +345,30 @@ def _p_level_widths(array):
 
         p_level_widths[i] = bounds_width
     return p_level_widths
+
+
+def calc_sispeed(cubes):
+    """
+    Compute sispeed module from velocity components siu and siv.
+
+    Arguments
+    ----
+        cubes: cubelist containing velocity components.
+
+    Returns
+    -------
+        Cube containing speed.
+
+    """
+    siu = cubes.extract_strict(Constraint(name='sea_ice_x_velocity'))
+    siv = cubes.extract_strict(Constraint(name='sea_ice_y_velocity'))
+
+    speed = ((siu ** 2 + siv ** 2) ** 0.5)
+    del siu
+    del siv
+    speed.short_name = 'sispeed'
+    speed.standard_name = 'sea_ice_speed'
+    speed.long_name = 'Sea-ice speed'
+    speed.convert_units('km day-1')
+
+    return speed
