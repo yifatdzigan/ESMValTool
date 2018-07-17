@@ -44,8 +44,8 @@ def get_required(short_name, field=None):
             ('ps', 'T2' + frequency + 's'),
         ],
         'sispeed': [
-            ('siu', 'T3' + frequency),
-            ('siv', 'T3' + frequency),
+            ('siu', 'T2' + frequency),
+            ('siv', 'T2' + frequency),
         ],
     }
 
