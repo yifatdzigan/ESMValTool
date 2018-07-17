@@ -124,11 +124,10 @@ class Blocking(object):
                 blocking = np.logical_or(blocking, block)
             else:
                 blocking = block
-
         blocking_cube = iris.cube.Cube(
-            blocking,
+            blocking.astype(int),
             var_name="blocking",
-            attributes=None, )
+            attributes=None)
 
         blocking_cube.add_dim_coord(blocking_index.coord('time'), (0,))
         blocking_cube.add_dim_coord(blocking_index.coord('longitude'), (1,))
@@ -142,8 +141,12 @@ class Blocking(object):
         iris.util.promote_aux_coord_to_dim_coord(result, 'month_number')
 
         result = self._smooth_over_longitude(result) / total_years
+        result.units = 'days per month'
+        result.var_name = 'blocking'
+        result.long_name = 'Blocking 1D index'
+        print(result)
 
-        if not self.cfg[n.WRITE_NETCDF]:
+        if self.cfg[n.WRITE_NETCDF]:
             new_filename = os.path.basename(filename).replace('zg',
                                                               'blocking1D')
             netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
@@ -157,17 +160,19 @@ class Blocking(object):
                 units='no_unit')
             cmap = colors.LinearSegmentedColormap.from_list('mymap', (
                 (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
+            print(result)
             iris.quickplot.pcolormesh(result, coords=('longitude', 'month'),
                                       cmap=cmap, vmin=0,
                                       vmax=self.max_color_scale)
             plt.axis('tight')
-            plt.yticks(result.coord('month_number').points)
-            plot_path = self._get_plot_name(filename)
             plt.yticks(range(result.coord('month').shape[0]),
                        result.coord('month').points)
             axes = plt.gca()
             axes.set_ylim((result.coord('month').shape[0] - 0.5, -0.5))
-            plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2)
+            plt.show()
+
+            plot_path = self._get_plot_name(filename)
+            # plt.savefig(plot_path)
 
     def _get_plot_name(self, filename):
         dataset = self.datasets.get_info(n.DATASET, filename)
