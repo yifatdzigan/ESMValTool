@@ -19,27 +19,35 @@ class SeaIceDrift(object):
         self.datasets = esmvaltool.diag_scripts.shared.Datasets(self.cfg)
         self.variables = esmvaltool.diag_scripts.shared.Variables(self.cfg)
 
-    def compute(self):     
+    def compute(self):
         siconc = {}
         sivol = {}
         sispeed = {}
 
         logger.info('Loading sea ice concentration')
-        for filename in self.datasets.get_path_list(standard_name='sea_ice_area_fraction'):
+        siconc_files = self.datasets.get_path_list(
+            standard_name='sea_ice_area_fraction')
+        for filename in siconc_files:
             alias = self._get_alias(filename)
             siconc = iris.load_cube(filename, 'sea_ice_area_fraction')
-            lat_mask = siconc[alias].coord('latitude').points > self.cfg['latitude_treshold']
+            lat_threshold = self.cfg['latitude_treshold']
+            lat_mask = siconc.coord('latitude').points > lat_threshold
             siconc[alias] = self._compute_mean(siconc, lat_mask)
 
         logger.info('Loading sea ice thickness')
-        for filename in self.datasets.get_path_list(standard_name='sea_ice_thickness'):
+        sithick_files = self.datasets.get_path_list(
+            standard_name='sea_ice_thickness')
+        for filename in sithick_files:
             alias = self._get_alias(filename)
             sithick = iris.load_cube(filename, 'sea_ice_thickness')
-            sivol[alias] = self._compute_mean(sithick * siconc[alias], lat_mask)
-            del sithick                
+            sivol[alias] = self._compute_mean(sithick * siconc[alias],
+                                              lat_mask)
+            del sithick
 
         logger.info('Load sea ice velocities')
-        for filename in self.datasets.get_path_list(standard_name='sea_ice_speed'):
+        sispeed_files = self.datasets.get_path_list(
+            standard_name='sea_ice_speed')
+        for filename in sispeed_files:
             alias = self._get_alias(filename)
             sispeed = iris.load_cube(filename, 'sea_ice_speed')
             sispeed[alias] = self._compute_mean(sispeed, lat_mask)
@@ -54,14 +62,14 @@ class SeaIceDrift(object):
             ensemble=info[n.ENSEMBLE],
             start=info[n.START_YEAR],
             end=info[n.END_YEAR],
-            )
-          
+        )
+
     def _compute_mean(self, data, mask):
         domain_mean = iris.cube.CubeList()
         for map_slice in data.slices('latitude', 'longitude'):
             domain_mean.append(map_slice.collapsed(['latitude', 'longitude'],
-                                                    iris.analysis.MEAN,
-                                                    weights=mask))
+                                                   iris.analysis.MEAN,
+                                                   weights=mask))
         domain_mean = domain_mean.merge_cube()
         return domain_mean.aggregated_by('month_number', iris.analysis.MEAN)
 
@@ -939,6 +947,10 @@ class SeaIceDrift(object):
 #     print ('Ellapsed time: {0}'.format(datetime.datetime.now() - start_time))
 
 
-if __name__ == '__main__':
+def main():
     with esmvaltool.diag_scripts.shared.run_diagnostic() as config:
         SeaIceDrift(config).compute()
+
+
+if __name__ == '__main__':
+    main()

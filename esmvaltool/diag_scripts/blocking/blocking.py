@@ -43,8 +43,8 @@ class Blocking(object):
 
     """
 
-    def __init__(self, config):
-        self.cfg = config
+    def __init__(self, conf):
+        self.cfg = conf
         self.datasets = esmvaltool.diag_scripts.shared.Datasets(self.cfg)
         self.variables = esmvaltool.diag_scripts.shared.Variables(self.cfg)
 
@@ -57,7 +57,7 @@ class Blocking(object):
         self.smoothing_window = self.cfg.get('smoothing_window', 1)
         self.persistence = self.cfg.get('persistence', 1)
 
-        # 1D config
+        # 1D configuration
         self.central_latitude = self.cfg.get('central_latitude', 60.0)
         self.offset = self.cfg.get('offset', 5.0)
 
@@ -99,7 +99,7 @@ class Blocking(object):
                 continue
             if lat_point - self.span < lat_min:
                 continue
-            logger.debug('Computing blocking for lat {0}'.format(lat_point))
+            logger.debug('Computing blocking for lat %d', lat_point)
             blocking.append(self._compute_blocking(zg500, lat_point))
 
         blocking_cube = blocking.merge_cube()
@@ -325,6 +325,10 @@ class Blocking(object):
         return plot_path
 
 
-if __name__ == '__main__':
+def main():
     with esmvaltool.diag_scripts.shared.run_diagnostic() as config:
         Blocking(config).compute()
+
+
+if __name__ == '__main__':
+    main()
