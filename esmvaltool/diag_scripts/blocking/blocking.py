@@ -54,7 +54,7 @@ class Blocking(object):
         self.span = self.cfg.get('span', 20.0)
         self.north_threshold = self.cfg.get('north_threshold', -10.0)
         self.south_threshold = self.cfg.get('south_threshold', 0.0)
-        self.smoothing_window = self.cfg.get('smoothing_window', 1)
+        self.smoothing_window = self.cfg.get('smoothing_window', 0)
         self.persistence = self.cfg.get('persistence', 1)
 
         # 1D configuration
@@ -62,10 +62,6 @@ class Blocking(object):
         self.offset = self.cfg.get('offset', 5.0)
 
         self.max_color_scale = self.cfg.get('max_color_scale', 15)
-
-        if self.smoothing_window % 2 == 0:
-            raise ValueError('Smoothing should use an odd window '
-                             'so the center of it is clear  ')
 
         self.min_latitude = self.central_latitude - self.span - self.offset
         self.max_latitude = self.central_latitude + self.span + self.offset
@@ -169,10 +165,9 @@ class Blocking(object):
                        result.coord('month').points)
             axes = plt.gca()
             axes.set_ylim((result.coord('month').shape[0] - 0.5, -0.5))
-            plt.show()
 
             plot_path = self._get_plot_name(filename)
-            # plt.savefig(plot_path)
+            plt.savefig(plot_path)
 
     def _get_plot_name(self, filename):
         dataset = self.datasets.get_info(n.DATASET, filename)
@@ -196,27 +191,20 @@ class Blocking(object):
         return plot_path
 
     def _smooth_over_longitude(self, cube):
-        if self.smoothing_window == 1:
+        if self.smoothing_window == 0:
             return cube
         logger.debug('Smoothing...')
-        for month_slice in cube.slices_over('month_number'):
-            smooth = np.zeros_like(month_slice.data)
-            size = month_slice.shape[0]
-            window = self.smoothing_window // 2
-            for i in range(0, window):
-                win = np.concatenate((month_slice.data[0: i + window],
-                                      month_slice.data[- window + i:]))
-                smooth[i] = np.mean(win)
-
-            for i in range(window, size - window):
-                smooth[i] = np.mean(month_slice.data[i - window: i + window])
-
-            for i in range(size - window, size):
-                win = np.concatenate((
-                    month_slice.data[i - window:],
-                    month_slice.data[0: i + window - size + 1]))
-                smooth[i] = np.mean(win)
-            month_slice.data[...] = smooth[...]
+        smoothed = iris.cube.CubeList()
+        for lon_slice in cube.slices_over('longitude'):
+            longitude = lon_slice.coord('longitude').points[0]
+            lon_window = cube.intersection(
+                longitude=(longitude - self.smoothing_window /2., 
+                           longitude + self.smoothing_window /2.)
+                )
+            lon_mean = lon_window.collapsed('longitude', iris.analysis.MEAN)
+            lon_slice.data[...] = lon_mean.data
+            smoothed.append(lon_slice)
+        cube = smoothed.merge_cube()
         logger.debug('Smoothing finished!')
         return cube
 
