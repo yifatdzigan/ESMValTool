@@ -448,9 +448,9 @@ class DiagnosticTask(AbstractTask):
         if self.settings['profile_diagnostic']:
             import pstats
             profile_file = os.path.join(self.settings['run_dir'],
-                                        'profile.bin')
+                                        'profile')
             with open(profile_file + '.txt', 'w') as txt_file:
-                stats = pstats.Stats(profile_file, stream=txt_file)
+                stats = pstats.Stats(profile_file + '.bin', stream=txt_file)
                 stats.sort_stats('cumulative')
                 stats.print_stats(self.script)
                 stats.print_stats(500)
