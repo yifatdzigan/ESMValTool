@@ -66,6 +66,16 @@ class Blocking(object):
         self.min_latitude = self.central_latitude - self.span - self.offset
         self.max_latitude = self.central_latitude + self.span + self.offset
 
+        def _get_index(self, high, central, low,
+                       north_distance, south_distance):
+            if ((high - central) / north_distance) > self.north_threshold:
+                return 0
+            if ((central - low) / south_distance) < self.south_threshold:
+                return 0
+            return 1
+
+        self._compute_index = np.vectorize(_get_index, [np.int])
+
     def compute(self):
         """Compute blocking diagnostic"""
         logger.info('Computing blocking')
@@ -198,8 +208,8 @@ class Blocking(object):
         for lon_slice in cube.slices_over('longitude'):
             longitude = lon_slice.coord('longitude').points[0]
             lon_window = cube.intersection(
-                longitude=(longitude - self.smoothing_window /2., 
-                           longitude + self.smoothing_window /2.)
+                longitude=(longitude - self.smoothing_window / 2.,
+                           longitude + self.smoothing_window / 2.)
                 )
             lon_mean = lon_window.collapsed('longitude', iris.analysis.MEAN)
             lon_slice.data[...] = lon_mean.data
@@ -222,15 +232,12 @@ class Blocking(object):
         zg_central = zg500.extract(iris.Constraint(latitude=central_lat))
         zg_high = zg500.extract(iris.Constraint(latitude=high_lat))
 
-        north_gradient = (zg_high - zg_central) / \
-                         (high_lat.point - central_lat.point)
-        south_gradient = (zg_central - zg_low) / \
-                         (central_lat.point - low_lat.point)
+        north_distance = high_lat.point - central_lat.point
+        south_distance = central_lat.point - low_lat.point
 
-        blocking_index = np.logical_and(
-            south_gradient.data > self.south_threshold,
-            north_gradient.data < self.north_threshold
-        )
+        blocking_index = self._compute_index(
+            self, zg_high.data, zg_central.data, zg_low.data,
+            north_distance, south_distance)
 
         blocking_cube = iris.cube.Cube(
             blocking_index,

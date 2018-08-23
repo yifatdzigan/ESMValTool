@@ -64,7 +64,6 @@ diagnostics:
         south_threshold: 0.0
         persistence: 5
         max_color_scale: 10
-#        months: [1,2]
 
 #  regridded_blocking:
 #    description: Blocking
