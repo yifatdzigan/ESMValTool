@@ -8,6 +8,7 @@ import pprint
 import subprocess
 import threading
 import time
+import vmprof
 from multiprocessing import Pool, cpu_count
 
 import psutil
@@ -245,7 +246,7 @@ class DiagnosticTask(AbstractTask):
                 profile_file = os.path.join(self.settings['run_dir'],
                                             'profile.bin')
                 executables = {
-                    'py': [which('python'), '-m', 'cProfile',
+                    'py': [which('python'), '-m', 'vmprof', '--lines',
                            '-o', profile_file],
                     'ncl': [which('ncl'), '-n', '-p'],
                     'r': [which('Rscript'), '--slave', '--quiet'],
@@ -444,16 +445,6 @@ class DiagnosticTask(AbstractTask):
                 # wait, but not long because the stdout buffer may fill up:
                 # https://docs.python.org/3.6/library/subprocess.html#subprocess.Popen.stdout
                 time.sleep(0.001)
-
-        if self.settings['profile_diagnostic']:
-            import pstats
-            profile_file = os.path.join(self.settings['run_dir'],
-                                        'profile')
-            with open(profile_file + '.txt', 'w') as txt_file:
-                stats = pstats.Stats(profile_file + '.bin', stream=txt_file)
-                stats.sort_stats('cumulative')
-                stats.print_stats(self.script)
-                stats.print_stats(500)
 
         if returncode == 0:
             return [self.output_dir]
