@@ -109,9 +109,20 @@ def _save_cubes(cubes, **args):
                     dims += coord_dims
                 dims = set(dims)
 
-            args['chunksizes'] = tuple(length if index in dims else 1
-                                       for index, length
-                                       in enumerate(cube.shape))
+            chunksizes = [length if index in dims else 1
+                          for index, length in enumerate(cube.shape)]
+            elements = 1
+            for size in chunksizes:
+                elements *=size
+            if elements > 2e5:
+                reduce = elements // 2e5
+            for i, size in enumerate(chunksizes):
+                if size >= reduce:
+                    chunksizes[i] = size // reduce 
+                    break
+
+            args['chunksizes'] = tuple(chunksizes)
+        iris.FUTURE.netcdf_no_unlimited = True
         iris.save(cubes, **args)
 
     return filename
