@@ -74,7 +74,7 @@ class Blocking(object):
                 return 0
             return 1
 
-        self._compute_index = np.vectorize(_get_index, [np.int])
+        self._compute_index = np.vectorize(_get_index, [np.int8])
 
     def compute(self):
         """Compute blocking diagnostic"""
@@ -86,8 +86,10 @@ class Blocking(object):
 
     def _blocking(self, filename):
         zg500 = iris.load_cube(filename, 'geopotential_height')
+        for coord in zg500.coords():
+            coord.points
+            coord.bounds        
         iris.coord_categorisation.add_month(zg500, 'time')
-
         lat = zg500.coord('latitude')
         lat_max = np.max(lat.points)
         lat_min = np.min(lat.points)
@@ -100,6 +102,7 @@ class Blocking(object):
                          self.central_latitude + self.offset)
 
         blocking = iris.cube.CubeList()
+        self.latitude_data = {}
         for lat_point in latitudes:
             if lat_point + self.span > lat_max:
                 continue
@@ -210,7 +213,7 @@ class Blocking(object):
             lon_window = cube.intersection(
                 longitude=(longitude - self.smoothing_window / 2.,
                            longitude + self.smoothing_window / 2.)
-                )
+            )
             lon_mean = lon_window.collapsed('longitude', iris.analysis.MEAN)
             lon_slice.data[...] = lon_mean.data
             smoothed.append(lon_slice)
@@ -228,17 +231,25 @@ class Blocking(object):
         low_lat = _get_lat_cell(latitude, central_latitude - self.span)
         high_lat = _get_lat_cell(latitude, central_latitude + self.span)
 
-        zg_low = zg500.extract(iris.Constraint(latitude=low_lat))
-        zg_central = zg500.extract(iris.Constraint(latitude=central_lat))
-        zg_high = zg500.extract(iris.Constraint(latitude=high_lat))
+        zg_low = self._extract_lat(zg500, low_lat)
+        zg_central = self._extract_lat(zg500, central_lat)
+        zg_high = self._extract_lat(zg500, high_lat)
 
         north_distance = high_lat.point - central_lat.point
         south_distance = central_lat.point - low_lat.point
 
         blocking_index = self._compute_index(
-            self, zg_high.data, zg_central.data, zg_low.data,
+            self, zg_high, zg_central, zg_low,
             north_distance, south_distance)
 
+        blocking_cube = self._create_blocking_cube(
+            blocking_index, zg500, central_latitude)
+
+        if self.persistence > 1:
+            self._apply_persistence(blocking_cube)
+        return blocking_cube
+
+    def _create_blocking_cube(self, blocking_index, zg500, central_latitude):
         blocking_cube = iris.cube.Cube(
             blocking_index,
             var_name="blocking",
@@ -250,13 +261,18 @@ class Blocking(object):
             zg500.coord('latitude').copy([central_latitude])))
         blocking_cube.add_dim_coord(zg500.coord('time'), (0,))
         blocking_cube.add_dim_coord(zg500.coord('longitude'), (1,))
-
-        if self.persistence > 1:
-            self._apply_persistence(blocking_cube)
         return blocking_cube
 
+    def _extract_lat(self, zg500, latitude):
+        if latitude not in self.latitude_data:
+            lat_data = zg500.extract(iris.Constraint(latitude=latitude)).data
+            self.latitude_data[latitude] = lat_data
+        else:
+            lat_data = self.latitude_data[latitude]
+        return lat_data
+
     def _apply_persistence(self, blocking_cube):
-        for lon_slice in blocking_cube.slices_over('longitude'):
+        for lon_slice in blocking_cube.slices('longitude'):
             grouped = ((k, sum(1 for _ in g))
                        for k, g in itertools.groupby(lon_slice.data))
             index = 0
