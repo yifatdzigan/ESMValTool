@@ -8,7 +8,6 @@ import pprint
 import subprocess
 import threading
 import time
-import vmprof
 from multiprocessing import Pool, cpu_count
 
 import psutil
