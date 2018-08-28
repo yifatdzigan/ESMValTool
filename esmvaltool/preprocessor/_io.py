@@ -113,12 +113,12 @@ def _save_cubes(cubes, **args):
                           for index, length in enumerate(cube.shape)]
             elements = 1
             for size in chunksizes:
-                elements *=size
+                elements *= size
             if elements > 2e5:
                 reduce = elements // 2e5
             for i, size in enumerate(chunksizes):
                 if size >= reduce:
-                    chunksizes[i] = size // reduce 
+                    chunksizes[i] = size // reduce
                     break
 
             args['chunksizes'] = tuple(chunksizes)

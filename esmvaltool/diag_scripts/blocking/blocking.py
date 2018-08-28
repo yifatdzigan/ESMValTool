@@ -12,7 +12,9 @@ import iris.coord_categorisation
 import iris.analysis
 import iris.coords
 import iris.quickplot
+import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
+import matplotlib.path as mpath
 from matplotlib import colors
 
 import esmvaltool.diag_scripts.shared
@@ -88,7 +90,7 @@ class Blocking(object):
         zg500 = iris.load_cube(filename, 'geopotential_height')
         for coord in zg500.coords():
             coord.points
-            coord.bounds        
+            coord.bounds
         iris.coord_categorisation.add_month(zg500, 'time')
         lat = zg500.coord('latitude')
         lat_max = np.max(lat.points)
@@ -243,13 +245,14 @@ class Blocking(object):
             north_distance, south_distance)
 
         blocking_cube = self._create_blocking_cube(
-            blocking_index, zg500, central_latitude)
+            blocking_index, zg500, central_latitude, central_lat.bound)
 
         if self.persistence > 1:
             self._apply_persistence(blocking_cube)
         return blocking_cube
 
-    def _create_blocking_cube(self, blocking_index, zg500, central_latitude):
+    def _create_blocking_cube(self, blocking_index, zg500, central_latitude,
+                              bounds):
         blocking_cube = iris.cube.Cube(
             blocking_index,
             var_name="blocking",
@@ -258,7 +261,7 @@ class Blocking(object):
             attributes=None, )
         blocking_cube.add_aux_coord(zg500.coord('month_number'), (0,))
         blocking_cube.add_aux_coord(iris.coords.AuxCoord.from_coord(
-            zg500.coord('latitude').copy([central_latitude])))
+            zg500.coord('latitude').copy([central_latitude], bounds=bounds)))
         blocking_cube.add_dim_coord(zg500.coord('time'), (0,))
         blocking_cube.add_dim_coord(zg500.coord('longitude'), (1,))
         return blocking_cube
@@ -300,22 +303,45 @@ class Blocking(object):
             iris.save(blocking_index, netcdf_path, zlib=True)
 
         if self.cfg[n.WRITE_PLOTS]:
+            projection = ccrs.NorthPolarStereo()
+            min_lat = np.min(blocking_index.coord('latitude').bounds)
+            max_lat = np.max(blocking_index.coord('latitude').bounds)
+            cmap = colors.LinearSegmentedColormap.from_list(
+                'mymap',
+                ((0.92, 0.92, 0.92), (0.7, 0.1, 0.09)),
+                N=self.max_color_scale
+            )
             for month_slice in blocking_index.slices_over('month_number'):
-                cmap = colors.LinearSegmentedColormap.from_list('mymap', (
-                    (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
+                month_number = month_slice.coord('month_number').points[0]
+                month_name = calendar.month_name[month_number]
+                logger.info('Plotting 2D blocking for ' + month_name)
+                month_slice.long_name += ' (' + month_name.title() + ')'
+
+                plt.figure()
+                axes = plt.axes(projection=projection)
+                axes.set_extent(
+                    (-180, 180, min_lat, max_lat),
+                    crs=ccrs.PlateCarree()
+                )
                 iris.quickplot.pcolormesh(
                     month_slice,
                     coords=('longitude', 'latitude'),
-                    cmap=cmap, vmin=0, vmax=self.max_color_scale
+                    cmap=cmap, vmin=0, vmax=self.max_color_scale,
                 )
+                axes.coastlines()
+                axes.gridlines(alpha=0.5, linestyle='--')
+                theta = np.linspace(0, 2*np.pi, 100)
+                center, radius = [0.5, 0.5], 0.5
+                verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+                circle = mpath.Path(verts * radius + center)
+                axes.set_boundary(circle, transform=axes.transAxes)
+
                 plot_path = self._get_plot_name_2d(
                     filename,
-                    month_slice.coord('month_number').points[0]
+                    month_number,
                 )
-                plt.gca().set_aspect(1.5, 'box')
-                plt.gca().coastlines()
-                plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2)
-                plt.close()
+                plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2,
+                            dpi=500)
 
     def _get_plot_name_2d(self, filename, month):
         dataset = self.datasets.get_info(n.DATASET, filename)

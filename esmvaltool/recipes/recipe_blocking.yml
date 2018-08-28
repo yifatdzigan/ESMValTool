@@ -1,10 +1,10 @@
 datasets:
   - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
      project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-     start_year: 1950,  end_year: 1954}
-#  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
-#     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-#     start_year: 1951,  end_year: 1951}
+     start_year: 1950,  end_year: 1950}
+  # - {dataset: EC-Earth3-LR, expid: a13c, institute: EC-Earth-Consortium, grid: gr,
+  #   project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
+  #   start_year: 1950,  end_year: 1950}
 #  - {dataset: ERA-Interim,  project: OBS,  type: reanaly,  version: 1,
 #     start_year: 1980, end_year: 1980,  tier: 3, cmor_table: CMIP6}
 preprocessors:
@@ -43,18 +43,18 @@ diagnostics:
         field: T2M
         preprocessor: extract
     scripts:
-      blocking1D:
-        script: blocking/blocking.py
-        title: "Blocking diagnostic 1D"
-        compute_2d: False
-        compute_1d: True
-        central_latitude: 60.0
-        span: 20.0
-        offset: 5.0
-        north_threshold: -10.0
-        south_threshold: 0.0
-        smoothing_window: 5
-        max_color_scale: 10
+      # blocking1D:
+      #   script: blocking/blocking.py
+      #   title: "Blocking diagnostic 1D"
+      #   compute_2d: False
+      #   compute_1d: True
+      #   central_latitude: 60.0
+      #   span: 20.0
+      #   offset: 5.0
+      #   north_threshold: -10.0
+      #   south_threshold: 0.0
+      #   smoothing_window: 5
+      #   max_color_scale: 10
 
       blocking2D:
         script: blocking/blocking.py
