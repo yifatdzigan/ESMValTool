@@ -2,16 +2,16 @@
 
 import os
 import logging
+import calendar
 
-import six
 import numpy as np
-
 import iris
 import iris.cube
 import iris.analysis
 import iris.util
 from iris.analysis import SUM
 from iris.coords import AuxCoord
+import iris.coord_categorisation
 from iris.cube import CubeList
 import iris.quickplot as qplt
 
@@ -43,6 +43,12 @@ class OceanHeatContent(object):
         self.variables = esmvaltool.diag_scripts.shared.Variables(self.cfg)
         self.min_depth = self.cfg.get('min_depth', 0.)
         self.max_depth = self.cfg.get('max_depth', np.inf)
+        self.compute_2d = self.cfg.get('compute_2D', True)
+        self.compute_2d_monthly_clim = self.cfg.get('compute_2D_monthly_clim',
+                                                    True)
+        self.compute_1d = self.cfg.get('compute_1D', True)
+        self.compute_1d_monthly_clim = self.cfg.get('compute_1D_monthly_clim',
+                                                    True)
 
     def compute(self):
         """Compute diagnostic"""
@@ -74,10 +80,68 @@ class OceanHeatContent(object):
                 ohc.var_name = 'ohc'
                 ohc.long_name = 'Ocean Heat Content per area unit'
                 self._plot(ohc, dataset_info)
+                ohc.remove_coord('year')
+                ohc.remove_coord('month_number')
                 ohc2d.append(ohc)
             logger.debug('Merging results...')
+            ohc2d = ohc2d.merge_cube()
+            iris.coord_categorisation.add_month_number(ohc2d, 'time')
+            iris.coord_categorisation.add_year(ohc2d, 'time')
+            if self.compute_2d:
+                self._save_netcdf(ohc2d, filename)
+                self._plot(ohc2d, filename)
+            self._monthly_2d_clim(filename, ohc2d)
 
-            self._save_netcdf(ohc2d, filename)
+    def _monthly_2d_clim(self, filename, ohc2d):
+        if not self.compute_2d_monthly_clim:
+            return
+
+        ohc_clim = ohc2d.aggregated_by(('month_number'), iris.analysis.MEAN)
+        if self.cfg[n.WRITE_NETCDF]:
+            new_filename = os.path.basename(filename).replace(
+                'thetao', 'ohc2D_monclim'
+            )
+            netcdf_path = os.path.join(self.cfg[n.WORK_DIR], new_filename)
+            iris.save(ohc_clim, netcdf_path, zlib=True)
+        if self.cfg[n.WRITE_PLOTS]:
+            for month_slice in ohc_clim.slices_over('month_number'):
+                month = month_slice.coord('month_number').points[0]
+                self._get_clim_plot_filename(filename, month, 2)
+                qplt.pcolormesh(
+                    month_slice,
+                    coords=('cell index along first dimension',
+                            'cell index along second dimension')
+                )
+                plot_path = self._get_clim_plot_filename(
+                    filename,
+                    month,
+                    2
+                )
+                plt.savefig(plot_path)
+                plt.close()
+
+    def _get_clim_plot_filename(self, filename, month, dimensions):
+        dataset = self.datasets.get_info(n.DATASET, filename)
+        project = self.datasets.get_info(n.PROJECT, filename)
+        ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
+        start = self.datasets.get_info(n.START_YEAR, filename)
+        end = self.datasets.get_info(n.END_YEAR, filename)
+        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
+        month = calendar.month_abbr[month]
+        plot_filename = 'ohc{dimensions}D_{month}_{project}_{dataset}_' \
+                        '{ensemble}_{start}-{end}' \
+                        '.{out_type}'.format(dataset=dataset,
+                                             project=project,
+                                             ensemble=ensemble,
+                                             start=start,
+                                             end=end,
+                                             out_type=out_type,
+                                             month=month,
+                                             dimensions=dimensions)
+
+        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
+                                 plot_filename)
+        return plot_path
 
     def _compute_depth_weights(self, thetao):
         depth = thetao.coord('depth')
@@ -105,18 +169,21 @@ class OceanHeatContent(object):
 
     def _save_netcdf(self, ohc2d, filename):
         if self.cfg[n.WRITE_NETCDF]:
-            ohc2d = ohc2d.merge_cube()
             new_filename = os.path.basename(filename).replace('thetao',
                                                               'ohc')
             netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
                                        new_filename)
-            iris.save(ohc2d, netcdf_path)
+            iris.save(ohc2d, netcdf_path, zlib=True)
 
     def _plot(self, ohc2d, filename):
         iris.FUTURE.cell_datetime_objects = True
         if self.cfg[n.WRITE_PLOTS]:
             for time_slice in ohc2d.slices_over('time'):
-                qplt.pcolormesh(time_slice)
+                qplt.pcolormesh(
+                    time_slice,
+                    coords=('cell index along first dimension',
+                            'cell index along second dimension')
+                )
                 datetime = time_slice.coord('time').cell(0).point
                 plot_path = self._get_plot_name(filename, datetime)
                 plt.savefig(plot_path)
@@ -126,7 +193,7 @@ class OceanHeatContent(object):
         dataset = self.datasets.get_info(n.DATASET, filename)
         project = self.datasets.get_info(n.PROJECT, filename)
         ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
-        time_str = datetime.strftime('%Y-%m')
+        time_str = datetime.strftime('%Y%m')
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
 
         plot_filename = 'ohc2D_{project}_{dataset}_' \
