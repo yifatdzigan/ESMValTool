@@ -36,11 +36,8 @@ def time_slice(mycube, start_year, start_month, start_day,
 
     t_1 = time_units.date2num(start_date)
     t_2 = time_units.date2num(end_date)
-    # TODO replace the block below for when using iris 2.0
-    # my_constraint = iris.Constraint(time=lambda t: (
-    #     t_1 < time_units.date2num(t.point) < t_2))
     my_constraint = iris.Constraint(time=lambda t: (
-        t_1 < t.point < t_2))
+        t_1 < time_units.date2num(t.point) < t_2))
     cube_slice = mycube.extract(my_constraint)
     return cube_slice
 

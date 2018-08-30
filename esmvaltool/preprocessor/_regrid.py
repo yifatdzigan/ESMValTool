@@ -194,9 +194,13 @@ def regrid(src_cube, target_grid, scheme):
                 src_cube.remove_coord(coord)
 
     # Perform the horizontal regridding.
-    result = src_cube.regrid(target_grid, horizontal_schemes[scheme])
+    results = iris.cube.CubeList()
+    for map_slice in src_cube.slices_over('time'):
+        results.append(
+            map_slice.regrid(target_grid, horizontal_schemes[scheme])
+        )
 
-    return result
+    return results.merge_cube()
 
 
 def _create_cube(src_cube, data, levels):

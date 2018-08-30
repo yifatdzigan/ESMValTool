@@ -33,6 +33,7 @@ def read_config_user_file(config_file, recipe_name):
         'max_parallel_tasks': 1,
         'run_diagnostic': True,
         'config_developer_file': None,
+        'dask_scheduler_file': None,
         'drs': {},
     }
 
@@ -45,6 +46,7 @@ def read_config_user_file(config_file, recipe_name):
     cfg['output_dir'] = _normalize_path(cfg['output_dir'])
     cfg['config_developer_file'] = _normalize_path(
         cfg['config_developer_file'])
+    cfg['dask_scheduler_file'] = _normalize_path(cfg['dask_scheduler_file'])
 
     for key in cfg['rootpath']:
         cfg['rootpath'][key] = _normalize_path(cfg['rootpath'][key])

@@ -37,6 +37,8 @@ import shutil
 import sys
 from multiprocessing import cpu_count
 
+import dask.distributed
+
 from . import __version__
 from ._config import configure_logging, read_config_user_file
 from ._recipe import read_recipe_file
@@ -130,6 +132,11 @@ def main(args):
     logger.info("Writing program log files to:\n%s", "\n".join(log_files))
 
     cfg['synda_download'] = args.synda_download
+    if cfg['dask_scheduler_file']:
+        client = dask.distributed.Client(
+            scheduler_file=cfg['dask_scheduler_file']
+        )
+
     for limit in ('max_datasets', 'max_years'):
         value = getattr(args, limit)
         if value is not None:
