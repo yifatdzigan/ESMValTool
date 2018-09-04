@@ -37,7 +37,10 @@ import shutil
 import sys
 from multiprocessing import cpu_count
 
-import dask.distributed
+from dask.diagnostics import Profiler, ResourceProfiler, CacheProfiler
+from dask.diagnostics import visualize
+from dask.distributed import Client, LocalCluster
+import dask.multiprocessing
 
 from . import __version__
 from ._config import configure_logging, read_config_user_file
@@ -133,9 +136,12 @@ def main(args):
 
     cfg['synda_download'] = args.synda_download
     if cfg['dask_scheduler_file']:
-        client = dask.distributed.Client(
-            scheduler_file=cfg['dask_scheduler_file']
-        )
+        # Client(
+        #     scheduler_file=cfg['dask_scheduler_file'],
+        # )
+        dask.config.set(scheduler='threads')
+    else:
+        dask.config.set(scheduler='synchronous')
 
     for limit in ('max_datasets', 'max_years'):
         value = getattr(args, limit)
@@ -147,7 +153,14 @@ def main(args):
 
     resource_log = os.path.join(cfg['run_dir'], 'resource_usage.txt')
     with resource_usage_logger(pid=os.getpid(), filename=resource_log):
-        process_recipe(recipe_file=recipe, config_user=cfg)
+        with Profiler() as prof, ResourceProfiler(dt=0.25) as rprof:
+            with CacheProfiler() as cprof:
+                process_recipe(recipe_file=recipe, config_user=cfg)
+                logger.info("Writing dask profile info")
+                visualize(
+                    [prof, rprof, cprof],
+                    file_path='/home/Earth/jvegas/scheduler.html'
+                )
     return cfg
 
 

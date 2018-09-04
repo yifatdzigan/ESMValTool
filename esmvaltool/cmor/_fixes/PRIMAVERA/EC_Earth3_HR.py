@@ -1,4 +1,5 @@
 """Fixes for EC-Earth3-HR PRIMAVERA project data"""
+import iris
 from ..fix import Fix
 
 
@@ -25,3 +26,24 @@ class allvars(Fix):
         longitude = cube.coord('longitude')
         longitude.var_name = 'lon'
         return cube
+
+
+class ta(Fix):
+
+    def fix_metadata(self, cube):
+        cube.attributes['realm'] = 'atmos'
+
+        lat_2D = cube.coord('latitude')
+        lat_1D = lat_2D.copy(lat_2D.points[:, 0], -lat_2D.bounds[:, 0, 1:3])
+        cube.remove_coord('latitude')
+        cube.add_aux_coord(lat_1D, 2)
+
+        lon_2D = cube.coord('longitude')
+        lon_1D = lon_2D.copy(lon_2D.points[0, :], lon_2D.bounds[0, :, 0:2])
+        cube.remove_coord('longitude')
+        cube.add_aux_coord(lon_1D, 3)
+
+        iris.util.promote_aux_coord_to_dim_coord(cube, lat_1D)
+        iris.util.promote_aux_coord_to_dim_coord(cube, lon_1D)
+        return cube
+

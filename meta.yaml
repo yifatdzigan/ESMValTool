@@ -34,7 +34,7 @@ requirements:
     # esmvaltool
     - python
     - basemap
-    - iris=1.13
+    - iris>=2.1
     - python-stratify
     # Normally installed via pip:
     - cartopy
