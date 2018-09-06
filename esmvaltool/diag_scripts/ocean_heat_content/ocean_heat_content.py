@@ -16,6 +16,7 @@ from iris.cube import CubeList
 import iris.quickplot as qplt
 
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import esmvaltool.diag_scripts.shared
 import esmvaltool.diag_scripts.shared.names as n
 
@@ -36,11 +37,14 @@ class OceanHeatContent(object):
         Path to the settings file
 
     """
+    HEAT_CAPACITY = 4000
+    WATER_DENSITY = 1020
 
     def __init__(self, config):
         self.cfg = config
         self.datasets = esmvaltool.diag_scripts.shared.Datasets(self.cfg)
         self.variables = esmvaltool.diag_scripts.shared.Variables(self.cfg)
+
         self.min_depth = self.cfg.get('min_depth', 0.)
         self.max_depth = self.cfg.get('max_depth', np.inf)
         self.compute_2d = self.cfg.get('compute_2D', True)
@@ -50,6 +54,46 @@ class OceanHeatContent(object):
         self.compute_1d_monthly_clim = self.cfg.get('compute_1D_monthly_clim',
                                                     True)
 
+        self.min_color_scale = self.cfg.get('min_color_scale', 0)
+        self.max_color_scale = self.cfg.get('max_color_scale', None)
+        self.log_color_scale = self.cfg.get('log_color_scale', True)
+        self.color_intervals = self.cfg.get('color_intervals', 1000)
+        self.color_low = self.cfg.get('color_low', (1, 1, 1))
+        self.color_high = self.cfg.get('color_high', (0.5, 0.05, 0.05))
+        self.color_bad = self.cfg.get('color_bad', (0.7, 0.7, 0.7))
+
+        if not self.max_color_scale:
+            if self.max_depth == np.inf:
+                depth = 6000 - self.min_depth
+            else:
+                depth = self.max_depth - self.min_depth
+            self.max_color_scale = (
+                depth * OceanHeatContent.WATER_DENSITY *
+                OceanHeatContent.HEAT_CAPACITY * 320.
+                )
+        if self.min_color_scale is None:
+            if self.max_depth == np.inf:
+                depth = 6000 - self.min_depth
+            else:
+                depth = self.max_depth - self.min_depth
+            self.min_color_scale = (
+                depth * OceanHeatContent.WATER_DENSITY *
+                OceanHeatContent.HEAT_CAPACITY * 270.
+                )
+
+        if not self.color_intervals:
+            self.color_intervals = 1000
+        if self.log_color_scale:
+            self.norm = colors.LogNorm(vmin=self.min_color_scale,
+                                       vmax=self.max_color_scale)
+        else:
+            self.norm = None
+        self.cmap = colors.LinearSegmentedColormap.from_list(
+            'ohc', (self.color_low, self.color_high),
+            N=self.color_intervals
+        )
+        self.cmap.set_bad(color=self.color_bad)
+
     def compute(self):
         """Compute diagnostic"""
         logger.info('Computing ocean heat content')
@@ -58,6 +102,7 @@ class OceanHeatContent(object):
             dataset_info = self.datasets.get_data(filename)
             thetao = iris.load_cube(filename,
                                     'sea_water_potential_temperature')
+
             self._compute_depth_weights(thetao)
 
             has_weight = iris.Constraint(depth_weight=lambda x: x > 0)
@@ -74,12 +119,10 @@ class OceanHeatContent(object):
                         iris.util.broadcast_to_shape(depth_weight,
                                                      time_slice.shape,
                                                      (index,))
+                time_slice.convert_units('K')
                 ohc = time_slice.collapsed('depth', SUM,
                                            weights=final_weight)
-                ohc.units = 'J m^-2'
-                ohc.var_name = 'ohc'
-                ohc.long_name = 'Ocean Heat Content per area unit'
-                self._plot(ohc, dataset_info)
+
                 ohc.remove_coord('year')
                 ohc.remove_coord('month_number')
                 ohc2d.append(ohc)
@@ -87,6 +130,9 @@ class OceanHeatContent(object):
             ohc2d = ohc2d.merge_cube()
             iris.coord_categorisation.add_month_number(ohc2d, 'time')
             iris.coord_categorisation.add_year(ohc2d, 'time')
+            ohc2d.units = 'J m^-2'
+            ohc2d.var_name = 'ohc'
+            ohc2d.long_name = 'Ocean Heat Content per area unit'
             if self.compute_2d:
                 self._save_netcdf(ohc2d, filename)
                 self._plot(ohc2d, filename)
@@ -110,14 +156,17 @@ class OceanHeatContent(object):
                 qplt.pcolormesh(
                     month_slice,
                     coords=('cell index along first dimension',
-                            'cell index along second dimension')
+                            'cell index along second dimension'),
+                    vmin=self.min_color_scale, vmax=self.max_color_scale,
+                    cmap=self.cmap,
+                    norm=self.norm,
                 )
                 plot_path = self._get_clim_plot_filename(
                     filename,
                     month,
                     2
                 )
-                plt.savefig(plot_path)
+                plt.savefig(plot_path, dpi=500)
                 plt.close()
 
     def _get_clim_plot_filename(self, filename, month, dimensions):
@@ -139,7 +188,11 @@ class OceanHeatContent(object):
                                              month=month,
                                              dimensions=dimensions)
 
+        if not os.path.isdir(os.path.join(self.cfg[n.PLOT_DIR],
+                                          'monthly_clim')):
+            os.mkdir(os.path.join(self.cfg[n.PLOT_DIR], 'monthly_clim'))
         plot_path = os.path.join(self.cfg[n.PLOT_DIR],
+                                 'monthly_clim',
                                  plot_filename)
         return plot_path
 
@@ -162,7 +215,11 @@ class OceanHeatContent(object):
             size = low - high
             if size < 0:
                 size = 0
-            depth_weight[current_depth] = size * 4000 * 1020
+            depth_weight[current_depth] = (
+                size *
+                OceanHeatContent.HEAT_CAPACITY *
+                OceanHeatContent.WATER_DENSITY
+            )
         thetao.add_aux_coord(AuxCoord(var_name='depth_weight',
                                       points=depth_weight),
                              thetao.coord_dims(depth))
@@ -182,11 +239,14 @@ class OceanHeatContent(object):
                 qplt.pcolormesh(
                     time_slice,
                     coords=('cell index along first dimension',
-                            'cell index along second dimension')
+                            'cell index along second dimension'),
+                    vmin=self.min_color_scale, vmax=self.max_color_scale,
+                    cmap=self.cmap,
+                    norm=self.norm,
                 )
                 datetime = time_slice.coord('time').cell(0).point
                 plot_path = self._get_plot_name(filename, datetime)
-                plt.savefig(plot_path)
+                plt.savefig(plot_path, dpi=500)
                 plt.close()
 
     def _get_plot_name(self, filename, datetime):
@@ -203,8 +263,10 @@ class OceanHeatContent(object):
                                              ensemble=ensemble,
                                              time_str=time_str,
                                              out_type=out_type)
-
+        if not os.path.isdir(os.path.join(self.cfg[n.PLOT_DIR], 'timestep')):
+            os.mkdir(os.path.join(self.cfg[n.PLOT_DIR], 'timestep'))
         plot_path = os.path.join(self.cfg[n.PLOT_DIR],
+                                 'timestep',
                                  plot_filename)
         return plot_path
 

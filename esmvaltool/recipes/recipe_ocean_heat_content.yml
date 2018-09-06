@@ -3,13 +3,13 @@
 datasets:
   - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
      project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-     start_year: 1950,  end_year: 1950}
+     start_year: 1950,  end_year: 1952}
 #  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
 #     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
 #     start_year: 1960,  end_year: 1961}
 #  - {dataset: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
 #  - {dataset: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-#  - {dataset: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
+#  - {dataset: ERA-Interim, project: OBS,    tier: 3,    t6:ype: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
 
 preprocessors:
   extract:
