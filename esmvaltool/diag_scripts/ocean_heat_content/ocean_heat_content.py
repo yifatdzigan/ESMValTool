@@ -54,10 +54,13 @@ class OceanHeatContent(object):
         self.compute_1d_monthly_clim = self.cfg.get('compute_1D_monthly_clim',
                                                     True)
 
-        self.min_color_scale = self.cfg.get('min_color_scale', 0)
+        self.min_color_scale = self.cfg.get('min_color_scale', None)
         self.max_color_scale = self.cfg.get('max_color_scale', None)
-        self.log_color_scale = self.cfg.get('log_color_scale', True)
-        self.color_intervals = self.cfg.get('color_intervals', 1000)
+        self.log_color_scale = self.cfg.get('log_color_scale', False)
+
+        self.color_map = self.cfg.get('color_map', 'plasma')
+
+        self.color_intervals = self.cfg.get('color_intervals', 100)
         self.color_low = self.cfg.get('color_low', (1, 1, 1))
         self.color_high = self.cfg.get('color_high', (0.5, 0.05, 0.05))
         self.color_bad = self.cfg.get('color_bad', (0.7, 0.7, 0.7))
@@ -69,7 +72,7 @@ class OceanHeatContent(object):
                 depth = self.max_depth - self.min_depth
             self.max_color_scale = (
                 depth * OceanHeatContent.WATER_DENSITY *
-                OceanHeatContent.HEAT_CAPACITY * 320.
+                OceanHeatContent.HEAT_CAPACITY * 300.
                 )
         if self.min_color_scale is None:
             if self.max_depth == np.inf:
@@ -78,7 +81,7 @@ class OceanHeatContent(object):
                 depth = self.max_depth - self.min_depth
             self.min_color_scale = (
                 depth * OceanHeatContent.WATER_DENSITY *
-                OceanHeatContent.HEAT_CAPACITY * 270.
+                OceanHeatContent.HEAT_CAPACITY * 260.
                 )
 
         if not self.color_intervals:
@@ -88,11 +91,15 @@ class OceanHeatContent(object):
                                        vmax=self.max_color_scale)
         else:
             self.norm = None
-        self.cmap = colors.LinearSegmentedColormap.from_list(
-            'ohc', (self.color_low, self.color_high),
-            N=self.color_intervals
-        )
-        self.cmap.set_bad(color=self.color_bad)
+        if self.color_map == 'custom':
+            self.cmap = colors.LinearSegmentedColormap.from_list(
+                'ohc', (self.color_low, self.color_high),
+                N=self.color_intervals
+            )
+            self.cmap.set_bad(color=self.color_bad)
+        else:
+            self.cmap = self.color_map
+
 
     def compute(self):
         """Compute diagnostic"""
@@ -130,8 +137,9 @@ class OceanHeatContent(object):
             ohc2d = ohc2d.merge_cube()
             iris.coord_categorisation.add_month_number(ohc2d, 'time')
             iris.coord_categorisation.add_year(ohc2d, 'time')
-            ohc2d.units = 'J m^-2'
+            ohc2d.units = 'J m-2'
             ohc2d.var_name = 'ohc'
+            ohc2d.standard_name = None
             ohc2d.long_name = 'Ocean Heat Content per area unit'
             if self.compute_2d:
                 self._save_netcdf(ohc2d, filename)

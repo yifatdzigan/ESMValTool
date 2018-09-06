@@ -3,7 +3,7 @@
 datasets:
   - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
      project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-     start_year: 1950,  end_year: 1952}
+     start_year: 1950,  end_year: 1950}
 #  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gn,
 #     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
 #     start_year: 1960,  end_year: 1961}
@@ -33,7 +33,7 @@ diagnostics:
         compute_2D_monthly_clim: True
         compute_1D: True
         compute_1D_monthly_clim: True
-      ocean_heat_content_300_100:
+      ocean_heat_content_300_1000:
         script: ocean_heat_content/ocean_heat_content.py
         title: "Python example diagnostic"
         min_depth: 300
