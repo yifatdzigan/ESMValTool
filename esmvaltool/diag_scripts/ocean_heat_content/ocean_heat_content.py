@@ -100,7 +100,6 @@ class OceanHeatContent(object):
         else:
             self.cmap = self.color_map
 
-
     def compute(self):
         """Compute diagnostic"""
         logger.info('Computing ocean heat content')

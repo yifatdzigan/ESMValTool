@@ -5,7 +5,6 @@ import iris.util
 from ..fix import Fix
 
 
-
 class allvars(Fix):
     """Fixes common to all variables"""
 

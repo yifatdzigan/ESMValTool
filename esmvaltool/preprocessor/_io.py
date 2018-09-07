@@ -116,10 +116,10 @@ def _save_cubes(cubes, **args):
                 elements *= size
             if elements > 2e5:
                 reduce = elements // 2e5
-            for i, size in enumerate(chunksizes):
-                if size >= reduce:
-                    chunksizes[i] = size // reduce
-                    break
+                for i, size in enumerate(chunksizes):
+                    if size >= reduce:
+                        chunksizes[i] = size // reduce
+                        break
 
             args['chunksizes'] = tuple(chunksizes)
         iris.FUTURE.netcdf_no_unlimited = True
