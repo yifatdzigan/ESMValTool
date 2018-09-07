@@ -170,6 +170,7 @@ class Blocking(object):
                 units='no_unit')
             cmap = colors.LinearSegmentedColormap.from_list('mymap', (
                 (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
+
             iris.quickplot.pcolormesh(result, coords=('longitude', 'month'),
                                       cmap=cmap, vmin=0,
                                       vmax=self.max_color_scale)
