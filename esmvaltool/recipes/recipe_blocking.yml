@@ -1,7 +1,7 @@
 datasets:
-  - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
-     project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-     start_year: 1950,  end_year: 1950}
+  - {dataset: EC-Earth3, institute: EC-Earth-Consortium, grid: gr,
+     project: CMIP6, activity: HighResMIP,  exp: highresSST-present, ensemble: r1i1p1f1, version: v20170911,
+     start_year: 1960,  end_year: 1960}
   # - {dataset: EC-Earth3-LR, expid: a13c, institute: EC-Earth-Consortium, grid: gr,
   #   project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
   #   start_year: 1950,  end_year: 1950}
