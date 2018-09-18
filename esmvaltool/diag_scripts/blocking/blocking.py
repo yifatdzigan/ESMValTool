@@ -5,6 +5,13 @@ import itertools
 import calendar
 
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')  # noqa
+import matplotlib.pyplot as plt
+import matplotlib.path as mpath
+from matplotlib import colors
+
 import iris
 import iris.time
 import iris.util
@@ -13,11 +20,6 @@ import iris.analysis
 import iris.coords
 import iris.quickplot
 import cartopy.crs as ccrs
-import matplotlib
-matplotlib.use('Agg')  # noqa
-import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-from matplotlib import colors
 
 import esmvaltool.diag_scripts.shared
 import esmvaltool.diag_scripts.shared.names as n
