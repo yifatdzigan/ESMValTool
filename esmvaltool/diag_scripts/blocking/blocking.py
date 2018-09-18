@@ -155,7 +155,6 @@ class Blocking(object):
         result.units = 'days per month'
         result.var_name = 'blocking'
         result.long_name = 'Blocking 1D index'
-        print(result)
 
         if self.cfg[n.WRITE_NETCDF]:
             new_filename = os.path.basename(filename).replace('zg',
@@ -171,7 +170,7 @@ class Blocking(object):
                 units='no_unit')
             cmap = colors.LinearSegmentedColormap.from_list('mymap', (
                 (1, 1, 1), (0.7, 0.1, 0.09)), N=self.max_color_scale)
-            print(result)
+
             iris.quickplot.pcolormesh(result, coords=('longitude', 'month'),
                                       cmap=cmap, vmin=0,
                                       vmax=self.max_color_scale)

@@ -9,7 +9,7 @@ datasets:
 #     start_year: 1960,  end_year: 1961}
 #  - {dataset: GFDL-ESM2G,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
 #  - {dataset: MPI-ESM-LR,  project: CMIP5,  mip: Amon,  exp: historical,  ensemble: r1i1p1,  start_year: 2000,  end_year: 2002}
-#  - {dataset: ERA-Interim, project: OBS,    tier: 3,    type: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
+#  - {dataset: ERA-Interim, project: OBS,    tier: 3,    t6:ype: reanaly,    version: 1,        start_year: 2000,  end_year: 2002}
 
 preprocessors:
   extract:
@@ -33,7 +33,7 @@ diagnostics:
         compute_2D_monthly_clim: True
         compute_1D: True
         compute_1D_monthly_clim: True
-      ocean_heat_content_300_100:
+      ocean_heat_content_300_1000:
         script: ocean_heat_content/ocean_heat_content.py
         title: "Python example diagnostic"
         min_depth: 300

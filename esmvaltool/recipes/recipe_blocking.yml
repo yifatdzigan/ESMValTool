@@ -1,10 +1,14 @@
 datasets:
+
   - {dataset: EC-Earth3, institute: EC-Earth-Consortium, grid: gr,
      project: CMIP6, activity: HighResMIP,  exp: highresSST-present, ensemble: r1i1p1f1, version: v20170911,
      start_year: 1960,  end_year: 1960}
-  # - {dataset: EC-Earth3-LR, expid: a13c, institute: EC-Earth-Consortium, grid: gr,
-  #   project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-  #   start_year: 1950,  end_year: 1950}
+# - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
+#    project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
+#    start_year: 1950,  end_year: 1955}
+# - {dataset: EC-Earth3-LR, expid: a13c, institute: EC-Earth-Consortium, grid: gr,
+#  project: PRIMAVERA, exp: historical,  ensemble: r1i1p1f1, version: v20180501,
+#  start_year: 1950,  end_year: 1999}
 #  - {dataset: ERA-Interim,  project: OBS,  type: reanaly,  version: 1,
 #     start_year: 1980, end_year: 1980,  tier: 3, cmor_table: CMIP6}
 preprocessors:
