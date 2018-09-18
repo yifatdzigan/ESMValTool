@@ -13,6 +13,8 @@ import iris.analysis
 import iris.coords
 import iris.quickplot
 import cartopy.crs as ccrs
+import matplotlib
+matplotlib.use('Agg')  # noqa
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 from matplotlib import colors
