@@ -5,6 +5,11 @@ import logging
 import calendar
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # noqa
+import matplotlib.pyplot as plt
+from matplotlib import colors
+
 import iris
 import iris.cube
 import iris.analysis
@@ -15,8 +20,6 @@ import iris.coord_categorisation
 from iris.cube import CubeList
 import iris.quickplot as qplt
 
-import matplotlib.pyplot as plt
-from matplotlib import colors
 import esmvaltool.diag_scripts.shared
 import esmvaltool.diag_scripts.shared.names as n
 
