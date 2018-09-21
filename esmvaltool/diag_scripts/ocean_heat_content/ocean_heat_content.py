@@ -68,6 +68,8 @@ class OceanHeatContent(object):
         self.color_high = self.cfg.get('color_high', (0.5, 0.05, 0.05))
         self.color_bad = self.cfg.get('color_bad', (0.7, 0.7, 0.7))
 
+        self.plot_dpi = self.cfg.get('dpi', 200)
+
         if not self.max_color_scale:
             if self.max_depth == np.inf:
                 depth = 6000 - self.min_depth
@@ -176,7 +178,7 @@ class OceanHeatContent(object):
                     month,
                     2
                 )
-                plt.savefig(plot_path, dpi=500)
+                plt.savefig(plot_path, dpi=self.plot_dpi)
                 plt.close()
 
     def _get_clim_plot_filename(self, filename, month, dimensions):
@@ -256,7 +258,7 @@ class OceanHeatContent(object):
                 )
                 datetime = time_slice.coord('time').cell(0).point
                 plot_path = self._get_plot_name(filename, datetime)
-                plt.savefig(plot_path, dpi=500)
+                plt.savefig(plot_path, dpi=self.plot_dpi)
                 plt.close()
 
     def _get_plot_name(self, filename, datetime):
