@@ -68,6 +68,8 @@ class OceanHeatContent(object):
         self.color_high = self.cfg.get('color_high', (0.5, 0.05, 0.05))
         self.color_bad = self.cfg.get('color_bad', (0.7, 0.7, 0.7))
 
+        self.plot_dpi = self.cfg.get('dpi', 200)
+
         if not self.max_color_scale:
             if self.max_depth == np.inf:
                 depth = 6000 - self.min_depth
@@ -134,18 +136,19 @@ class OceanHeatContent(object):
 
                 ohc.remove_coord('year')
                 ohc.remove_coord('month_number')
+                ohc.units = 'J m-2'
+                ohc.var_name = 'ohc'
+                ohc.standard_name = None
+                ohc.long_name = 'Ocean Heat Content per area unit'
+                if self.compute_2d:
+                    self._plot(ohc, filename)
                 ohc2d.append(ohc)
             logger.debug('Merging results...')
             ohc2d = ohc2d.merge_cube()
-            iris.coord_categorisation.add_month_number(ohc2d, 'time')
-            iris.coord_categorisation.add_year(ohc2d, 'time')
-            ohc2d.units = 'J m-2'
-            ohc2d.var_name = 'ohc'
-            ohc2d.standard_name = None
-            ohc2d.long_name = 'Ocean Heat Content per area unit'
             if self.compute_2d:
                 self._save_netcdf(ohc2d, filename)
-                self._plot(ohc2d, filename)
+            iris.coord_categorisation.add_month_number(ohc2d, 'time')
+            iris.coord_categorisation.add_year(ohc2d, 'time')
             self._monthly_2d_clim(filename, ohc2d)
 
     def _monthly_2d_clim(self, filename, ohc2d):
@@ -176,7 +179,7 @@ class OceanHeatContent(object):
                     month,
                     2
                 )
-                plt.savefig(plot_path, dpi=500)
+                plt.savefig(plot_path, dpi=self.plot_dpi)
                 plt.close()
 
     def _get_clim_plot_filename(self, filename, month, dimensions):
@@ -245,19 +248,18 @@ class OceanHeatContent(object):
     def _plot(self, ohc2d, filename):
         iris.FUTURE.cell_datetime_objects = True
         if self.cfg[n.WRITE_PLOTS]:
-            for time_slice in ohc2d.slices_over('time'):
-                qplt.pcolormesh(
-                    time_slice,
-                    coords=('cell index along first dimension',
-                            'cell index along second dimension'),
-                    vmin=self.min_color_scale, vmax=self.max_color_scale,
-                    cmap=self.cmap,
-                    norm=self.norm,
-                )
-                datetime = time_slice.coord('time').cell(0).point
-                plot_path = self._get_plot_name(filename, datetime)
-                plt.savefig(plot_path, dpi=500)
-                plt.close()
+            qplt.pcolormesh(
+                ohc2d,
+                coords=('cell index along first dimension',
+                        'cell index along second dimension'),
+                vmin=self.min_color_scale, vmax=self.max_color_scale,
+                cmap=self.cmap,
+                norm=self.norm,
+            )
+            datetime = ohc2d.coord('time').cell(0).point
+            plot_path = self._get_plot_name(filename, datetime)
+            plt.savefig(plot_path, dpi=self.plot_dpi)
+            plt.close()
 
     def _get_plot_name(self, filename, datetime):
         dataset = self.datasets.get_info(n.DATASET, filename)
