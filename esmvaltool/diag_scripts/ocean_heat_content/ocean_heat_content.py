@@ -200,13 +200,10 @@ class OceanHeatContent(object):
                                              out_type=out_type,
                                              month=month,
                                              dimensions=dimensions)
-
-        if not os.path.isdir(os.path.join(self.cfg[n.PLOT_DIR],
-                                          'monthly_clim')):
-            os.mkdir(os.path.join(self.cfg[n.PLOT_DIR], 'monthly_clim'))
-        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
-                                 'monthly_clim',
-                                 plot_filename)
+        plot_path = os.path.join(
+            self._get_plot_folder(filename, 'monthly_clim'),
+            plot_filename
+        )
         return plot_path
 
     def _compute_depth_weights(self, thetao):
@@ -264,23 +261,36 @@ class OceanHeatContent(object):
     def _get_plot_name(self, filename, datetime):
         dataset = self.datasets.get_info(n.DATASET, filename)
         project = self.datasets.get_info(n.PROJECT, filename)
+        exp = self.datasets.get_info(n.EXP, filename)
         ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
         time_str = datetime.strftime('%Y%m')
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
-
-        plot_filename = 'ohc2D_{project}_{dataset}_' \
+        plot_filename = 'ohc2D_{project}_{exp}_{dataset}_' \
                         '{ensemble}_{time_str}' \
                         '.{out_type}'.format(dataset=dataset,
                                              project=project,
                                              ensemble=ensemble,
                                              time_str=time_str,
                                              out_type=out_type)
-        if not os.path.isdir(os.path.join(self.cfg[n.PLOT_DIR], 'timestep')):
-            os.mkdir(os.path.join(self.cfg[n.PLOT_DIR], 'timestep'))
-        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
-                                 'timestep',
-                                 plot_filename)
+
+        plot_path = os.path.join(
+            self._get_plot_folder(filename, 'timestep'),
+            plot_filename)
         return plot_path
+
+    def _get_plot_folder(self, filename, plot_type):
+        dataset = self.datasets.get_info(n.DATASET, filename)
+        project = self.datasets.get_info(n.PROJECT, filename)
+        exp = self.datasets.get_info(n.EXP, filename)
+        ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
+
+        plot_path = os.path.join(
+            self.cfg[n.PLOT_DIR], plot_type, project, exp, dataset, ensemble
+        )
+        if not os.path.isdir(plot_path):
+            os.makedirs(plot_path)
+        return plot_path
+
 
 
 if __name__ == '__main__':
