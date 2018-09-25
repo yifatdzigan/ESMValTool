@@ -269,6 +269,7 @@ class OceanHeatContent(object):
                         '{ensemble}_{time_str}' \
                         '.{out_type}'.format(dataset=dataset,
                                              project=project,
+                                             exp=exp,
                                              ensemble=ensemble,
                                              time_str=time_str,
                                              out_type=out_type)
