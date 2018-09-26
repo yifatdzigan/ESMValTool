@@ -168,8 +168,6 @@ class OceanHeatContent(object):
                 self._get_clim_plot_filename(filename, month, 2)
                 qplt.pcolormesh(
                     month_slice,
-                    coords=('cell index along first dimension',
-                            'cell index along second dimension'),
                     vmin=self.min_color_scale, vmax=self.max_color_scale,
                     cmap=self.cmap,
                     norm=self.norm,
@@ -247,8 +245,6 @@ class OceanHeatContent(object):
         if self.cfg[n.WRITE_PLOTS]:
             qplt.pcolormesh(
                 ohc2d,
-                coords=('cell index along first dimension',
-                        'cell index along second dimension'),
                 vmin=self.min_color_scale, vmax=self.max_color_scale,
                 cmap=self.cmap,
                 norm=self.norm,
