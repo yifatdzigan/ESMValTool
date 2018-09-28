@@ -186,6 +186,7 @@ class Blocking(object):
 
             plot_path = self._get_plot_name(filename)
             plt.savefig(plot_path)
+            plt.close()
 
     def _get_plot_name(self, filename):
         dataset = self.datasets.get_info(n.DATASET, filename)
@@ -345,6 +346,7 @@ class Blocking(object):
                 )
                 plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2,
                             dpi=500)
+                plt.close()
 
     def _get_plot_name_2d(self, filename, month):
         dataset = self.datasets.get_info(n.DATASET, filename)
