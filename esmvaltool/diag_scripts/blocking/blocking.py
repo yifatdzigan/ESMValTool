@@ -79,7 +79,6 @@ class Blocking(object):
             if ((central - low) / south_distance) < self.south_threshold:
                 return 0
             return 1
-
         self._compute_index = np.vectorize(_get_index, [np.int8])
 
     def compute(self):
@@ -97,7 +96,7 @@ class Blocking(object):
             coord.points
             if coord.has_bounds():
                 coord.bounds
-            else:
+            elif coord.standard_anme in ('latitude', 'longitude'):
                 coord.guess_bounds()
         iris.coord_categorisation.add_month(zg500, 'time')
         lat = zg500.coord('latitude')
