@@ -86,6 +86,7 @@ class Blocking(object):
         """Compute blocking diagnostic"""
         logger.info('Computing blocking')
         for filename in self.datasets:
+            logger.info('Dataset {}'.format(filename))
             result = self._blocking(filename)
             self._blocking_1d(filename, result)
             self._blocking_2d(filename, result)
@@ -94,7 +95,10 @@ class Blocking(object):
         zg500 = iris.load_cube(filename, 'geopotential_height')
         for coord in zg500.coords():
             coord.points
-            coord.bounds
+            if coord.has_bounds():
+                coord.bounds
+            else:
+                coord.guess_bounds()
         iris.coord_categorisation.add_month(zg500, 'time')
         lat = zg500.coord('latitude')
         lat_max = np.max(lat.points)
