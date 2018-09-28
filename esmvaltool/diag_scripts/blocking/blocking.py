@@ -96,7 +96,7 @@ class Blocking(object):
             coord.points
             if coord.has_bounds():
                 coord.bounds
-            elif coord.standard_anme in ('latitude', 'longitude'):
+            elif coord.standard_name in ('latitude', 'longitude'):
                 coord.guess_bounds()
         iris.coord_categorisation.add_month(zg500, 'time')
         lat = zg500.coord('latitude')
