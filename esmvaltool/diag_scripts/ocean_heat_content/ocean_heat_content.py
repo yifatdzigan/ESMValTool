@@ -142,12 +142,13 @@ class OceanHeatContent(object):
                 ohc.long_name = 'Ocean Heat Content per area unit'
                 if self.compute_2d:
                     self._plot(ohc, filename)
-                if self.compute_2d:
-                    self._save_netcdf(ohc, filename)
+
                 ohc2d.append(ohc)
 
             logger.debug('Merging results...')
             ohc2d = ohc2d.merge_cube()
+            if self.compute_2d:
+                self._save_netcdf(ohc2d, filename)
             iris.coord_categorisation.add_month_number(ohc2d, 'time')
             iris.coord_categorisation.add_year(ohc2d, 'time')
             self._monthly_2d_clim(filename, ohc2d)
@@ -239,7 +240,7 @@ class OceanHeatContent(object):
                                                               'ohc')
             netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
                                        new_filename)
-            iris.save(ohc2d, netcdf_path, zlib=True, append=True)
+            iris.save(ohc2d, netcdf_path, zlib=True)
 
     def _plot(self, ohc2d, filename):
         iris.FUTURE.cell_datetime_objects = True
