@@ -94,14 +94,26 @@ def zmnam_plot(datafolder,figfolder,src_props):
             plt.figure()
             plt.plot(time_mo,pc_mo[:,i_lev])
             plt.xticks(time_mo[0:len(time_mo)+1:60],date_list[0:len(time_mo)+1:60])
+            plt.title(str(int(lev[i_lev]/lev_fac))+' hPa  '+\
+            src_props[1]+' '+src_props[2])
+            plt.xlabel('Time')
+            plt.ylabel('Zonal mean NAM')
+            plt.savefig(figfolder+'_'.join(src_props)+'_'+\
+            str(int(lev[i_lev]/lev_fac))+'hPa_mo_ts.png',format='png')
 
+            plt.figure()
             # PDF of the daily PC
             plt.figure()
             min_var = -5 ; max_var = 5; n_bars=50
 
+            """
             n, bins, patches = plt.hist(pc_da[:,i_lev], bins=n_bars,range=(min_var,max_var),\
                            histtype='bar',normed=True,alpha=.5,color='white')
-     
+            """
+            n, bins, patches = plt.hist(pc_da[:,i_lev], n_bars, density=True, \
+            range=(min_var,max_var), facecolor='b', alpha=0.75)
+
+
             # Reference normal Gaussian 
             mu = 0.
             sigma = 1.
@@ -110,7 +122,16 @@ def zmnam_plot(datafolder,figfolder,src_props):
                  linewidth=2, color='k',linestyle='--')#,alpha=0.5)
 
             plt.xlim(min_var,max_var)
-         
+            plt.title('Daily PDF ' + str(int(lev[i_lev]/lev_fac))+\
+            ' hPa  '+src_props[1]+' '+src_props[2])
+            plt.xlabel('Zonal mean NAM')
+            plt.ylabel('Normalized probability')  
+            plt.tight_layout()
+            plt.savefig(figfolder+'_'.join(src_props)+'_'+\
+            str(int(lev[i_lev]/lev_fac))+'hPa_da_pdf.png',format='png')
+
+
+
             # Regression of monthly PC onto gh field
             slope = np.zeros((len(lat),len(lon)),dtype='d')
         
@@ -163,9 +184,13 @@ def zmnam_plot(datafolder,figfolder,src_props):
             # Write current level - trouble above 100 Pa ...
             plt.text(0.20, 0.80, str(int(lev[i_lev]/lev_fac))+ ' hPa', \
             fontsize=12, transform=plt.gcf().transFigure)
+            plt.text(0.75, 0.80, src_props[1],\
+            fontsize=12, transform=plt.gcf().transFigure)
+            plt.text(0.75, 0.75, src_props[2],\
+            fontsize=12, transform=plt.gcf().transFigure)
             #plt.savefig(figfolder+'test'+str(int(lev[i_lev]/lev_fac))+'.png',format='png')
             plt.savefig(figfolder+'_'.join(src_props)+'_'+\
-            str(int(lev[i_lev]/lev_fac))+'hPa.png',format='png')
+            str(int(lev[i_lev]/lev_fac))+'hPa_mo_reg.png',format='png')
         else: continue
 
     return 
