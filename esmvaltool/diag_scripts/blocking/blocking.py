@@ -7,7 +7,7 @@ import calendar
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')  # noqa
+# matplotlib.use('Agg')  # noqa
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 from matplotlib import colors
@@ -17,12 +17,14 @@ import iris.time
 import iris.util
 import iris.coord_categorisation
 import iris.analysis
+import iris.analysis.stats
 import iris.coords
 import iris.quickplot
 import cartopy.crs as ccrs
 
 import esmvaltool.diag_scripts.shared
 import esmvaltool.diag_scripts.shared.names as n
+from esmvaltool.preprocessor import regrid
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -53,6 +55,11 @@ class Blocking(object):
         self.cfg = conf
         self.datasets = esmvaltool.diag_scripts.shared.Datasets(self.cfg)
         self.variables = esmvaltool.diag_scripts.shared.Variables(self.cfg)
+        for filename in self.datasets:
+            self.reference_dataset = self._get_reference_dataset(
+                self.datasets.get_info('reference_dataset', filename)
+            )
+            break
 
         self.compute_1d = self.cfg.get('compute_1d', True)
         self.compute_2d = self.cfg.get('compute_2d', True)
@@ -72,6 +79,8 @@ class Blocking(object):
         self.min_latitude = self.central_latitude - self.span - self.offset
         self.max_latitude = self.central_latitude + self.span + self.offset
 
+        self.blocking_2D = {}
+
         def _get_index(self, high, central, low,
                        north_distance, south_distance):
             if ((high - central) / north_distance) > self.north_threshold:
@@ -84,11 +93,93 @@ class Blocking(object):
     def compute(self):
         """Compute blocking diagnostic"""
         logger.info('Computing blocking')
+
+        logger.info('Dataset %s', self.reference_dataset)
+        reference_1d, reference_2d = \
+            self._get_blocking_indices(self.reference_dataset)
+
         for filename in self.datasets:
-            logger.info('Dataset {}'.format(filename))
-            result = self._blocking(filename)
-            self._blocking_1d(filename, result)
-            self._blocking_2d(filename, result)
+            logger.info('Dataset %s', filename)
+            if filename == self.reference_dataset:
+                continue
+            dataset_1d, dataset_2d = self._get_blocking_indices(filename)
+            if self.compute_2d:
+                cmap = colors.LinearSegmentedColormap.from_list('mymap', (
+                (0.1, 0.1, 0.7), (1, 1, 1), (0.7, 0.1, 0.09)), N=2 * self.max_color_scale)
+                projection = ccrs.NorthPolarStereo()
+                min_lat = np.min(reference_2d.coord('latitude').bounds)
+                max_lat = np.max(reference_2d.coord('latitude').bounds)
+                dataset_2d = regrid(dataset_2d, reference_2d, 'linear')
+                diff = dataset_2d - reference_2d
+                diff.long_name = 'Differences between model and reference in blocking index'
+
+                rms = diff.collapsed(
+                    ('longitude', 'latitude'),
+                    iris.analysis.RMS
+                )
+                if self.cfg[n.WRITE_NETCDF]:
+                    new_filename = os.path.basename(filename).replace('zg',
+                                                                    'blocking2Drms')
+                    netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
+                                            new_filename)
+                    iris.save(rms, target=netcdf_path, zlib=True)
+
+                corr = iris.analysis.stats.pearsonr(
+                    reference_2d, dataset_2d,
+                    corr_coords=('longitude', 'latitude'),
+                    weights=iris.analysis.cartography.area_weights(reference_2d),
+                )
+                if self.cfg[n.WRITE_NETCDF]:
+                    new_filename = os.path.basename(filename).replace('zg',
+                                                                    'blocking2Dcorr')
+                    netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
+                                            new_filename)
+                    iris.save(corr, target=netcdf_path, zlib=True)
+
+                logger.info('Correlation: {}'.format(corr.data))
+                logger.info('RMSE: {}'.format(rms.data))
+                for diff_slice in diff.slices_over('month_number'):
+                    plt.figure()
+                    axes = plt.axes(projection=projection)
+                    axes.set_extent(
+                        (-180, 180, min_lat, max_lat),
+                        crs=ccrs.PlateCarree()
+                    )
+                    iris.quickplot.pcolormesh(
+                        diff_slice,
+                        coords=('longitude', 'latitude'),
+                        cmap=cmap,
+                        vmin=-self.max_color_scale,
+                        vmax=self.max_color_scale
+                    )
+                    axes.coastlines()
+                    axes.gridlines(alpha=0.5, linestyle='--')
+                    theta = np.linspace(0, 2*np.pi, 100)
+                    center, radius = [0.5, 0.5], 0.5
+                    verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+                    circle = mpath.Path(verts * radius + center)
+                    axes.set_boundary(circle, transform=axes.transAxes)
+                    plt.savefig(self._get_plot_name(
+                        'blocking2Ddiff',
+                        filename,
+                        diff_slice.coord('month_number').points[0]))
+                    plt.close()
+
+    def _get_blocking_indices(self, filename):
+        result = self._blocking(filename)
+        index_1d = self._blocking_1d(filename)
+        index_2d = self._blocking_2d(filename, result)
+        return (index_1d, index_2d)
+
+
+    def _get_reference_dataset(self, reference_dataset):
+        for filename in self.datasets:
+            dataset = self.datasets.get_info(n.DATASET, filename)
+            if dataset == reference_dataset:
+                return filename
+        raise ValueError(
+            'Reference dataset "{}" not found'.format(reference_dataset)
+        )
 
     def _blocking(self, filename):
         zg500 = iris.load_cube(filename, 'geopotential_height')
@@ -102,6 +193,13 @@ class Blocking(object):
         lat = zg500.coord('latitude')
         lat_max = np.max(lat.points)
         lat_min = np.min(lat.points)
+        if self.compute_1d:
+            lat_values = []
+            for displacement in [-self.offset, 0, self.offset]:
+                central = self.central_latitude + displacement
+                lat_values.append(
+                    lat.cell(lat.nearest_neighbour_index(central))
+                )
 
         if self.compute_2d:
             latitudes = lat.points
@@ -112,53 +210,54 @@ class Blocking(object):
 
         blocking = iris.cube.CubeList()
         self.latitude_data = {}
+        total_years = len(set(zg500.coord('year').points))
+        block1d_data = None
         for lat_point in latitudes:
             if lat_point + self.span > lat_max:
                 continue
             if lat_point - self.span < lat_min:
                 continue
             logger.debug('Computing blocking for lat %d', lat_point)
-            blocking.append(self._compute_blocking(zg500, lat_point))
+            blocking_index = self._compute_blocking(zg500, lat_point)
+            if self.compute_1d and lat_point in lat_values:
+                if block1d_data is not None:
+                    block1d_data = np.logical_or(
+                        block1d_data, blocking_index.data
+                    )
+                else:
+                    block1d_data = blocking_index.data
+
+            blocking_index = blocking_index.aggregated_by(
+                'month_number', iris.analysis.SUM) / total_years
+            blocking.append(blocking_index)
+            blocking_index.long_name = 'Blocking index'
+            blocking_index.units = 'Days per month'
+
+        if self.compute_1d:
+            blocking_cube = iris.cube.Cube(
+                block1d_data.astype(int),
+                var_name="blocking",
+                attributes=None)
+
+            blocking_cube.add_dim_coord(zg500.coord('time'), (0,))
+            blocking_cube.add_dim_coord(zg500.coord('longitude'), (1,))
+            blocking_cube.add_aux_coord(iris.coords.AuxCoord.from_coord(
+                zg500.coord('latitude').copy([self.central_latitude])))
+            iris.coord_categorisation.add_month_number(blocking_cube, 'time')
+            result = blocking_cube.aggregated_by('month_number',
+                                             iris.analysis.SUM) / total_years
+            result.remove_coord('time')
+            iris.util.promote_aux_coord_to_dim_coord(result, 'month_number')
+
+            self.blocking_cube1d = result
 
         blocking_cube = blocking.merge_cube()
-        iris.coord_categorisation.add_year(blocking_cube, 'time')
         return blocking_cube
 
-    def _blocking_1d(self, filename, blocking_index):
+    def _blocking_1d(self, filename):
         if not self.compute_1d:
-            return
-
-        lat = blocking_index.coord('latitude')
-
-        total_years = len(set(blocking_index.coord('year').points))
-
-        blocking = None
-        for displacement in [-self.offset, 0, self.offset]:
-            central = self.central_latitude + displacement
-            lat_value = lat.cell(lat.nearest_neighbour_index(central))
-            lat_constraint = iris.Constraint(latitude=lat_value)
-            block = blocking_index.extract(lat_constraint).data
-            if blocking_index is not None:
-                blocking = np.logical_or(blocking, block)
-            else:
-                blocking = block
-        blocking_cube = iris.cube.Cube(
-            blocking.astype(int),
-            var_name="blocking",
-            attributes=None)
-
-        blocking_cube.add_dim_coord(blocking_index.coord('time'), (0,))
-        blocking_cube.add_dim_coord(blocking_index.coord('longitude'), (1,))
-        blocking_cube.add_aux_coord(iris.coords.AuxCoord.from_coord(
-            blocking_index.coord('latitude').copy([self.central_latitude])))
-        iris.coord_categorisation.add_month_number(blocking_cube, 'time')
-
-        result = blocking_cube.aggregated_by('month_number',
-                                             iris.analysis.SUM)
-        result.remove_coord('time')
-        iris.util.promote_aux_coord_to_dim_coord(result, 'month_number')
-
-        result = self._smooth_over_longitude(result) / total_years
+            return None
+        result = self._smooth_over_longitude(self.blocking_cube1d)
         result.units = 'days per month'
         result.var_name = 'blocking'
         result.long_name = 'Blocking 1D index'
@@ -187,30 +286,37 @@ class Blocking(object):
             axes = plt.gca()
             axes.set_ylim((result.coord('month').shape[0] - 0.5, -0.5))
 
-            plot_path = self._get_plot_name(filename)
+            plot_path = self._get_plot_name('blocking1D', filename)
             plt.savefig(plot_path)
             plt.close()
+        return result
 
-    def _get_plot_name(self, filename):
+    def _get_plot_name(self, name, filename, month=None):
         dataset = self.datasets.get_info(n.DATASET, filename)
         project = self.datasets.get_info(n.PROJECT, filename)
         ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
         start = self.datasets.get_info(n.START_YEAR, filename)
         end = self.datasets.get_info(n.END_YEAR, filename)
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
-
-        plot_filename = 'blocking1D_{project}_{dataset}_' \
+        if month is not None:
+            name = '{}_{:02}'.format(name, month)
+        plot_filename = '{name}_{project}_{dataset}_' \
                         '{ensemble}_{start}-{end}' \
-                        '.{out_type}'.format(dataset=dataset,
-                                             project=project,
-                                             ensemble=ensemble,
-                                             start=start,
-                                             end=end,
-                                             out_type=out_type)
+                        '.{out_type}'.format(
+                            name=name,
+                            dataset=dataset,
+                            project=project,
+                            ensemble=ensemble,
+                            start=start,
+                            end=end,
+                            out_type=out_type)
 
-        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
-                                 plot_filename)
-        return plot_path
+        plot_path = os.path.join(
+            self.cfg[n.PLOT_DIR],
+            project, dataset, ensemble)
+        if not os.path.isdir(plot_path):
+            os.makedirs(plot_path)
+        return os.path.join(plot_path, plot_filename)
 
     def _smooth_over_longitude(self, cube):
         if self.smoothing_window == 0:
@@ -294,14 +400,7 @@ class Blocking(object):
 
     def _blocking_2d(self, filename, blocking_index):
         if not self.compute_2d:
-            return
-        total_years = len(set(blocking_index.coord('year').points))
-        blocking_index = blocking_index.aggregated_by(
-            'month_number', iris.analysis.SUM) / total_years
-
-        blocking_index.long_name = 'Blocking index'
-        blocking_index.units = 'Days per month'
-
+            return None
         if self.cfg[n.WRITE_NETCDF]:
             new_filename = os.path.basename(filename).replace('zg',
                                                               'blocking')
@@ -343,36 +442,15 @@ class Blocking(object):
                 circle = mpath.Path(verts * radius + center)
                 axes.set_boundary(circle, transform=axes.transAxes)
 
-                plot_path = self._get_plot_name_2d(
+                plot_path = self._get_plot_name(
+                    'blocking2D',
                     filename,
-                    month_number,
+                    month_number
                 )
                 plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2,
                             dpi=500)
                 plt.close()
-
-    def _get_plot_name_2d(self, filename, month):
-        dataset = self.datasets.get_info(n.DATASET, filename)
-        project = self.datasets.get_info(n.PROJECT, filename)
-        ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
-        start = self.datasets.get_info(n.START_YEAR, filename)
-        end = self.datasets.get_info(n.END_YEAR, filename)
-        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
-        month = calendar.month_abbr[month]
-
-        plot_filename = 'blocking2D_{month}_{project}_{dataset}_' \
-                        '{ensemble}_{start}-{end}' \
-                        '.{out_type}'.format(dataset=dataset,
-                                             project=project,
-                                             ensemble=ensemble,
-                                             start=start,
-                                             end=end,
-                                             out_type=out_type,
-                                             month=month)
-
-        plot_path = os.path.join(self.cfg[n.PLOT_DIR],
-                                 plot_filename)
-        return plot_path
+        return blocking_index
 
 
 def main():
