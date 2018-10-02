@@ -3,14 +3,18 @@ import os
 import logging
 import itertools
 import calendar
+import math
 
 import numpy as np
 
 import matplotlib
-# matplotlib.use('Agg')  # noqa
+matplotlib.use('Agg')  # noqa
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 from matplotlib import colors
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+from matplotlib.ticker import FormatStrFormatter
 
 import iris
 import iris.time
@@ -94,14 +98,18 @@ class Blocking(object):
         """Compute blocking diagnostic"""
         logger.info('Computing blocking')
 
-        logger.info('Dataset %s', self.reference_dataset)
+        logger.info('Reference dataset %s', self.reference_dataset)
         reference_1d, reference_2d = \
             self._get_blocking_indices(self.reference_dataset)
 
-        for filename in self.datasets:
+        error = {}
+        correlation = {}
+
+        datasets = [dataset for dataset in self.datasets
+                    if dataset != self.reference_dataset]
+
+        for filename in datasets:
             logger.info('Dataset %s', filename)
-            if filename == self.reference_dataset:
-                continue
             dataset_1d, dataset_2d = self._get_blocking_indices(filename)
             if self.compute_2d:
                 cmap = colors.LinearSegmentedColormap.from_list('mymap', (
@@ -117,6 +125,7 @@ class Blocking(object):
                     ('longitude', 'latitude'),
                     iris.analysis.RMS
                 )
+
                 if self.cfg[n.WRITE_NETCDF]:
                     new_filename = os.path.basename(filename).replace('zg',
                                                                     'blocking2Drms')
@@ -135,7 +144,8 @@ class Blocking(object):
                     netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
                                             new_filename)
                     iris.save(corr, target=netcdf_path, zlib=True)
-
+                error[filename] = rms
+                correlation[filename] = corr
                 logger.info('Correlation: {}'.format(corr.data))
                 logger.info('RMSE: {}'.format(rms.data))
                 for diff_slice in diff.slices_over('month_number'):
@@ -164,6 +174,71 @@ class Blocking(object):
                         filename,
                         diff_slice.coord('month_number').points[0]))
                     plt.close()
+
+        plt.figure()
+        ax = plt.gca()
+        color = [
+            '#0000ff', '#7080ff',
+            '#00FF00', '#00CC00', '#00AA00',
+            '#FFD700', '#CCCC00', '#AAAA00',
+            '#A0522D', '#8B0000', '#8B4513',
+            '#000090',
+            ]
+        handles = []
+        for num, filename in enumerate(datasets):
+            marker = '$\mathrm{{{0}}}$'.format(chr(num + ord('A')))
+            plt.scatter(
+                correlation[filename].data,
+                error[filename].data,
+                c=color,
+                marker=marker,
+                zorder=2,
+            )
+            handles.append(Line2D([0], [0], marker=marker, color='white',
+                markerfacecolor='#000000', markeredgecolor='#000000',
+                label=self.datasets.get_info(n.DATASET, filename),
+            ))
+
+
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0 + box.height * 0.20,
+                 box.width * 0.80, box.height * 0.80])
+        ax.set_title('Blocking 2D')
+        ax.set_xlabel('Pearson correlation')
+        ax.set_ylabel('Root Mean Square Error (days per month)')
+        ax.set_xticks([0], minor=False)
+        ax.set_xticks(np.arange(-1, 1.1, 0.25), minor=True)
+        ax.tick_params(axis='x', which='major', labelsize=0)
+        ax.xaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
+        top = math.ceil(ax.get_ylim()[1]) + 1
+        ax.set_yticks(np.arange(0, top , 1), minor=False)
+        ax.set_yticks(np.arange(0, top - 0.5, 0.5), minor=True)
+        ax.grid(True, 'major', linestyle='-', color='black', zorder=0)
+        ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
+        plt.ylim(ymin=0)
+        plt.xlim(-1, 1)
+        legend = plt.legend(
+            handles=[Patch(facecolor=col, label=calendar.month_name[num + 1])
+                     for num, col in enumerate(color)],
+            loc='upper center',
+            bbox_to_anchor=(0.5, -0.15),
+            ncol=4,
+            frameon=False,
+        )
+        plt.legend(
+            handles=handles,
+            loc='upper left',
+            bbox_to_anchor=(1, 1),
+            ncol=1,
+            frameon=False,
+        )
+        ax.add_artist(legend)
+
+        plt.savefig(os.path.join(
+            self.cfg[n.PLOT_DIR],
+            'blocking2D.png',
+        ))
+        plt.close()
 
     def _get_blocking_indices(self, filename):
         result = self._blocking(filename)
