@@ -7,7 +7,7 @@ import calendar
 import numpy as np
 
 import matplotlib
-# matplotlib.use('Agg')  # noqa
+matplotlib.use('Agg')  # noqa
 import matplotlib.pyplot as plt
 import matplotlib.path as mpath
 from matplotlib import colors
