@@ -13,3 +13,9 @@ class zg(Fix):
         zg_cube = cubes.extract(zg_constraint)[0]
         zg_cube.standard_name = 'geopotential_height'
         return cubes
+
+    def fix_metadata(self, cube):
+        lev_coord = cube.coord('Level')
+        lev_coord.var_name = 'plev'
+        lev_coord.standard_name = 'air_presuure'
+        return cube
