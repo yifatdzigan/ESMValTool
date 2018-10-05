@@ -17,5 +17,5 @@ class zg(Fix):
     def fix_metadata(self, cube):
         lev_coord = cube.coord('Level')
         lev_coord.var_name = 'plev'
-        lev_coord.standard_name = 'air_presuure'
+        lev_coord.standard_name = 'air_pressure'
         return cube
