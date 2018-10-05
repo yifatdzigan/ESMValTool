@@ -84,6 +84,8 @@ class Blocking(object):
         self.max_latitude = self.central_latitude + self.span + self.offset
 
         self.blocking_2D = {}
+        self.cfg[n.WRITE_NETCDF] = False
+        self.cfg[n.WRITE_PLOTS] = False
 
         def _get_index(self, high, central, low,
                        north_distance, south_distance):
@@ -118,6 +120,10 @@ class Blocking(object):
                 min_lat = np.min(reference_2d.coord('latitude').bounds)
                 max_lat = np.max(reference_2d.coord('latitude').bounds)
                 dataset_2d = regrid(dataset_2d, reference_2d, 'linear')
+                print(reference_2d)
+                print(reference_2d.coord('month_number'))
+                print(dataset_2d)
+                print(dataset_2d.coord('month_number'))
                 diff = dataset_2d - reference_2d
                 diff.long_name = 'Differences between model and reference in blocking index'
 
@@ -364,6 +370,8 @@ class Blocking(object):
             plot_path = self._get_plot_name('blocking1D', filename)
             plt.savefig(plot_path)
             plt.close()
+        result.remove_coord('time')
+        iris.util.promote_aux_coord_to_dim_coord(result, 'month_number')
         return result
 
     def _get_plot_name(self, name, filename, month=None):
@@ -373,10 +381,12 @@ class Blocking(object):
         start = self.datasets.get_info(n.START_YEAR, filename)
         end = self.datasets.get_info(n.END_YEAR, filename)
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
+        if ensemble is not None:
+           ensemble = '_{}'.format(ensemble)
         if month is not None:
             name = '{}_{:02}'.format(name, month)
-        plot_filename = '{name}_{project}_{dataset}_' \
-                        '{ensemble}_{start}-{end}' \
+        plot_filename = '{name}_{project}_{dataset}{ensemble}_' \
+                        '{start}-{end}' \
                         '.{out_type}'.format(
                             name=name,
                             dataset=dataset,
@@ -388,7 +398,9 @@ class Blocking(object):
 
         plot_path = os.path.join(
             self.cfg[n.PLOT_DIR],
-            project, dataset, ensemble)
+            project, dataset)
+        if ensemble is not None:
+            plot_path = os.path.join(plot_path, ensemble)
         if not os.path.isdir(plot_path):
             os.makedirs(plot_path)
         return os.path.join(plot_path, plot_filename)
@@ -525,6 +537,9 @@ class Blocking(object):
                 plt.savefig(plot_path, bbox_inches='tight', pad_inches=0.2,
                             dpi=500)
                 plt.close()
+        blocking_index.remove_coord('time')
+        iris.util.promote_aux_coord_to_dim_coord(blocking_index, 'month_number')
+        blocking_index.coord('month_number').attributes.clear()
         return blocking_index
 
 
