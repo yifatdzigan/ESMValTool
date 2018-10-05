@@ -47,14 +47,23 @@ def concatenate_callback(raw_cube, field, _):
                 coord.units = units
 
 
-def load_cubes(files, filename, metadata, constraints=None, callback=None):
-    """Load iris cubes from files"""
+def load_cubes(files, filename, metadata, constraints=None,
+               callback=None, fixes=None):
+    """Load iris cubes from files."""
     logger.debug("Loading:\n%s", "\n".join(files))
-    cubes = iris.load_raw(files, constraints=constraints, callback=callback)
-    iris.util.unify_time_units(cubes)
+    cubes = iris.cube.CubeList()
+    for datafile in files:
+        raw_cubes = iris.load_raw(datafile, callback=callback)
+        if fixes:
+            for fix in fixes:
+                raw_cubes = fix.fix_raw_cubes(raw_cubes)
+        for raw_cube in raw_cubes:
+            cubes.append(raw_cube)
+
+    cubes = cubes.extract(constraints=constraints)
     if not cubes:
         raise Exception('Can not load cubes from {0}'.format(files))
-
+    iris.util.unify_time_units(cubes)
     for cube in cubes:
         cube.attributes['_filename'] = filename
         cube.attributes['metadata'] = yaml.safe_dump(metadata)
@@ -67,7 +76,7 @@ def load_cubes(files, filename, metadata, constraints=None, callback=None):
 
 
 def concatenate(cubes):
-    """Concatenate all cubes after fixing metadata"""
+    """Concatenate all cubes after fixing metadata."""
     try:
         cube = iris.cube.CubeList(cubes).concatenate_cube()
         return cube
@@ -91,21 +100,23 @@ def _save_cubes(cubes, **args):
 
     if (os.path.exists(filename)
             and all(cube.has_lazy_data() for cube in cubes)):
-        logger.debug("Not saving cubes %s to %s to avoid data loss. "
-                     "The cube is probably unchanged.", cubes, filename)
+        logger.debug(
+            "Not saving cubes %s to %s to avoid data loss. "
+            "The cube is probably unchanged.", cubes, filename)
     else:
         logger.debug("Saving cubes %s to %s", cubes, filename)
         if optimize_accesss:
             cube = cubes[0]
             if optimize_accesss == 'map':
-                dims = set(cube.coord_dims('latitude') +
-                           cube.coord_dims('longitude'))
+                dims = set(
+                    cube.coord_dims('latitude') + cube.coord_dims('longitude'))
             elif optimize_accesss == 'timeseries':
                 dims = set(cube.coord_dims('time'))
             else:
                 dims = tuple()
-                for coord_dims in (cube.coord_dims(dimension) for dimension
-                                   in optimize_accesss.split(' ')):
+                for coord_dims in (
+                        cube.coord_dims(dimension)
+                        for dimension in optimize_accesss.split(' ')):
                     dims += coord_dims
                 dims = set(dims)
 
@@ -128,10 +139,9 @@ def _save_cubes(cubes, **args):
     return filename
 
 
-def save(cubes, optimize_access=None,
-         compress=False, debug=False, step=None):
+def save(cubes, optimize_access=None, compress=False, debug=False, step=None):
     """
-    Save iris cubes to file
+    Save iris cubes to file.
 
     Path is taken from the _filename attributte in the code.
 
@@ -162,7 +172,8 @@ def save(cubes, optimize_access=None,
 
     Returns
     -------
-
+    list
+        List of paths
     """
     paths = {}
     for cube in cubes:
@@ -185,8 +196,11 @@ def save(cubes, optimize_access=None,
     for filename in paths:
         # _save_cubes(cubes=paths[filename], target=filename,
         #             fill_value=GLOBAL_FILL_VALUE)
-        _save_cubes(cubes=paths[filename], target=filename, zlib=compress,
-                    optimize_access=optimize_access)
+        _save_cubes(
+            cubes=paths[filename],
+            target=filename,
+            zlib=compress,
+            optimize_access=optimize_access)
 
     return list(paths)
 
@@ -228,7 +242,7 @@ def extract_metadata(files, write_ncl=False):
 
 
 def _write_ncl_metadata(output_dir, metadata):
-    """Write NCL metadata files to output_dir"""
+    """Write NCL metadata files to output_dir."""
     variables = list(metadata.values())
     # 'variables' is a list of dicts, but NCL does not support nested
     # dicts, so convert to dict of lists.
@@ -241,7 +255,10 @@ def _write_ncl_metadata(output_dir, metadata):
                 if key not in input_file_info:
                     input_file_info[key] = []
                 input_file_info[key].append(fx_files[key])
-
+    # NCL cannot handle nested arrays so delete for now
+    # TODO: switch to NCL list type
+    input_file_info.pop('institute', None)
+    input_file_info.pop('modeling_realm', None)
     info = {
         'input_file_info': input_file_info,
         'dataset_info': {},
@@ -273,6 +290,4 @@ def _write_ncl_metadata(output_dir, metadata):
 
 
 class ConcatenationError(Exception):
-    """Exception class for concatenation errors"""
-
-    pass
+    """Exception class for concatenation errors."""
