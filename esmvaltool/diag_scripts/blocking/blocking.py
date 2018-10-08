@@ -167,7 +167,7 @@ class Blocking(object):
             self.create_comparison_plot(datasets, correlation, error)
             for month in range(1, 13):
                 self.create_comparison_plot(
-                    datasets, correlation, error. month
+                    datasets, correlation, error, month
                 )
 
     def _get_blocking_indices(self, filename):
@@ -504,7 +504,7 @@ class Blocking(object):
         plt.close()
 
     def create_comparison_plot(self, datasets, correlation, error,
-        month=None):
+                               month=None):
         plt.figure()
         ax = plt.gca()
         if month:
@@ -537,7 +537,7 @@ class Blocking(object):
         box = ax.get_position()
         ax.set_position(
             [box.x0, box.y0 + box.height * 0.20,
-            box.width * 0.80, box.height * 0.80]
+             box.width * 0.80, box.height * 0.80]
         )
         ax.set_title('Blocking 2D')
         ax.set_xlabel('Pearson correlation')
