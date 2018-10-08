@@ -543,7 +543,10 @@ class Blocking(object):
                 [box.x0, box.y0,
                 box.width * 0.80, box.height]
             )
-        ax.set_title('Blocking 2D')
+        if month is None:
+            ax.set_title('Blocking 2D')
+        else:
+            ax.set_title('Blocking 2D ({})'.format(calendar.month_name[month]))
         ax.set_xlabel('Pearson correlation')
         ax.set_ylabel('Root Mean Square Error (days per month)')
         ax.set_xticks([0], minor=False)
