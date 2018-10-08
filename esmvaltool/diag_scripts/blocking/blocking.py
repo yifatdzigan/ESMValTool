@@ -114,18 +114,18 @@ class Blocking(object):
             logger.info('Dataset %s', filename)
             dataset_1d, dataset_2d = self._get_blocking_indices(filename)
             if self.compute_2d:
-                cmap = colors.LinearSegmentedColormap.from_list('mymap', (
-                (0.1, 0.1, 0.7), (1, 1, 1), (0.7, 0.1, 0.09)), N=2 * self.max_color_scale)
+                cmap = colors.LinearSegmentedColormap.from_list(
+                    'mymap',
+                    ((0.1, 0.1, 0.7), (1, 1, 1), (0.7, 0.1, 0.09)),
+                    N=2 * self.max_color_scale
+                )
                 projection = ccrs.NorthPolarStereo()
                 min_lat = np.min(reference_2d.coord('latitude').bounds)
                 max_lat = np.max(reference_2d.coord('latitude').bounds)
                 dataset_2d = regrid(dataset_2d, reference_2d, 'linear')
-                print(reference_2d)
-                print(reference_2d.coord('month_number'))
-                print(dataset_2d)
-                print(dataset_2d.coord('month_number'))
                 diff = dataset_2d - reference_2d
-                diff.long_name = 'Differences between model and reference in blocking index'
+                diff.long_name = 'Differences between model and' \
+                                 'reference in blocking index'
 
                 rms = diff.collapsed(
                     ('longitude', 'latitude'),
@@ -133,27 +133,28 @@ class Blocking(object):
                 )
 
                 if self.cfg[n.WRITE_NETCDF]:
-                    new_filename = os.path.basename(filename).replace('zg',
-                                                                    'blocking2Drms')
-                    netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
-                                            new_filename)
+                    new_filename = os.path.basename(filename).replace(
+                        'zg', 'blocking2Drms')
+                    netcdf_path = os.path.join(
+                        self.cfg[n.WORK_DIR], new_filename)
                     iris.save(rms, target=netcdf_path, zlib=True)
 
                 corr = iris.analysis.stats.pearsonr(
                     reference_2d, dataset_2d,
                     corr_coords=('longitude', 'latitude'),
-                    weights=iris.analysis.cartography.area_weights(reference_2d),
+                    weights=iris.analysis.cartography.area_weights(
+                        reference_2d),
                 )
                 if self.cfg[n.WRITE_NETCDF]:
-                    new_filename = os.path.basename(filename).replace('zg',
-                                                                    'blocking2Dcorr')
-                    netcdf_path = os.path.join(self.cfg[n.WORK_DIR],
-                                            new_filename)
+                    new_filename = os.path.basename(filename).replace(
+                        'zg', 'blocking2Dcorr')
+                    netcdf_path = os.path.join(
+                        self.cfg[n.WORK_DIR], new_filename)
                     iris.save(corr, target=netcdf_path, zlib=True)
                 error[filename] = rms
                 correlation[filename] = corr
-                logger.info('Correlation: {}'.format(corr.data))
-                logger.info('RMSE: {}'.format(rms.data))
+                logger.info('Correlation: %f', corr.data)
+                logger.info('RMSE: %f', rms.data)
                 for diff_slice in diff.slices_over('month_number'):
                     plt.figure()
                     axes = plt.axes(projection=projection)
@@ -192,7 +193,7 @@ class Blocking(object):
             ]
         handles = []
         for num, filename in enumerate(datasets):
-            marker = '$\mathrm{{{0}}}$'.format(chr(num + ord('A')))
+            marker = '$\\mathrm{{{0}}}$'.format(chr(num + ord('A')))
             plt.scatter(
                 correlation[filename].data,
                 error[filename].data,
@@ -200,15 +201,19 @@ class Blocking(object):
                 marker=marker,
                 zorder=2,
             )
-            handles.append(Line2D([0], [0], marker=marker, color='white',
-                markerfacecolor='#000000', markeredgecolor='#000000',
-                label=self.datasets.get_info(n.DATASET, filename),
-            ))
-
+            handles.append(
+                Line2D(
+                    [0], [0], marker=marker, color='white',
+                    markerfacecolor='#000000', markeredgecolor='#000000',
+                    label=self.datasets.get_info(n.DATASET, filename)
+                )
+            )
 
         box = ax.get_position()
-        ax.set_position([box.x0, box.y0 + box.height * 0.20,
-                 box.width * 0.80, box.height * 0.80])
+        ax.set_position(
+            [box.x0, box.y0 + box.height * 0.20,
+             box.width * 0.80, box.height * 0.80]
+        )
         ax.set_title('Blocking 2D')
         ax.set_xlabel('Pearson correlation')
         ax.set_ylabel('Root Mean Square Error (days per month)')
@@ -217,7 +222,7 @@ class Blocking(object):
         ax.tick_params(axis='x', which='major', labelsize=0)
         ax.xaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
         top = math.ceil(ax.get_ylim()[1]) + 1
-        ax.set_yticks(np.arange(0, top , 1), minor=False)
+        ax.set_yticks(np.arange(0, top, 1), minor=False)
         ax.set_yticks(np.arange(0, top - 0.5, 0.5), minor=True)
         ax.grid(True, 'major', linestyle='-', color='black', zorder=0)
         ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
@@ -251,7 +256,6 @@ class Blocking(object):
         index_1d = self._blocking_1d(filename)
         index_2d = self._blocking_2d(filename, result)
         return (index_1d, index_2d)
-
 
     def _get_reference_dataset(self, reference_dataset):
         for filename in self.datasets:
@@ -325,8 +329,9 @@ class Blocking(object):
             blocking_cube.add_aux_coord(iris.coords.AuxCoord.from_coord(
                 zg500.coord('latitude').copy([self.central_latitude])))
             iris.coord_categorisation.add_month_number(blocking_cube, 'time')
-            result = blocking_cube.aggregated_by('month_number',
-                                             iris.analysis.SUM) / total_years
+            result = blocking_cube.aggregated_by(
+                'month_number', iris.analysis.SUM
+            ) / total_years
             result.remove_coord('time')
             iris.util.promote_aux_coord_to_dim_coord(result, 'month_number')
 
@@ -540,7 +545,9 @@ class Blocking(object):
                             dpi=500)
                 plt.close()
         blocking_index.remove_coord('time')
-        iris.util.promote_aux_coord_to_dim_coord(blocking_index, 'month_number')
+        iris.util.promote_aux_coord_to_dim_coord(
+            blocking_index, 'month_number'
+        )
         blocking_index.coord('month_number').attributes.clear()
         return blocking_index
 
