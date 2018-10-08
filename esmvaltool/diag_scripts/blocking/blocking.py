@@ -563,7 +563,8 @@ class Blocking(object):
                 frameon=False,
             )
         self._create_dataset_legend(datasets)
-        ax.add_artist(legend)
+        if not month:
+            ax.add_artist(legend)
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
         if month:
             name = 'blocking2D_{:02}.{}'.format(month, out_type)
