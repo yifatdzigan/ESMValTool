@@ -291,7 +291,6 @@ class OceanHeatContent(object):
         return plot_path
 
 
-
 if __name__ == '__main__':
     with esmvaltool.diag_scripts.shared.run_diagnostic() as config:
         OceanHeatContent(config).compute()
