@@ -84,8 +84,6 @@ class Blocking(object):
         self.max_latitude = self.central_latitude + self.span + self.offset
 
         self.blocking_2D = {}
-        self.cfg[n.WRITE_NETCDF] = False
-        self.cfg[n.WRITE_PLOTS] = False
 
         def _get_index(self, high, central, low,
                        north_distance, south_distance):
