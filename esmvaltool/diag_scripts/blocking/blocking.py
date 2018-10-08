@@ -522,7 +522,7 @@ class Blocking(object):
             corr = correlation[filename]
             err = error[filename]
 
-            if month:
+            if month is not None:
                 corr = corr.extract(iris.Constraint(month_number=month))
                 err = err.extract(iris.Constraint(month_number=month))
 
@@ -535,10 +535,16 @@ class Blocking(object):
             )
 
         box = ax.get_position()
-        ax.set_position(
-            [box.x0, box.y0 + box.height * 0.20,
-             box.width * 0.80, box.height * 0.80]
-        )
+        if month is None:
+            ax.set_position(
+                [box.x0, box.y0 + box.height * 0.20,
+                box.width * 0.80, box.height * 0.80]
+            )
+        else:
+            ax.set_position(
+                [box.x0, box.y0,
+                box.width * 0.80, box.height]
+            )
         ax.set_title('Blocking 2D')
         ax.set_xlabel('Pearson correlation')
         ax.set_ylabel('Root Mean Square Error (days per month)')
@@ -553,7 +559,7 @@ class Blocking(object):
         ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
         plt.ylim(ymin=0)
         plt.xlim(-1, 1)
-        if not month:
+        if month is None:
             legend = plt.legend(
                 handles=[
                     Patch(facecolor=col, label=calendar.month_name[num + 1])
@@ -565,16 +571,16 @@ class Blocking(object):
                 frameon=False,
             )
         self._create_dataset_legend(datasets)
-        if not month:
+        if month is None:
             ax.add_artist(legend)
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
-        if month:
-            name = 'blocking2D_{:02}.{}'.format(month, out_type)
-        else:
+        if month is None:
             name = 'blocking2D.{}'.format(out_type)
+        else:
+            name = 'blocking2D_{:02}.{}'.format(month, out_type)
         plt.savefig(os.path.join(
             self.cfg[n.PLOT_DIR],
-            'blocking2D.png',
+            name,
         ))
         plt.close()
 
