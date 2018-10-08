@@ -372,11 +372,15 @@ class Blocking(object):
         ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
         start = self.datasets.get_info(n.START_YEAR, filename)
         end = self.datasets.get_info(n.END_YEAR, filename)
+        if ensemble is None:
+            ensemble = ''
+        else:
+            ensemble += '_'
         out_type = self.cfg[n.OUTPUT_FILE_TYPE]
         if month is not None:
             name = '{}_{:02}'.format(name, month)
         plot_filename = '{name}_{project}_{dataset}_' \
-                        '{ensemble}_{start}-{end}' \
+                        '{ensemble}{start}-{end}' \
                         '.{out_type}'.format(
                             name=name,
                             dataset=dataset,
