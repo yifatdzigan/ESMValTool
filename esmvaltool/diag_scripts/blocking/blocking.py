@@ -127,6 +127,12 @@ class Blocking(object):
                 diff.long_name = 'Differences between model and' \
                                  'reference in blocking index'
 
+                for diff_slice in diff.slices_over('month_number'):
+                    self.plot_differences(
+                        filename, diff_slice, cmap, projection,
+                        min_lat, max_lat
+                    )
+
                 rms = diff.collapsed(
                     ('longitude', 'latitude'),
                     iris.analysis.RMS
@@ -151,106 +157,18 @@ class Blocking(object):
                     netcdf_path = os.path.join(
                         self.cfg[n.WORK_DIR], new_filename)
                     iris.save(corr, target=netcdf_path, zlib=True)
+
                 error[filename] = rms
                 correlation[filename] = corr
                 logger.info('Correlation: %f', corr.data)
                 logger.info('RMSE: %f', rms.data)
-                for diff_slice in diff.slices_over('month_number'):
-                    plt.figure()
-                    axes = plt.axes(projection=projection)
-                    axes.set_extent(
-                        (-180, 180, min_lat, max_lat),
-                        crs=ccrs.PlateCarree()
-                    )
-                    iris.quickplot.pcolormesh(
-                        diff_slice,
-                        coords=('longitude', 'latitude'),
-                        cmap=cmap,
-                        vmin=-self.max_color_scale,
-                        vmax=self.max_color_scale
-                    )
-                    axes.coastlines()
-                    axes.gridlines(alpha=0.5, linestyle='--')
-                    theta = np.linspace(0, 2*np.pi, 100)
-                    center, radius = [0.5, 0.5], 0.5
-                    verts = np.vstack([np.sin(theta), np.cos(theta)]).T
-                    circle = mpath.Path(verts * radius + center)
-                    axes.set_boundary(circle, transform=axes.transAxes)
-                    plt.savefig(self._get_plot_name(
-                        'blocking2Ddiff',
-                        filename,
-                        diff_slice.coord('month_number').points[0]))
-                    plt.close()
 
         if self.cfg[n.WRITE_PLOTS]:
-            plt.figure()
-            ax = plt.gca()
-            color = [
-                '#0000ff', '#7080ff',
-                '#00FF00', '#00CC00', '#00AA00',
-                '#FFD700', '#CCCC00', '#AAAA00',
-                '#A0522D', '#8B0000', '#8B4513',
-                '#000090',
-                ]
-            handles = []
-            for num, filename in enumerate(datasets):
-                marker = '$\\mathrm{{{0}}}$'.format(chr(num + ord('A')))
-                plt.scatter(
-                    correlation[filename].data,
-                    error[filename].data,
-                    c=color,
-                    marker=marker,
-                    zorder=2,
+            self.create_comparison_plot(datasets, correlation, error)
+            for month in range(1, 13):
+                self.create_comparison_plot(
+                    datasets, correlation, error. month
                 )
-                handles.append(
-                    Line2D(
-                        [0], [0], marker=marker, color='white',
-                        markerfacecolor='#000000', markeredgecolor='#000000',
-                        label=self.datasets.get_info(n.DATASET, filename)
-                    )
-                )
-
-            box = ax.get_position()
-            ax.set_position(
-                [box.x0, box.y0 + box.height * 0.20,
-                box.width * 0.80, box.height * 0.80]
-            )
-            ax.set_title('Blocking 2D')
-            ax.set_xlabel('Pearson correlation')
-            ax.set_ylabel('Root Mean Square Error (days per month)')
-            ax.set_xticks([0], minor=False)
-            ax.set_xticks(np.arange(-1, 1.1, 0.25), minor=True)
-            ax.tick_params(axis='x', which='major', labelsize=0)
-            ax.xaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-            top = math.ceil(ax.get_ylim()[1]) + 1
-            ax.set_yticks(np.arange(0, top, 1), minor=False)
-            ax.set_yticks(np.arange(0, top - 0.5, 0.5), minor=True)
-            ax.grid(True, 'major', linestyle='-', color='black', zorder=0)
-            ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
-            plt.ylim(ymin=0)
-            plt.xlim(-1, 1)
-            legend = plt.legend(
-                handles=[Patch(facecolor=col, label=calendar.month_name[num + 1])
-                        for num, col in enumerate(color)],
-                loc='upper center',
-                bbox_to_anchor=(0.5, -0.15),
-                ncol=4,
-                frameon=False,
-            )
-            plt.legend(
-                handles=handles,
-                loc='upper left',
-                bbox_to_anchor=(1, 1),
-                ncol=1,
-                frameon=False,
-            )
-            ax.add_artist(legend)
-
-            plt.savefig(os.path.join(
-                self.cfg[n.PLOT_DIR],
-                'blocking2D.png',
-            ))
-            plt.close()
 
     def _get_blocking_indices(self, filename):
         result = self._blocking(filename)
@@ -556,6 +474,132 @@ class Blocking(object):
         )
         blocking_index.coord('month_number').attributes.clear()
         return blocking_index
+
+    def plot_differences(self, filename, diff_cube, cmap, projection,
+                         min_lat, max_lat):
+        plt.figure()
+        axes = plt.axes(projection=projection)
+        axes.set_extent(
+            (-180, 180, min_lat, max_lat),
+            crs=ccrs.PlateCarree()
+        )
+        iris.quickplot.pcolormesh(
+            diff_cube,
+            coords=('longitude', 'latitude'),
+            cmap=cmap,
+            vmin=-self.max_color_scale,
+            vmax=self.max_color_scale
+        )
+        axes.coastlines()
+        axes.gridlines(alpha=0.5, linestyle='--')
+        theta = np.linspace(0, 2*np.pi, 100)
+        center, radius = [0.5, 0.5], 0.5
+        verts = np.vstack([np.sin(theta), np.cos(theta)]).T
+        circle = mpath.Path(verts * radius + center)
+        axes.set_boundary(circle, transform=axes.transAxes)
+        plt.savefig(self._get_plot_name(
+            'blocking2Ddiff',
+            filename,
+            diff_cube.coord('month_number').points[0]))
+        plt.close()
+
+    def create_comparison_plot(self, datasets, correlation, error,
+        month=None):
+        plt.figure()
+        ax = plt.gca()
+        if month:
+            color = 'black'
+        else:
+            color = [
+                '#0000ff', '#7080ff',
+                '#00FF00', '#00CC00', '#00AA00',
+                '#FFD700', '#CCCC00', '#AAAA00',
+                '#A0522D', '#8B0000', '#8B4513',
+                '#000090',
+                ]
+
+        for num, filename in enumerate(datasets):
+            corr = correlation[filename]
+            error = error[filename]
+
+            if month:
+                corr = corr.extract(iris.Constraint(month_number=month))
+                error = corr.extract(iris.Constraint(month_number=month))
+
+            plt.scatter(
+                corr.data,
+                error.data,
+                c=color,
+                marker=self._get_marker(num),
+                zorder=2,
+            )
+
+        box = ax.get_position()
+        ax.set_position(
+            [box.x0, box.y0 + box.height * 0.20,
+            box.width * 0.80, box.height * 0.80]
+        )
+        ax.set_title('Blocking 2D')
+        ax.set_xlabel('Pearson correlation')
+        ax.set_ylabel('Root Mean Square Error (days per month)')
+        ax.set_xticks([0], minor=False)
+        ax.set_xticks(np.arange(-1, 1.1, 0.25), minor=True)
+        ax.tick_params(axis='x', which='major', labelsize=0)
+        ax.xaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
+        top = math.ceil(ax.get_ylim()[1]) + 1
+        ax.set_yticks(np.arange(0, top, 1), minor=False)
+        ax.set_yticks(np.arange(0, top - 0.5, 0.5), minor=True)
+        ax.grid(True, 'major', linestyle='-', color='black', zorder=0)
+        ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
+        plt.ylim(ymin=0)
+        plt.xlim(-1, 1)
+        if not month:
+            legend = plt.legend(
+                handles=[
+                    Patch(facecolor=col, label=calendar.month_name[num + 1])
+                    for num, col in enumerate(color)
+                ],
+                loc='upper center',
+                bbox_to_anchor=(0.5, -0.15),
+                ncol=4,
+                frameon=False,
+            )
+        self._create_dataset_legend(datasets)
+        ax.add_artist(legend)
+        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
+        if month:
+            name = 'blocking2D_{:02}.{}'.format(month, out_type)
+        else:
+            name = 'blocking2D.{}'.format(out_type)
+        plt.savefig(os.path.join(
+            self.cfg[n.PLOT_DIR],
+            'blocking2D.png',
+        ))
+        plt.close()
+
+    def _create_dataset_legend(self, datasets):
+        handles = []
+        for num, filename in enumerate(datasets):
+            handles.append(
+                Line2D(
+                    [0], [0],
+                    marker=self._get_marker(num),
+                    color='white',
+                    markerfacecolor='#000000', markeredgecolor='#000000',
+                    label=self.datasets.get_info(n.DATASET, filename)
+                )
+            )
+
+        plt.legend(
+            handles=handles,
+            loc='upper left',
+            bbox_to_anchor=(1, 1),
+            ncol=1,
+            frameon=False,
+        )
+
+    def _get_marker(self, num):
+        return '$\\mathrm{{{0}}}$'.format(chr(num + ord('A')))
 
 
 def main():
