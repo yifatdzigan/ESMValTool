@@ -1,6 +1,7 @@
 """Fixes for NCEP-NCAR"""
 
 from iris import Constraint
+from iris.cube import CubeList
 
 from ..fix import Fix
 
@@ -18,5 +19,7 @@ class zg(Fix):
         lev_coord = cube.coord('Level')
         lev_coord.var_name = 'plev'
         lev_coord.standard_name = 'air_pressure'
-        cube = cube.intersection(latitude=(-90, 90))
+        slices = CubeList(reversed([lat_slice for lat_slice in cube.slices_over('latitude')]))
+        cube = slices.merge_cube() 
+        print(cube.coord('latitude'))
         return cube
