@@ -520,15 +520,15 @@ class Blocking(object):
 
         for num, filename in enumerate(datasets):
             corr = correlation[filename]
-            error = error[filename]
+            err = error[filename]
 
             if month:
                 corr = corr.extract(iris.Constraint(month_number=month))
-                error = corr.extract(iris.Constraint(month_number=month))
+                err = err.extract(iris.Constraint(month_number=month))
 
             plt.scatter(
                 corr.data,
-                error.data,
+                err.data,
                 c=color,
                 marker=self._get_marker(num),
                 zorder=2,
