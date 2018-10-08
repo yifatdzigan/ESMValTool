@@ -182,74 +182,75 @@ class Blocking(object):
                         diff_slice.coord('month_number').points[0]))
                     plt.close()
 
-        plt.figure()
-        ax = plt.gca()
-        color = [
-            '#0000ff', '#7080ff',
-            '#00FF00', '#00CC00', '#00AA00',
-            '#FFD700', '#CCCC00', '#AAAA00',
-            '#A0522D', '#8B0000', '#8B4513',
-            '#000090',
-            ]
-        handles = []
-        for num, filename in enumerate(datasets):
-            marker = '$\\mathrm{{{0}}}$'.format(chr(num + ord('A')))
-            plt.scatter(
-                correlation[filename].data,
-                error[filename].data,
-                c=color,
-                marker=marker,
-                zorder=2,
-            )
-            handles.append(
-                Line2D(
-                    [0], [0], marker=marker, color='white',
-                    markerfacecolor='#000000', markeredgecolor='#000000',
-                    label=self.datasets.get_info(n.DATASET, filename)
+        if self.cfg[n.WRITE_PLOTS]:
+            plt.figure()
+            ax = plt.gca()
+            color = [
+                '#0000ff', '#7080ff',
+                '#00FF00', '#00CC00', '#00AA00',
+                '#FFD700', '#CCCC00', '#AAAA00',
+                '#A0522D', '#8B0000', '#8B4513',
+                '#000090',
+                ]
+            handles = []
+            for num, filename in enumerate(datasets):
+                marker = '$\\mathrm{{{0}}}$'.format(chr(num + ord('A')))
+                plt.scatter(
+                    correlation[filename].data,
+                    error[filename].data,
+                    c=color,
+                    marker=marker,
+                    zorder=2,
                 )
+                handles.append(
+                    Line2D(
+                        [0], [0], marker=marker, color='white',
+                        markerfacecolor='#000000', markeredgecolor='#000000',
+                        label=self.datasets.get_info(n.DATASET, filename)
+                    )
+                )
+
+            box = ax.get_position()
+            ax.set_position(
+                [box.x0, box.y0 + box.height * 0.20,
+                box.width * 0.80, box.height * 0.80]
             )
+            ax.set_title('Blocking 2D')
+            ax.set_xlabel('Pearson correlation')
+            ax.set_ylabel('Root Mean Square Error (days per month)')
+            ax.set_xticks([0], minor=False)
+            ax.set_xticks(np.arange(-1, 1.1, 0.25), minor=True)
+            ax.tick_params(axis='x', which='major', labelsize=0)
+            ax.xaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
+            top = math.ceil(ax.get_ylim()[1]) + 1
+            ax.set_yticks(np.arange(0, top, 1), minor=False)
+            ax.set_yticks(np.arange(0, top - 0.5, 0.5), minor=True)
+            ax.grid(True, 'major', linestyle='-', color='black', zorder=0)
+            ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
+            plt.ylim(ymin=0)
+            plt.xlim(-1, 1)
+            legend = plt.legend(
+                handles=[Patch(facecolor=col, label=calendar.month_name[num + 1])
+                        for num, col in enumerate(color)],
+                loc='upper center',
+                bbox_to_anchor=(0.5, -0.15),
+                ncol=4,
+                frameon=False,
+            )
+            plt.legend(
+                handles=handles,
+                loc='upper left',
+                bbox_to_anchor=(1, 1),
+                ncol=1,
+                frameon=False,
+            )
+            ax.add_artist(legend)
 
-        box = ax.get_position()
-        ax.set_position(
-            [box.x0, box.y0 + box.height * 0.20,
-             box.width * 0.80, box.height * 0.80]
-        )
-        ax.set_title('Blocking 2D')
-        ax.set_xlabel('Pearson correlation')
-        ax.set_ylabel('Root Mean Square Error (days per month)')
-        ax.set_xticks([0], minor=False)
-        ax.set_xticks(np.arange(-1, 1.1, 0.25), minor=True)
-        ax.tick_params(axis='x', which='major', labelsize=0)
-        ax.xaxis.set_minor_formatter(FormatStrFormatter("%.2f"))
-        top = math.ceil(ax.get_ylim()[1]) + 1
-        ax.set_yticks(np.arange(0, top, 1), minor=False)
-        ax.set_yticks(np.arange(0, top - 0.5, 0.5), minor=True)
-        ax.grid(True, 'major', linestyle='-', color='black', zorder=0)
-        ax.grid(True, 'minor', linestyle=':', color='black', zorder=0)
-        plt.ylim(ymin=0)
-        plt.xlim(-1, 1)
-        legend = plt.legend(
-            handles=[Patch(facecolor=col, label=calendar.month_name[num + 1])
-                     for num, col in enumerate(color)],
-            loc='upper center',
-            bbox_to_anchor=(0.5, -0.15),
-            ncol=4,
-            frameon=False,
-        )
-        plt.legend(
-            handles=handles,
-            loc='upper left',
-            bbox_to_anchor=(1, 1),
-            ncol=1,
-            frameon=False,
-        )
-        ax.add_artist(legend)
-
-        plt.savefig(os.path.join(
-            self.cfg[n.PLOT_DIR],
-            'blocking2D.png',
-        ))
-        plt.close()
+            plt.savefig(os.path.join(
+                self.cfg[n.PLOT_DIR],
+                'blocking2D.png',
+            ))
+            plt.close()
 
     def _get_blocking_indices(self, filename):
         result = self._blocking(filename)
@@ -385,13 +386,23 @@ class Blocking(object):
         ensemble = self.datasets.get_info(n.ENSEMBLE, filename)
         start = self.datasets.get_info(n.START_YEAR, filename)
         end = self.datasets.get_info(n.END_YEAR, filename)
+
+        plot_path = os.path.join(
+            self.cfg[n.PLOT_DIR],
+            project, dataset)
+        if ensemble is not None:
+            plot_path = os.path.join(plot_path, ensemble)
+        if not os.path.isdir(plot_path):
+            os.makedirs(plot_path)
+
         if ensemble is None:
             ensemble = ''
         else:
             ensemble += '_'
-        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
         if month is not None:
             name = '{}_{:02}'.format(name, month)
+        out_type = self.cfg[n.OUTPUT_FILE_TYPE]
+
         plot_filename = '{name}_{project}_{dataset}_' \
                         '{ensemble}{start}-{end}' \
                         '.{out_type}'.format(
@@ -403,13 +414,6 @@ class Blocking(object):
                             end=end,
                             out_type=out_type)
 
-        plot_path = os.path.join(
-            self.cfg[n.PLOT_DIR],
-            project, dataset)
-        if ensemble is not None:
-            plot_path = os.path.join(plot_path, ensemble)
-        if not os.path.isdir(plot_path):
-            os.makedirs(plot_path)
         return os.path.join(plot_path, plot_filename)
 
     def _smooth_over_longitude(self, cube):
