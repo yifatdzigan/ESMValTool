@@ -451,6 +451,8 @@ class Blocking(object):
             self, zg_high, zg_central, zg_low,
             north_distance, south_distance)
 
+        del self.latitude_data[low_lat]
+
         blocking_cube = self._create_blocking_cube(
             blocking_index, zg500, central_latitude, central_lat.bound)
 
