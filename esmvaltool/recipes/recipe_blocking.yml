@@ -1,16 +1,45 @@
+documentation:
+
+  description: |
+    Compute blocking index (1D and 2D)
+
+  authors:
+    - atha_pa
+    - schi_re
+
+  references:
+    - contact_authors
+
+  projects:
+    - primavera
+
 datasets:
 
-  - {dataset: EC-Earth3, institute: EC-Earth-Consortium, grid: gr,
-     project: CMIP6, activity: HighResMIP,  exp: highresSST-present, ensemble: r1i1p1f1, version: v20170911,
-     start_year: 1960,  end_year: 1964}
-# - {dataset: EC-Earth3-HR, expid: a0xi, institute: EC-Earth-Consortium, grid: gr,
-#    project: PRIMAVERA, exp: piControl,  ensemble: r1i1p1f1, version: v20180308,
-#    start_year: 1950,  end_year: 1955}
-# - {dataset: EC-Earth3-LR, expid: a13c, institute: EC-Earth-Consortium, grid: gr,
-#  project: PRIMAVERA, exp: historical,  ensemble: r1i1p1f1, version: v20180501,
-#  start_year: 1950,  end_year: 1999}
-#  - {dataset: ERA-Interim,  project: OBS,  type: reanaly,  version: 1,
-#     start_year: 1980, end_year: 1980,  tier: 3, cmor_table: CMIP6}
+  - {project: OBS,  dataset: 'NCEP-NCAR', type: 'recon',
+     start_year: 1950,  end_year: 2010}
+
+  - {dataset: CMCC-CM2-HR4, activity: HighResMIP, institute: CMCC, grid: gn,
+     project: CMIP6, exp: control-1950,  ensemble: r1i1p1f1, version: v20180509,
+     start_year: 1950,  end_year: 2050}
+  - {dataset: CMCC-CM2-VHR4, activity: HighResMIP, institute: CMCC, grid: gn,
+     project: CMIP6, exp: control-1950,  ensemble: r1i1p1f1, version: v20180705,
+     start_year: 1950,  end_year: 1985}
+  - {dataset: CNRM-CM6-1, activity: HighResMIP, institute: CNRM-CERFACS, grid: gr,
+     project: CMIP6, exp: control-1950,  ensemble: r2i1p1f2, version: v20180904,
+     start_year: 1950,  end_year: 2049}
+ # - {dataset: MPI-ESM1-2-XR, activity: HighResMIP, institute: MPI-M, grid: gn,
+ #    project: CMIP6, exp: control-1950,  ensemble: r1i1p1f1, version: v20180606,
+ #    start_year: 1950,  end_year: 2050}
+ # - {dataset: MPI-ESM1-2-HR, institute: MPI-M, grid: gn,
+ #    project: CMIP6, activity: HighResMIP, exp: control-1950,  ensemble: r1i1p1f1, version: v20180524,
+ #    start_year: 1950,  end_year: 2050}
+  - {dataset: ECMWF-IFS-HR, institute: ECMWF, grid: gr,
+     project: CMIP6, activity: HighResMIP, exp: control-1950,  ensemble: r1i1p1f1, version: v20170915,
+     start_year: 1950,  end_year: 2049}
+  - {dataset: ECMWF-IFS-LR, institute: ECMWF, grid: gr,
+     project: CMIP6, activity: HighResMIP, exp: control-1950,  ensemble: r1i1p1f1, version: v20180221,
+     start_year: 1950,  end_year: 2049}
+
 preprocessors:
   extract:
     extract_levels:
@@ -24,41 +53,28 @@ preprocessors:
     save:
       optimize_access: longitude time
 
-  regrid:
-    regrid:
-      target_grid: 2.5x2.5
-      scheme: linear
-    extract_levels:
-      levels: [50000,]
-      scheme: nearest
-    extract_region:
-      start_longitude: 0
-      end_longitude: 360
-      start_latitude: 20
-      end_latitude: 90
-
 diagnostics:
   blocking:
     description: Blocking
     variables:
       zg:
-        reference_dataset: ERA-Interim
+        reference_dataset: NCEP-NCAR
         mip: day
         field: T2M
         preprocessor: extract
     scripts:
-      # blocking1D:
-      #   script: blocking/blocking.py
-      #   title: "Blocking diagnostic 1D"
-      #   compute_2d: False
-      #   compute_1d: True
-      #   central_latitude: 60.0
-      #   span: 20.0
-      #   offset: 5.0
-      #   north_threshold: -10.0
-      #   south_threshold: 0.0
-      #   smoothing_window: 5
-      #   max_color_scale: 10
+#      blocking1D:
+#        script: blocking/blocking.py
+#        title: "Blocking diagnostic 1D"
+#        compute_2d: False
+#        compute_1d: True
+#        central_latitude: 60.0
+#        span: 20.0
+#        offset: 5.0
+#        north_threshold: -10.0
+#        south_threshold: 0.0
+#        smoothing_window: 5
+#        max_color_scale: 10
 
       blocking2D:
         script: blocking/blocking.py
@@ -70,24 +86,3 @@ diagnostics:
         south_threshold: 0.0
         persistence: 5
         max_color_scale: 10
-
-#  regridded_blocking:
-#    description: Blocking
-#    variables:
-#      zg:
-#        reference_dataset: ERA-Interim
-#        mip: day
-#        field: T2M
-#        preprocessor: regrid
-#    scripts:
-#      blocking:
-#        script: blocking/blocking.py
-#        title: "Blocking diagnostic"
-#        central_latitude: 60.0
-#        span: 20.0
-#        offset: 5.0
-#        north_threshold: -10.0
-#        south_threshold: 0.0
-##        months: [1,2]
-#        smoothing_window: 3
-#        max_color_scale: 10
