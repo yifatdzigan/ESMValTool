@@ -1,4 +1,4 @@
-"""ESMValTool - Earth System Model Evaluation Tool
+"""ESMValTool - Earth System Model Evaluation Tool.
 
 http://www.esmvaltool.org
 
@@ -63,7 +63,7 @@ ______________________________________________________________________
 
 
 def get_args():
-    """Define the `esmvaltool` command line"""
+    """Define the `esmvaltool` command line."""
     # parse command line args
     parser = argparse.ArgumentParser(
         description=HEADER,
@@ -99,7 +99,7 @@ def get_args():
 
 
 def main(args):
-    """Define the `esmvaltool` program"""
+    """Define the `esmvaltool` program."""
     recipe = args.recipe
     if not os.path.exists(recipe):
         installed_recipe = os.path.join(
@@ -165,7 +165,7 @@ def main(args):
 
 
 def process_recipe(recipe_file, config_user):
-    """Process recipe"""
+    """Process recipe."""
     if not os.path.isfile(recipe_file):
         raise OSError(errno.ENOENT, "Specified recipe file does not exist",
                       recipe_file)
@@ -234,6 +234,9 @@ def run():
     try:
         conf = main(args)
     except:  # noqa
+        if not logger.handlers:
+            # Add a logging handler if main failed to do so.
+            logging.basicConfig()
         logger.exception(
             "Program terminated abnormally, see stack trace "
             "below for more information",
