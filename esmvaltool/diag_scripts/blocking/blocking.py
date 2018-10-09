@@ -536,12 +536,12 @@ class Blocking(object):
         if month is None:
             ax.set_position(
                 [box.x0, box.y0 + box.height * 0.20,
-                box.width * 0.80, box.height * 0.80]
+                 box.width * 0.80, box.height * 0.80]
             )
         else:
             ax.set_position(
                 [box.x0, box.y0,
-                box.width * 0.80, box.height]
+                 box.width * 0.80, box.height]
             )
         if month is None:
             ax.set_title('Blocking 2D')
