@@ -23,5 +23,4 @@ class zg(Fix):
             [lat_slice for lat_slice in cube.slices_over('latitude')]
         ))
         cube = slices.merge_cube()
-        print(cube.coord('latitude'))
         return cube

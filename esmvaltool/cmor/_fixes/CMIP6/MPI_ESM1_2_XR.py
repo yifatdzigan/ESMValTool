@@ -2,6 +2,7 @@
 from netCDF4 import Dataset
 import iris.coords
 import iris.util
+from iris.cube import CubeList
 from ..fix import Fix
 
 
@@ -24,5 +25,8 @@ class zg(Fix):
         """
         zg = cube.coord('air_pressure')
         zg.var_name = 'plev'
-
+        slices = CubeList(reversed(
+            [lat_slice for lat_slice in cube.slices_over('latitude')]
+        ))
+        cube = slices.merge_cube()
         return cube
