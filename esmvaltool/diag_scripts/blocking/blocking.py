@@ -122,7 +122,7 @@ class Blocking(object):
                 max_lat = np.max(reference_2d.coord('latitude').bounds)
                 dataset_2d = regrid(dataset_2d, reference_2d, 'linear')
                 diff = dataset_2d - reference_2d
-                diff.long_name = 'Differences between model and' \
+                diff.long_name = 'Differences between model and ' \
                                  'reference in blocking index'
 
                 for diff_slice in diff.slices_over('month_number'):
