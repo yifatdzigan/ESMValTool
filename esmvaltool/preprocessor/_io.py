@@ -4,6 +4,7 @@ import os
 import shutil
 from itertools import groupby
 
+import dask
 import iris
 import iris.exceptions
 import yaml
@@ -112,7 +113,8 @@ def _save_cubes(cubes, **args):
             args['chunksizes'] = tuple(length if index in dims else 1
                                        for index, length
                                        in enumerate(cube.shape))
-        iris.save(cubes, **args)
+        with dask.config.set(scheduler='synchronous'):
+            iris.save(cubes, **args)
 
     return filename
 
