@@ -80,9 +80,12 @@ def fix_metadata(cube, short_name, project, dataset, cmor_table=None,
         If the checker detects errors in the metadata that it can not fix.
 
     """
+    print('Fix metadata')
     for fix in Fix.get_fixes(
             project=project, dataset=dataset, variable=short_name):
         cube = fix.fix_metadata(cube)
+    print('Check metadata')
+    print(cube)
     if cmor_table and mip:
         checker = _get_cmor_checker(
             table=cmor_table,

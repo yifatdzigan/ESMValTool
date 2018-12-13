@@ -117,7 +117,8 @@ def _replace_tags(path, variable, fx_var=None):
                            "your recipe entry".format(tag, variable))
 
         paths = _replace_tag(paths, original_tag, replacewith)
-
+    logger.debug('Paths: %s', paths)
+    logger.debug('variable: %s', variable)
     return paths
 
 
@@ -131,6 +132,7 @@ def _replace_tag(paths, tag, replacewith):
     else:
         text = _apply_caps(str(replacewith), lower, upper)
         result.extend(p.replace('[' + tag + ']', text) for p in paths)
+    logger.debug(result)
     return result
 
 
@@ -207,8 +209,12 @@ def _find_input_dirs(variable, rootpath, drs, fx_var=None):
     path_template = _select_drs(input_type, drs, project)
 
     dirnames = []
+    logger.debug('dirname_template: %s', path_template)
+    logger.debug('base_path: %s', root)
     for dirname_template in _replace_tags(path_template, variable, fx_var):
         for base_path in root:
+            logger.debug('dirname_template: %s', dirname_template)
+            logger.debug('base_path: %s', base_path)
             dirname = os.path.join(base_path, dirname_template)
             dirname = _resolve_latestversion(dirname)
             if os.path.exists(dirname):

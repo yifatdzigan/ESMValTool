@@ -166,6 +166,8 @@ def get_project_config(project):
 
 def get_institutes(variable):
     """Return the institutes given the dataset name in CMIP5."""
+    if 'institute' in variable:
+        return variable['institute']
     dataset = variable['dataset']
     project = variable['project']
     logger.debug("Retrieving institutes for dataset %s", dataset)
