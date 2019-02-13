@@ -8,6 +8,7 @@ import logging
 import iris
 from iris.cube import CubeList
 from iris.analysis import MEAN
+from iris.coord_categorisation import add_year
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +60,15 @@ def _mean_bias(cube, period):
         )
         fixed = cube_slice - mean_slice
         fixed.metadata = cube_slice.metadata
-        for fix_slice in fixed.slices_over('time'):
-            fix_slice.remove_coord('year')
-            corrected.append(fix_slice)
+        try:
+            for fix_slice in fixed.slices_over('time'):
+                fix_slice.remove_coord('year')
+                corrected.append(fix_slice)
+        except iris.exceptions.CoordinateNotFoundError:
+            fixed.append(fix_slice)
+            corrected.append(fixed)
 
     corrected = corrected.merge_cube()
     corrected.metadata = cube.metadata
+    add_year(corrected, 'time')
     return corrected
