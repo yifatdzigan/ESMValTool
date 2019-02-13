@@ -65,7 +65,7 @@ def _mean_bias(cube, period):
                 fix_slice.remove_coord('year')
                 corrected.append(fix_slice)
         except iris.exceptions.CoordinateNotFoundError:
-            fixed.append(fix_slice)
+            fixed.remove_coord('year')
             corrected.append(fixed)
 
     corrected = corrected.merge_cube()
