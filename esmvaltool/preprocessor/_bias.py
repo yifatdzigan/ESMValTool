@@ -60,6 +60,7 @@ def _mean_bias(cube, period):
         fixed = cube_slice - mean_slice
         fixed.metadata = cube_slice.metadata
         for fix_slice in fixed.slices_over('time'):
+            fix_slice.remove_coord('year')
             corrected.append(fix_slice)
 
     corrected = corrected.merge_cube()
