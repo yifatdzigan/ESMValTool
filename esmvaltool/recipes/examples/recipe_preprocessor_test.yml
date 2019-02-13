@@ -4,7 +4,7 @@
 documentation:
   description: |
     Various example preprocessors.
-    
+
   authors:
     - righ_ma
     - ande_bo
@@ -12,7 +12,7 @@ documentation:
 
   maintainer:
     - righ_ma
-    
+
   projects:
     - c3s-magic
 
@@ -69,6 +69,12 @@ preprocessors:
     mask_fillvalues: false
     multi_model_statistics: false
 
+  preprocessor_5:
+    bias_correction:
+      method: mean
+      options:
+        period: month
+
 diagnostics:
 
   diagnostic_1: &diag
@@ -99,4 +105,12 @@ diagnostics:
       pr:
         preprocessor: preprocessor_4
         field: T2Ms
+    scripts: null
+
+  diagnostic_5:
+    <<: *diag
+    variables:
+      ta:
+        preprocessor: preprocessor_5
+        field: T3M
     scripts: null

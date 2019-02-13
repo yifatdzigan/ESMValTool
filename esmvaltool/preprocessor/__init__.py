@@ -11,6 +11,7 @@ from .._task import BaseTask
 from ._area_pp import area_average as average_region
 from ._area_pp import area_slice as extract_region
 from ._area_pp import (zonal_means, extract_named_regions)
+from ._bias import bias_correction
 from ._derive import derive
 from ._download import download
 from ._io import (_get_debug_filename, cleanup, concatenate, load, save,
@@ -56,6 +57,8 @@ __all__ = [
     'mask_landsea',
     # Mask landseaice, sftgif only
     'mask_landseaice',
+    # Bias correction
+    'bias_correction',
     # Regridding
     'regrid',
     # Masking missing values
