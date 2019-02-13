@@ -69,5 +69,8 @@ def _mean_bias(cube, period):
 
     corrected = corrected.merge_cube()
     corrected.metadata = cube.metadata
-    add_year(corrected, 'time')
+    try:
+        add_year(corrected, 'time')
+    except iris.exceptions.CoordinateNotFoundError:
+        pass
     return corrected
